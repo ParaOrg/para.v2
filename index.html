@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para PH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-gray-100 m-0 p-0 overflow-hidden">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        const COLORS = ['#2563eb','#dc2626','#16a34a','#ea580c','#9333ea','#0891b2','#db2777','#ca8a04'];
+        const getColor = (name) => {
+            if (!name || name.includes('Walk')) return '#6b7280';
+            let h = 0; for(let i=0; i<name.length; i++) h = name.charCodeAt(i) + ((h<<5)-h);
+            return COLORS[Math.abs(h) % COLORS.length];
+        };
+
+        function App() {
+            const [origin, setOrigin] = useState('');
+            const [dest, setDest] = useState('');
+            const [routeData, setRouteData] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const mapRef = useRef(null), mapObj = useRef(null), layers = useRef([]);
+
+            useEffect(() => {
+                if (!mapObj.current && mapRef.current) {
+                    mapObj.current = L.map(mapRef.current).setView([14.60, 121.05], 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(mapObj.current);
+                }
+            }, []);
+
+            const search = async (e) => {
+                e.preventDefault(); setError(''); setRouteData(null); setLoading(true);
+                try {
+                    const r1 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(origin)}&limit=1&countrycodes=ph`).then(r=>r.json());
+                    const r2 = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(dest)}&limit=1&countrycodes=ph`).then(r=>r.json());
+                    if (!r1.length || !r2.length) throw new Error('Location not found. Be specific (e.g. Katipunan, QC).');
+                    
+                    const sC = { lat: parseFloat(r1[0].lat), lng: parseFloat(r1[0].lon) };
+                    const eC = { lat: parseFloat(r2[0].lat), lng: parseFloat(r2[0].lon) };
+
+                    const res = await fetch('http://127.0.0.1:8000/route', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ start_lat: sC.lat, start_lng: sC.lng, end_lat: eC.lat, end_lng: eC.lng })
+                    });
+
+                    // FIX 1: Read the body EXACTLY ONCE as text to prevent "body stream already read" crashes
+                    const textData = await res.text();
+
+                    if (!res.ok) {
+                        let errorMsg = textData;
+                        try {
+                            const errData = JSON.parse(textData);
+                            if (errData.detail) errorMsg = errData.detail;
+                        } catch (parseErr) {
+                            // Not JSON, safely keep the plain text error
+                        }
+                        throw new Error(errorMsg);
+                    }
+
+                    // FIX 2: Actually parse the successful JSON and update React state!
+                    const data = JSON.parse(textData);
+                    setRouteData(data);
+
+                    const map = mapObj.current;
+                    layers.current.forEach(l => map.removeLayer(l)); layers.current = [];
+                    layers.current.push(L.marker([sC.lat, sC.lng]).addTo(map).bindPopup("Start"));
+                    layers.current.push(L.marker([eC.lat, eC.lng]).addTo(map).bindPopup("End"));
+
+                    const bounds = [];
+                    // 'data' is now properly defined
+                    if (data.steps && Array.isArray(data.steps)) {
+                        data.steps.forEach(step => {
+                            if (step.polyline && step.polyline.length > 1) {
+                                const color = getColor(step.route_name);
+                                const weight = step.mode === 'ride' ? 6 : 4;
+                                const dash = step.mode !== 'ride' ? '5, 10' : null;
+                                const line = L.polyline(step.polyline, { color, weight, opacity: 0.85, dashArray: dash }).addTo(map);
+                                layers.current.push(line);
+                                step.polyline.forEach(pt => bounds.push(pt));
+                            }
+                        });
+                    }
+                    if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] });
+                } catch (err) { setError(err.message); } 
+                finally { setLoading(false); }
+            };
+
+            return (
+                <div className="h-screen h-[100dvh] w-screen flex flex-col lg:flex-row">
+                    <div className="w-full lg:w-96 p-4 flex flex-col gap-4 z-10 bg-white shadow-xl overflow-y-auto">
+                        <h1 className="text-xl font-bold text-blue-700">🚐 Para PH</h1>
+                        <form onSubmit={search} className="space-y-3">
+                            <input type="text" value={origin} onChange={e=>setOrigin(e.target.value)} placeholder="Origin" className="w-full px-3 py-2 border rounded-lg outline-none" required />
+                            <input type="text" value={dest} onChange={e=>setDest(e.target.value)} placeholder="Destination" className="w-full px-3 py-2 border rounded-lg outline-none" required />
+                            {error && <div className="text-red-600 text-sm bg-red-50 p-2 rounded border border-red-200">{error}</div>}
+                            <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white font-bold py-2 rounded-lg disabled:opacity-50">
+                                {loading ? 'Calculating...' : 'Find Route'}
+                            </button>
+                        </form>
+
+                        {routeData && (
+                            <div className="space-y-3 mt-2">
+                                <div className="grid grid-cols-2 gap-2 text-center">
+                                    <div className="bg-green-50 p-2 rounded"><p className="text-xs text-gray-500">Time</p><p className="font-bold text-green-700">{routeData.total_time_mins || 0}m</p></div>
+                                    <div className="bg-purple-50 p-2 rounded"><p className="text-xs text-gray-500">Dist</p><p className="font-bold text-purple-700">{routeData.total_distance_km || 0}km</p></div>
+                                </div>
+                                <div className="space-y-2">
+                                    {routeData.steps && routeData.steps.map((step, idx) => (
+                                        <div key={idx} className="flex items-start gap-2 p-2 bg-gray-50 rounded border border-gray-100">
+                                            <div className="w-3 h-3 rounded-full mt-1" style={{backgroundColor: getColor(step.route_name)}}></div>
+                                            <div>
+                                                <p className="font-semibold text-sm">{step.route_name}</p>
+                                                <p className="text-xs text-gray-500">{step.mode === 'ride' ? '🚐 Ride' : '🚶 Walk'} • {step.distance_km} km • {step.time_mins} mins</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 relative h-[50vh] lg:h-full"><div ref={mapRef} className="absolute inset-0"></div></div>
+                </div>
+            );
+        }
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
