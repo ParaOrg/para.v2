@@ -1,119 +1,141 @@
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse
-import networkx as nx
-import os
 import sqlite3
-
-from models import RouteRequest, RouteResponse, RouteStep, FeedbackRequest
-from graph_engine import haversine
+import networkx as nx
+from fastapi import APIRouter, Request
+from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
+from graph_engine import haversine, SPEED_WALK_KMH
+from llm_engine import parse_user_intent_async, geocode_location
 
 router = APIRouter()
 
-@router.get("/")
-def serve_frontend():
-    if os.path.exists("index.html"):
-        return FileResponse("index.html")
-    return {"error": "index.html not found."}
-
-@router.post("/route", response_model=RouteResponse)
-def get_route(req: RouteRequest, request: Request):
-    # Access the graph from the app state
-    G = request.app.state.transit_graph
-    all_nodes = request.app.state.all_nodes
+# --- Core Routing Logic ---
+def find_route(G: nx.DiGraph, req: RouteRequest) -> RouteResponse:
+    src_id = "VIRTUAL_SRC"
+    tgt_id = "VIRTUAL_TGT"
     
-    if G.number_of_nodes() == 0:
-        raise HTTPException(status_code=500, detail="Graph is empty.")
-
-    # Find closest nodes to user's start/end
-    start_candidates = sorted([(haversine(req.start_lat, req.start_lng, lat, lon), nid) for nid, (lat, lon) in all_nodes.items()], key=lambda x: x[0])
-    end_candidates = sorted([(haversine(req.end_lat, req.end_lng, lat, lon), nid) for nid, (lat, lon) in all_nodes.items()], key=lambda x: x[0])
-
-    SOURCE, TARGET = "VIRTUAL_SOURCE", "VIRTUAL_TARGET"
-    G_req = G.copy() # Copy graph to safely add virtual walking nodes per request
-    G_req.add_node(SOURCE, lat=req.start_lat, lon=req.start_lng)
-    G_req.add_node(TARGET, lat=req.end_lat, lon=req.end_lng)
-
-    MAX_WALK_M = 1000.0
-    for dist, node_id in start_candidates[:10]:
-        if dist <= MAX_WALK_M:
-            walk_time = (dist / 1000.0) / 4.0 * 60.0
-            G_req.add_edge(SOURCE, node_id, weight=walk_time, distance=dist, route_name="Walk to Stop", edge_type="walk")
-            
-    for dist, node_id in end_candidates[:10]:
-        if dist <= MAX_WALK_M:
-            walk_time = (dist / 1000.0) / 4.0 * 60.0
-            G_req.add_edge(node_id, TARGET, weight=walk_time, distance=dist, route_name="Walk to Dest", edge_type="walk")
-
-    if G_req.out_degree(SOURCE) == 0 or G_req.in_degree(TARGET) == 0:
-        raise HTTPException(status_code=404, detail="Locations too far from transit network.")
-
+    G.add_node(src_id, lat=req.origin_lat, lng=req.origin_lng)
+    G.add_node(tgt_id, lat=req.dest_lat, lng=req.dest_lng)
+    
     try:
-        path = nx.shortest_path(G_req, source=SOURCE, target=TARGET, weight="weight")
-    except nx.NetworkXNoPath:
-        raise HTTPException(status_code=404, detail="No connected route found.")
+        _connect_virtual_node(G, src_id, req.origin_lat, req.origin_lng, is_source=True)
+        _connect_virtual_node(G, tgt_id, req.dest_lat, req.dest_lng, is_source=False)
+        
+        # DIAGNOSTIC: See how many nodes the virtual points actually connected to
+        src_connections = G.degree(src_id)
+        tgt_connections = G.degree(tgt_id)
+        print(f"🔗 VIRTUAL SRC connected to {src_connections} transit nodes.")
+        print(f"🔗 VIRTUAL TGT connected to {tgt_connections} transit nodes.")
+        
+        if src_connections == 0 or tgt_connections == 0:
+            return RouteResponse(success=False, total_distance_m=0, total_duration_min=0, total_fare=0, steps=[], message="No transit nodes found within 1km of your locations. The map data might not cover this area.")
 
-    # Reconstruct steps
-    steps = []
-    current_step = None
-
-    for i in range(len(path) - 1):
-        u, v = path[i], path[i+1]
-        edge = G_req.edges[u, v]
-        e_type = edge.get("edge_type", "ride")
-        r_name = edge.get("route_name", "Unknown")
-        dist = edge.get("distance", 0)
-        time_mins = edge.get("weight", 0)
-        u_data, v_data = G_req.nodes[u], G_req.nodes[v]
-
-        if current_step and current_step["route_name"] == r_name and current_step["edge_type"] == e_type:
-            current_step["distance"] += dist
-            current_step["time"] += time_mins
-            current_step["polyline"].append([v_data["lat"], v_data["lon"]])
-        else:
-            if current_step: steps.append(current_step)
-            current_step = {
-                "route_name": r_name, "edge_type": e_type, "distance": dist, "time": time_mins,
-                "polyline": [[u_data["lat"], u_data["lon"]], [v_data["lat"], v_data["lon"]]]
-            }
+        path = nx.shortest_path(G, source=src_id, target=tgt_id, weight='time_min')
+        
+        # DIAGNOSTIC: See the actual path it found
+        print(f"🛣️ PATH FOUND: {len(path)} nodes. First 5 nodes: {path[:5]}")
+        
+        steps = []
+        total_dist = 0.0
+        total_fare = 0.0
+        total_time = 0.0
+        
+        for i in range(len(path) - 1):
+            u, v = path[i], path[i+1]
+            edge_data = G.edges[u, v]
+            dist = edge_data['distance']
+            time_min = edge_data['time_min']
             
-    if current_step: steps.append(current_step)
+            total_dist += dist
+            total_time += time_min
+            
+            if edge_data['type'] == 'jeep':
+                fare = 15.0 + max(0, (dist / 1000 - 4)) * 2.5
+                total_fare += fare
+            else:
+                fare = 0.0
+                
+            steps.append(RouteStep(
+                action="board" if edge_data['type'] != 'walk' else "walk",
+                vehicle_type=edge_data['type'],
+                route_name=edge_data.get('route', 'Unknown'),
+                from_node=u,
+                to_node=v,
+                distance_m=dist,
+                duration_min=time_min,
+                fare=fare,
+                geometry=[[G.nodes[u]['lng'], G.nodes[u]['lat']], [G.nodes[v]['lng'], G.nodes[v]['lat']]]
+            ))
+            
+        return RouteResponse(
+            success=True,
+            total_distance_m=total_dist,
+            total_duration_min=total_time,
+            total_fare=total_fare,
+            steps=steps,
+            message=f"Route found! {total_time:.0f} mins, ₱{total_fare:.0f}."
+        )
+    except nx.NetworkXNoPath:
+        return RouteResponse(success=False, total_distance_m=0, total_duration_min=0, total_fare=0, steps=[], message="No path found. The locations might not be connected.")
+    finally:
+        if G.has_node(src_id): G.remove_node(src_id)
+        if G.has_node(tgt_id): G.remove_node(tgt_id)
 
-    # Format response
-    formatted_steps = []
-    total_dist, total_time, total_fare = 0, 0, 0
+def _connect_virtual_node(G, v_node, lat, lng, is_source):
+    candidates = []
+    for node, node_attrs in G.nodes(data=True): 
+        if node.startswith("VIRTUAL"): continue
+        dist = haversine(lat, lng, node_attrs['lat'], node_attrs['lng'])
+        
+        if dist < 1000:  
+            walk_time_min = (dist / 1000) / SPEED_WALK_KMH * 60
+            candidates.append((node, dist, walk_time_min))
+            
+    candidates.sort(key=lambda x: x[2])
+    
+    for node, dist, walk_time in candidates[:10]:
+        if is_source:
+            G.add_edge(v_node, node, distance=dist, time_min=walk_time, route="WALK_TO_TRANSIT", type="walk")
+        else:
+            G.add_edge(node, v_node, distance=dist, time_min=walk_time, route="WALK_FROM_TRANSIT", type="walk")
 
-    for s in steps:
-        dist_km = s["distance"] / 1000.0
-        total_dist += dist_km
-        total_time += s["time"]
-        fare = 15.0 + max(0.0, (dist_km - 4.0)) * 2.5 if s["edge_type"] == "ride" else 0.0
-        if s["edge_type"] == "ride": total_fare += fare
+# --- API Endpoints ---
+@router.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(msg: ChatMessage, request: Request):
+    G = request.app.state.G
+    
+    print(f"\n{'='*60}")
+    print(f"📩 RAW MESSAGE: {msg.message}")
+    
+    intent = await parse_user_intent_async(msg.message)
+    print(f"🧠 EXTRACTED: Origin='{intent['origin']}', Dest='{intent['destination']}'")
+    
+    o_coords = geocode_location(intent['origin'])
+    d_coords = geocode_location(intent['destination'])
+    print(f"📍 GEOCODED: Start={o_coords}, End={d_coords}")
+    
+    # DIAGNOSTIC: Calculate straight-line distance between start and end
+    if o_coords and d_coords:
+        straight_dist = haversine(o_coords[0], o_coords[1], d_coords[0], d_coords[1])
+        print(f"📏 STRAIGHT LINE DISTANCE: {straight_dist:.0f} meters")
+    
+    if not o_coords or not d_coords:
+        return ChatResponse(reply_text="Hindi ko mahanap ang lokasyon.", route_data=None)
 
-        formatted_steps.append(RouteStep(
-            route_name=s["route_name"], mode=s["edge_type"],
-            from_lat=s["polyline"][0][0], from_lng=s["polyline"][0][1],
-            to_lat=s["polyline"][-1][0], to_lng=s["polyline"][-1][1],
-            distance_km=round(dist_km, 2), time_mins=round(s["time"], 1),
-            fare=round(fare, 2), polyline=s["polyline"]
-        ))
-
-    return RouteResponse(
-        total_fare=round(total_fare, 2), total_time_mins=round(total_time, 1),
-        total_distance_km=round(total_dist, 2), steps=formatted_steps
-    )
+    req = RouteRequest(origin_lat=o_coords[0], origin_lng=o_coords[1], dest_lat=d_coords[0], dest_lng=d_coords[1])
+    route_res = find_route(G, req)
+    
+    reply = f"📍 Start: {intent['origin']}\n🏁 End: {intent['destination']}\n\n{route_res.message}"
+    print(f"{'='*60}\n")
+    
+    return ChatResponse(reply_text=reply, route_data=route_res)
 
 @router.post("/feedback")
-def submit_feedback(req: FeedbackRequest):
-    try:
-        conn = sqlite3.connect("para_ml_data.db")
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO route_feedback 
-            (start_lat, start_lng, end_lat, end_lng, suggested_steps, estimated_time, estimated_fare, is_approved)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (req.start_lat, req.start_lng, req.end_lat, req.end_lng, req.suggested_steps, req.estimated_time, req.estimated_fare, req.is_approved))
-        conn.commit()
-        conn.close()
-        return {"status": "success", "message": "Feedback recorded."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+async def submit_feedback(feedback: FeedbackRequest):
+    db = sqlite3.connect("para_ml_data.db")
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO route_feedback (user_id, route_id, rating, comment, timestamp)
+        VALUES (?, ?, ?, ?, datetime('now'))
+    """, (feedback.user_id, feedback.route_id, feedback.rating, feedback.comment))
+    db.commit()
+    db.close()
+    return {"status": "success"}
