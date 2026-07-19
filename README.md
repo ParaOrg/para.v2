@@ -1,4 +1,4 @@
-# 🚐 Para PH: AI-Powered Multimodal Transit Routing Engine (v1.1.1)
+# 🚐 Para PH: AI-Powered Multimodal Transit Routing Engine (v1.1.2)
 Para PH is a lightweight, self-learning, multimodal transit routing engine designed specifically for the unique and chaotic public transportation network of the Philippines (Jeepneys, LRT, MRT, UV Express, and Buses).
 Moving beyond static map algorithms, Para PH uses local Large Language Models (LLMs) for natural language understanding, crowdsourced machine learning to memorize commuter-approved routes, and commuter-realistic math to minimize painful transfers.
 
