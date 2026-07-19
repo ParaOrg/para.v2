@@ -31,19 +31,41 @@ app.include_router(router)
 def init_db():
     db = sqlite3.connect("para_ml_data.db")
     cursor = db.cursor()
+    
+    # 1. Original feedback table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS route_feedback (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            route_id TEXT,
-            rating INTEGER,
-            comment TEXT,
-            timestamp TEXT
+            user_id TEXT, route_id TEXT, rating INTEGER, comment TEXT, timestamp TEXT
         )
     """)
+    
+    # 2. NEW: Llama's Acronym Memory (Replaces the .txt file idea)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS acronym_memory (
+            slang TEXT PRIMARY KEY, 
+            formal_name TEXT
+        )
+    """)
+    
+    # 3. NEW: Crowdsourced Approved Routes (The "Mode" Engine)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS approved_routes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            origin TEXT, 
+            destination TEXT, 
+            path_nodes TEXT, -- JSON string of the exact nodes taken
+            total_fare REAL,
+            total_time REAL,
+            rating_sum INTEGER DEFAULT 0,
+            trip_count INTEGER DEFAULT 1,
+            UNIQUE(origin, destination, path_nodes)
+        )
+    """)
+    
     db.commit()
     db.close()
-
+    
 @app.get("/")
 async def serve_frontend():
     return FileResponse("index.html")

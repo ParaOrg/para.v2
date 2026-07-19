@@ -7,7 +7,7 @@ from collections import defaultdict
 # --- Speed & Penalty Constants ---
 SPEED_JEEP_KMH = 30.0      # Average jeepney speed in PH traffic
 SPEED_WALK_KMH = 4.0       # Average walking speed
-TRANSFER_PENALTY_MIN = 5.0 # Time penalty to board/transfer vehicles
+TRANSFER_PENALTY_MIN = 100.0 # Time penalty to board/transfer vehicles
 
 # --- Spatial Math ---
 def haversine(lat1, lon1, lat2, lon2):
@@ -43,7 +43,7 @@ def build_transit_graph(data_dir: str) -> nx.DiGraph:
                 for feature in features:
                     props = feature.get("properties", {})
                     
-                    route_name = props.get("name", file.replace(".geojson", ""))
+                    route_name = props.get("route_long_name") or props.get("name") or file.replace(".geojson", "")
                     vehicle_type = props.get("type", "jeep")
                     is_bidirectional = props.get("bidirectional", False)
 
@@ -56,8 +56,13 @@ def build_transit_graph(data_dir: str) -> nx.DiGraph:
                         line_coords = geom.get("coordinates", [])
                         _process_line(G, spatial_grid, line_coords, route_name, vehicle_type, is_bidirectional, GRID_SIZE)
 
-    # Inject Transfer (Walk) Edges using Spatial Hashing
+     # Inject Transfer (Walk) Edges using Spatial Hashing
     _inject_transfer_edges(G, spatial_grid)
+    
+    # PERFORMANCE FIX: Attach the grid to the graph for fast virtual node lookups
+    G.graph['spatial_grid'] = spatial_grid
+    G.graph['grid_size'] = GRID_SIZE 
+    
     return G
 
 def _process_line(G, spatial_grid, line_coords, route_name, vehicle_type, is_bidirectional, grid_size):
@@ -81,7 +86,10 @@ def _process_line(G, spatial_grid, line_coords, route_name, vehicle_type, is_bid
             if dist < 500: 
                 # Calculate time in minutes based on vehicle speed
                 time_min = (dist / 1000) / SPEED_JEEP_KMH * 60
-                
+
+                # NEW: Composite weight. Adds 0.5 "minutes" per km to prefer shorter distances
+                routing_weight = time_min + (dist / 1000) * 0.5 
+
                 if not G.has_edge(prev_node, node_id):
                     G.add_edge(prev_node, node_id, distance=dist, time_min=time_min, route=route_name, type=vehicle_type)
                 if is_bidirectional and not G.has_edge(node_id, prev_node):
@@ -107,4 +115,7 @@ def _inject_transfer_edges(G, spatial_grid):
                     if 0 < dist < 100 and not G.has_edge(node_a, node_b):
                         # Walking time + Transfer Penalty
                         time_min = ((dist / 1000) / SPEED_WALK_KMH * 60) + TRANSFER_PENALTY_MIN
+                        
+                        # NEW: Transfer edges use the time_min (which already includes the 15min penalty)
+                        routing_weight = time_min 
                         G.add_edge(node_a, node_b, distance=dist, time_min=time_min, route="WALK_TRANSFER", type="walk")

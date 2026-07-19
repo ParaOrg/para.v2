@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Para PH</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -10,10 +10,6 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        /* Prevent pull-to-refresh on mobile for a native app feel */
-        body { overscroll-behavior-y: none; }
-    </style>
 </head>
 <body class="bg-gray-100 h-screen w-screen overflow-hidden m-0 p-0">
     <div id="root" class="w-full h-full relative"></div>
@@ -21,78 +17,162 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        // ==========================================
+        // 1. STEP-BY-STEP DIRECTION COMPONENT
+        // ==========================================
+        const StepByStep = ({ steps, title, colorClass }) => {
+            const [isOpen, setIsOpen] = useState(colorClass === 'blue');
+
+            return (
+                <div className="border border-gray-200 rounded-lg overflow-hidden mb-2 bg-white shadow-sm">
+                    <div onClick={() => setIsOpen(!isOpen)} className="flex justify-between items-center p-3 bg-gray-50 cursor-pointer hover:bg-gray-100">
+                        <span className={`font-bold text-xs uppercase text-${colorClass}-600`}>{title}</span>
+                        <span className="text-gray-500 text-xs">{isOpen ? '▲ Hide' : '▼ Show'}</span>
+                    </div>
+                    {isOpen && (
+                        <div className="p-3 space-y-2 max-h-48 overflow-y-auto border-t border-gray-100">
+                            {steps.map((step, i) => (
+                                <div key={i} className="flex items-center gap-2 text-xs">
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${step.action === 'walk' ? 'bg-gray-400' : 'bg-blue-500'}`}></span>
+                                    <div className="flex-1 flex justify-between items-center">
+                                        <span>
+                                            <span className="capitalize font-semibold">{step.action}</span>
+                                            {step.route_name && step.action !== 'walk' && (
+                                                <span className="text-blue-600 ml-1">({step.route_name})</span>
+                                            )}
+                                        </span>
+                                        <span className="text-gray-500 whitespace-nowrap ml-2">
+                                            {step.duration_min.toFixed(0)}m • ₱{step.fare.toFixed(0)}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 2. ML RATING SYSTEM COMPONENT
+        // ==========================================
+        const RatingSystem = ({ routeData, origin, dest }) => {
+            const [voted, setVoted] = useState(null);
+
+            const castVote = (score) => {
+                setVoted(score);
+                fetch('/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: 'beta_tester_01', 
+                        route_id: `route_${Date.now()}`, 
+                        rating: score, 
+                        comment: "",
+                        origin_name: origin || "",
+                        destination_name: dest || "",
+                        route_nodes: routeData ? routeData.path_nodes : [],
+                        total_fare: routeData ? routeData.total_fare : 0,
+                        total_time: routeData ? routeData.total_duration_min : 0
+                    })
+                }).catch(err => console.error("Feedback error:", err));
+            };
+
+            if (voted !== null) {
+                return <div className="text-center text-green-600 text-xs mt-3 font-semibold">✅ Salamat sa feedback! (Rating: {voted}/7)</div>;
+            }
+
+            return (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-xs text-gray-500 text-center mb-2">Is this route accurate for a local commuter?</p>
+                    <div className="flex justify-center gap-6">
+                        <button onClick={() => castVote(7)} className="flex flex-col items-center hover:scale-110 transition-transform" title="Perfect Local Route (7)">
+                            <span className="text-2xl">👍</span>
+                            <span className="text-[10px] text-gray-500">Perfect</span>
+                        </button>
+                        <button onClick={() => castVote(3)} className="flex flex-col items-center hover:scale-110 transition-transform" title="Acceptable but flawed (3)">
+                            <span className="text-2xl">😐</span>
+                            <span className="text-[10px] text-gray-500">Okay</span>
+                        </button>
+                        <button onClick={() => castVote(1)} className="flex flex-col items-center hover:scale-110 transition-transform" title="Hallucinated/Impossible (1)">
+                            <span className="text-2xl">👎</span>
+                            <span className="text-[10px] text-gray-500">Wrong</span>
+                        </button>
+    </div>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // 3. MAIN APP COMPONENT
+        // ==========================================
         function App() {
             const [messages, setMessages] = useState([
                 { sender: 'bot', text: 'Kumusta! Saan tayo papunta? (e.g., "From Cubao to Ayala")' }
             ]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
-            const mapRef = useRef(null);
+            
             const mapInstanceRef = useRef(null);
-            const routeLayerRef = useRef(null);
-            const chatEndRef = useRef(null);
+            const layersRef = useRef([]);
 
-            // Initialize Map
             useEffect(() => {
                 if (!mapInstanceRef.current) {
-                    // Default to Manila
-                    mapInstanceRef.current = L.map('map', { zoomControl: false }).setView([14.5995, 120.9842], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '© OpenStreetMap'
-                    }).addTo(mapInstanceRef.current);
-                    
-                    // Move zoom control to bottom right so it doesn't overlap chat
+                    mapInstanceRef.current = L.map('map', { zoomControl: false }).setView([14.5995, 120.9842], 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstanceRef.current);
                     L.control.zoom({ position: 'bottomright' }).addTo(mapInstanceRef.current);
                 }
             }, []);
 
-            // Auto-scroll chat to bottom
-            useEffect(() => {
-                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, [messages]);
+            const drawRoutes = (primary, alts) => {
+                layersRef.current.forEach(l => mapInstanceRef.current.removeLayer(l));
+                layersRef.current = [];
 
-            const drawRoute = (routeData) => {
-                if (routeLayerRef.current) {
-                    mapInstanceRef.current.removeLayer(routeLayerRef.current);
+                const drawLine = (route, color, weight) => {
+                    const latlngs = route.steps.flatMap(s => s.geometry.map(c => [c[1], c[0]]));
+                    const layer = L.polyline(latlngs, { color, weight, opacity: 0.8 }).addTo(mapInstanceRef.current);
+                    layersRef.current.push(layer);
+                    return layer;
+                };
+
+                if (alts && alts.length > 0) {
+                    alts.forEach(alt => drawLine(alt, '#9ca3af', 4));
                 }
-                
-                const latlngs = [];
-                routeData.steps.forEach(step => {
-                    step.geometry.forEach(coord => {
-                        latlngs.push([coord[1], coord[0]]); // Leaflet uses [lat, lng]
-                    });
-                });
-
-                if (latlngs.length > 0) {
-                    routeLayerRef.current = L.polyline(latlngs, { color: '#2563eb', weight: 6, opacity: 0.8 }).addTo(mapInstanceRef.current);
-                    mapInstanceRef.current.fitBounds(routeLayerRef.current.getBounds(), { padding: [50, 50] });
+                if (primary) {
+                    const primaryLayer = drawLine(primary, '#2563eb', 6);
+                    mapInstanceRef.current.fitBounds(primaryLayer.getBounds(), { padding: [50, 50] });
                 }
             };
 
             const sendMessage = async () => {
                 if (!input.trim()) return;
                 
-                const userMsg = { sender: 'user', text: input };
-                setMessages(prev => [...prev, userMsg]);
+                setMessages(prev => [...prev, { sender: 'user', text: input }]);
+                const currentInput = input;
                 setInput('');
                 setIsLoading(true);
 
                 try {
-                    // STRICT RULE: Frontend Fetch Safety. Read as text ONCE, then parse.
                     const res = await fetch('/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ user_id: 'demo_user', message: input })
+                        body: JSON.stringify({ user_id: 'demo_user', message: currentInput })
                     });
                     
                     const textData = await res.text();
                     const data = JSON.parse(textData);
 
-                    const botMsg = { sender: 'bot', text: data.reply_text };
-                    setMessages(prev => [...prev, botMsg]);
+                    setMessages(prev => [...prev, { 
+                        sender: 'bot', 
+                        text: data.reply_text, 
+                        routeData: data.route_data, 
+                        alts: data.alternatives,
+                        origin: data.origin,    // Captured from backend
+                        dest: data.destination  // Captured from backend
+                    }]);
 
-                    if (data.route_data && data.route_data.success) {
-                        drawRoute(data.route_data);
+                    if (data.route_data) {
+                        drawRoutes(data.route_data, data.alternatives);
                     }
                 } catch (error) {
                     console.error("Fetch error:", error);
@@ -104,41 +184,69 @@
 
             return (
                 <>
-                    {/* Full Screen Map Background */}
                     <div id="map" className="absolute inset-0 z-0"></div>
 
-                    {/* Floating Chat Overlay */}
-                    <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 z-10 flex flex-col max-h-[70vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-                        
-                        {/* Header */}
-                        <div className="bg-blue-600 text-white p-3 font-bold text-sm md:text-base flex items-center gap-2 shadow-sm">
-                            <span>🚐</span> Para PH
+                    <div className="absolute bottom-4 left-4 right-4 md:right-auto md:w-96 z-10 flex flex-col max-h-[85vh] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                        <div className="bg-blue-600 text-white p-3 font-bold text-sm flex items-center gap-2 shadow-sm">
+                            🚐 Para PH <span className="text-xs font-normal opacity-80">v1.1</span>
                         </div>
                         
-                        {/* Messages Area */}
-                        <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-[200px] max-h-[40vh]">
+                        <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-[200px]">
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
+                                    <div className={`max-w-[95%] p-3 rounded-2xl text-sm leading-relaxed ${
                                         msg.sender === 'user' 
                                             ? 'bg-blue-600 text-white rounded-br-none' 
-                                            : 'bg-gray-100 text-gray-800 rounded-bl-none border border-gray-200'
+                                            : 'bg-white text-gray-800 rounded-bl-none border border-gray-200 shadow-sm'
                                     }`}>
-                                        {msg.text}
+                                        <div className="whitespace-pre-wrap mb-2">{msg.text}</div>
+
+                                        {msg.routeData && msg.routeData.success && (
+                                            <div className="mt-2">
+                                                <StepByStep 
+                                                    steps={msg.routeData.steps} 
+                                                    title={`✅ Primary: ${msg.routeData.message}`} 
+                                                    colorClass="blue" 
+                                                />
+
+                                                {msg.alts && msg.alts.length > 0 && (
+                                                    <div className="mt-2">
+                                                        <p className="text-[10px] text-gray-400 uppercase font-bold mb-1 px-1">Alternative Routes (if congested)</p>
+                                                        {msg.alts.map((alt, i) => (
+                                                            <StepByStep 
+                                                                key={i} 
+                                                                steps={alt.steps} 
+                                                                title={`🔄 Alt ${i+1}: ${alt.message}`} 
+                                                                colorClass="gray" 
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <button className="w-full mt-3 bg-green-500 text-white py-2 rounded-lg font-bold text-sm hover:bg-green-600 shadow-sm transition-colors">
+                                                    🚀 Start Navigation
+                                                </button>
+
+                                                {/* PASS THE DATA TO THE RATING SYSTEM */}
+                                                <RatingSystem 
+                                                    routeData={msg.routeData} 
+                                                    origin={msg.origin} 
+                                                    dest={msg.dest} 
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
                             {isLoading && (
                                 <div className="flex justify-start">
-                                    <div className="bg-gray-100 text-gray-500 p-3 rounded-2xl rounded-bl-none text-sm italic border border-gray-200">
+                                    <div className="bg-white border border-gray-200 text-gray-500 p-3 rounded-2xl rounded-bl-none text-sm italic shadow-sm">
                                         Naghahanap ng ruta...
                                     </div>
                                 </div>
                             )}
-                            <div ref={chatEndRef} />
                         </div>
 
-                        {/* Input Area */}
                         <div className="p-3 border-t border-gray-200 bg-white flex gap-2">
                             <input 
                                 type="text" 
@@ -146,12 +254,12 @@
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                                 placeholder="Saan papunta?"
-                                className="flex-1 bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="flex-1 bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             <button 
                                 onClick={sendMessage} 
                                 disabled={isLoading}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+                                className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 disabled:opacity-50 font-medium text-sm"
                             >
                                 Send
                             </button>
