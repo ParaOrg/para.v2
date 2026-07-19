@@ -2,7 +2,7 @@
 Para PH is a lightweight, self-learning, multimodal transit routing engine designed specifically for the unique and chaotic public transportation network of the Philippines (Jeepneys, LRT, MRT, UV Express, and Buses).
 Moving beyond static map algorithms, Para PH uses local Large Language Models (LLMs) for natural language understanding, crowdsourced machine learning to memorize commuter-approved routes, and commuter-realistic math to minimize painful transfers.
 
-## ✨ Key Features (v1.1.1)
+## ✨ Key Features (v1.1.2)
 
 **🧠 AI & Natural Language Processing:** Understands Taglish and local slang (e.g., "From admu to ust"). Uses a local Llama 3.2 model for intent parsing, with a robust regex fallback if offline.
 
