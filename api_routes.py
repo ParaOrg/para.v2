@@ -1,6 +1,7 @@
 import sqlite3
 import json
 import networkx as nx
+import uuid
 from fastapi import APIRouter, Request
 from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
 from graph_engine import haversine, SPEED_WALK_KMH
@@ -142,8 +143,11 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
 # CORE ROUTING: Edge Penalty Method (Fast & Guaranteed Alternatives)
 # ==========================================
 def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
-    src_id = "VIRTUAL_SRC"
-    tgt_id = "VIRTUAL_TGT"
+    # FIX: Generate a unique ID for every single request to prevent race conditions
+    unique_id = str(uuid.uuid4())[:8] 
+    src_id = f"VIRTUAL_SRC_{unique_id}"
+    tgt_id = f"VIRTUAL_TGT_{unique_id}"
+    
     G.add_node(src_id, lat=req.origin_lat, lng=req.origin_lng)
     G.add_node(tgt_id, lat=req.dest_lat, lng=req.dest_lng)
     
@@ -151,8 +155,7 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
         _connect_virtual_node(G, src_id, req.origin_lat, req.origin_lng, is_source=True)
         _connect_virtual_node(G, tgt_id, req.dest_lat, req.dest_lng, is_source=False)
         
-        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0:
-            return None, []
+        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0: return None, []
 
         # 1. Find Primary Route
         try:
@@ -161,19 +164,14 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
             return None, []
             
         route_1 = _calculate_route_from_path(G, path_1)
-        if not route_1:
-            return None, []
+        if not route_1: return None, []
 
         # 2. Find Alternative Route using EDGE PENALTY
         penalized_edges = []
         for i in range(len(path_1) - 1):
             u, v = path_1[i], path_1[i+1]
-            
-            # Safely get the weight, fallback to time_min if routing_weight is missing
             original_weight = G.edges[u, v].get('routing_weight', G.edges[u, v].get('time_min', 1.0))
             penalized_edges.append((u, v, original_weight))
-            
-            # Apply 300% penalty to force a different route
             G.edges[u, v]['routing_weight'] = original_weight * 3.0
 
         try:
@@ -182,13 +180,10 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
         except nx.NetworkXNoPath:
             route_2 = None
         finally:
-            # CRITICAL: Always restore the original edge weights!
             for u, v, orig_weight in penalized_edges:
                 G.edges[u, v]['routing_weight'] = orig_weight
 
         all_routes = [route_1]
-        
-        # Only add Route 2 if it's actually different from Route 1
         if route_2 and route_2.steps:
             if route_2.total_distance_m != route_1.total_distance_m or len(route_2.steps) != len(route_1.steps):
                 all_routes.append(route_2)
@@ -196,9 +191,10 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
         return all_routes[0], all_routes[1:]
 
     finally:
+        # FIX: Safely remove only THIS request's unique nodes
         if G.has_node(src_id): G.remove_node(src_id)
         if G.has_node(tgt_id): G.remove_node(tgt_id)
-        
+
 # ==========================================
 # API ENDPOINTS
 # ==========================================
@@ -270,6 +266,11 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
     reply = f"📍 {origin_name} ➡️ {dest_name}\n✅ {primary_route.message}"
     if alt_routes:
         reply += f"\n🔄 May {len(alt_routes)} pang alternatibong ruta (tingnan sa baba)."
+    
+    print(f"📦 SENDING TO FRONTEND: route_data is {'NULL' if not primary_route else 'VALID'}")
+    if primary_route and primary_route.steps:
+        print(f"   📊 Total Steps: {len(primary_route.steps)}")
+        print(f"   📏 First step geometry points: {len(primary_route.steps[0].geometry)}")
         
     # HERE IS THE RETURN CHATRESPONSE:
     return ChatResponse(

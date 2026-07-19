@@ -86,4 +86,10 @@ python main.py
 
 **POI Autocomplete:** A live, fuzzy-search dropdown in the chat UI powered by the 56,000+ ingested OpenStreetMap points.
 
+# Important Notes
+1. The path mixes routes, notable bridge and road paths.
+- Does not know proper exits out of establishments, leading to weird path generation
+- The fix: manual route mapping of proper exits, campus maps, or online databases.
+2. Does not follow road rules just yet.
+
 *Para PH v1.1.1 - Built by commuters, for commuters. 🇵🇭🚐*

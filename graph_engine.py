@@ -7,7 +7,7 @@ from collections import defaultdict
 # --- Speed & Penalty Constants ---
 SPEED_JEEP_KMH = 30.0      # Average jeepney speed in PH traffic
 SPEED_WALK_KMH = 4.0       # Average walking speed
-TRANSFER_PENALTY_MIN = 100.0 # Time penalty to board/transfer vehicles
+TRANSFER_PENALTY_MIN = 10.0 # Time penalty to board/transfer vehicles
 
 # --- Spatial Math ---
 def haversine(lat1, lon1, lat2, lon2):
@@ -84,16 +84,16 @@ def _process_line(G, spatial_grid, line_coords, route_name, vehicle_type, is_bid
             
             # STRICT RULE: No Teleportation. Prevent GPS gaps from creating straight lines.
             if dist < 500: 
-                # Calculate time in minutes based on vehicle speed
                 time_min = (dist / 1000) / SPEED_JEEP_KMH * 60
-
-                # NEW: Composite weight. Adds 0.5 "minutes" per km to prefer shorter distances
                 routing_weight = time_min + (dist / 1000) * 0.5 
-
+                
+                # 1. Add the forward edge
                 if not G.has_edge(prev_node, node_id):
-                    G.add_edge(prev_node, node_id, distance=dist, time_min=time_min, route=route_name, type=vehicle_type)
-                if is_bidirectional and not G.has_edge(node_id, prev_node):
-                    G.add_edge(node_id, prev_node, distance=dist, time_min=time_min, route=route_name, type=vehicle_type)
+                    G.add_edge(prev_node, node_id, distance=dist, time_min=time_min, routing_weight=routing_weight, route=route_name, type=vehicle_type)
+                
+                # 2. THE FIX: Force the reverse edge for ALL transit (Jeepneys always have a return trip!)
+                if not G.has_edge(node_id, prev_node):
+                    G.add_edge(node_id, prev_node, distance=dist, time_min=time_min, routing_weight=routing_weight, route=route_name, type=vehicle_type)
         prev_node = node_id
 
 def _inject_transfer_edges(G, spatial_grid):
@@ -112,10 +112,11 @@ def _inject_transfer_edges(G, spatial_grid):
                     dist = haversine(a_attrs['lat'], a_attrs['lng'], b_attrs['lat'], b_attrs['lng'])
                     
                     # If physically close but different nodes, and not already connected
-                    if 0 < dist < 100 and not G.has_edge(node_a, node_b):
-                        # Walking time + Transfer Penalty
-                        time_min = ((dist / 1000) / SPEED_WALK_KMH * 60) + TRANSFER_PENALTY_MIN
+                    if 0 < dist < 1000 and not G.has_edge(node_a, node_b):
+                        # THE FIX: Add the massive 30-minute penalty to the time
+                        time_min = ((dist / 100) / SPEED_WALK_KMH * 60) + TRANSFER_PENALTY_MIN
                         
-                        # NEW: Transfer edges use the time_min (which already includes the 15min penalty)
+                        # THE FIX: Transfer edges use the penalized time as their weight
                         routing_weight = time_min 
-                        G.add_edge(node_a, node_b, distance=dist, time_min=time_min, route="WALK_TRANSFER", type="walk")
+                        
+                        G.add_edge(node_a, node_b, distance=dist, time_min=time_min, routing_weight=routing_weight, route="WALK_TRANSFER", type="walk")

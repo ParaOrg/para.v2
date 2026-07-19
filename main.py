@@ -1,32 +1,12 @@
 import os
 import sqlite3
 import uvicorn
+import urllib.request
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from graph_engine import build_transit_graph
-from api_routes import router
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # --- STARTUP ---
-    init_db()
-    print("Building transit graph... (This may take a minute)")
-    data_dir = "./geojson_data" 
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-        print(f"Created {data_dir}. Please add your .geojson files here.")
-        
-    app.state.G = build_transit_graph(data_dir)
-    print(f"✅ Graph built! Nodes: {app.state.G.number_of_nodes()}, Edges: {app.state.G.number_of_edges()}")
-    
-    yield  # Server runs here
-    
-    # --- SHUTDOWN ---
-    print("Shutting down Para PH...")
-
-app = FastAPI(title="Para PH v1.1", lifespan=lifespan)
-app.include_router(router)
+from api_routes import router  # Imports the router we fixed earlier
 
 def init_db():
     db = sqlite3.connect("para_ml_data.db")
@@ -40,7 +20,7 @@ def init_db():
         )
     """)
     
-    # 2. NEW: Llama's Acronym Memory (Replaces the .txt file idea)
+    # 2. NEW: Llama's Acronym Memory
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS acronym_memory (
             slang TEXT PRIMARY KEY, 
@@ -65,7 +45,55 @@ def init_db():
     
     db.commit()
     db.close()
+
+# ==========================================
+# MODERN FASTAPI LIFESPAN
+# ==========================================
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 1. Initialize SQLite Database
+    print("\n🗄️ Initializing database...")
+    init_db()
+
+    # 2. Check Ollama
+    print("🔍 Checking Ollama LLM connection...")
+    try:
+        req = urllib.request.urlopen("http://localhost:11434/api/tags", timeout=5)
+        if req.status == 200:
+            print("✅ Ollama is connected and running!")
+        else:
+            print("⚠️ Ollama responded with an error.")
+    except Exception as e:
+        print("❌ CRITICAL: Cannot connect to Ollama!")
+        print("   1. Is the Ollama app open on your PC?")
+        print("   2. Is it running on port 11434?")
+        print("   3. Try running 'ollama serve' in a new terminal.")
     
+    # 3. Build the Graph and attach it to app.state.G
+    print("\n🚀 Building transit graph... (This may take a minute)")
+    try:
+        G = build_transit_graph("./geojson_data")
+        app.state.G = G  # <--- CRITICAL: Attaches graph to global state
+        print(f"✅ Graph built! Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}\n")
+    except Exception as e:
+        print(f"❌ CRITICAL: Failed to build graph: {e}")
+        raise e
+    
+    yield  # The app runs while this is active
+    
+    # 4. Cleanup on shutdown
+    print("\n👋 Shutting down Para PH...")
+
+# Pass the lifespan function to FastAPI
+app = FastAPI(lifespan=lifespan)
+
+# ==========================================
+# ROUTING & MIDDLEWARE
+# ==========================================
+
+# CRITICAL FIX: Tell FastAPI to actually use our API endpoints!
+app.include_router(router)
+
 @app.get("/")
 async def serve_frontend():
     return FileResponse("index.html")
