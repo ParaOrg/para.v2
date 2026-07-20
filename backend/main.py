@@ -3,13 +3,19 @@ import sqlite3
 import uvicorn
 import urllib.request
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from graph_engine import build_transit_graph
 from api_routes import router  # Imports the router we fixed earlier
 
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "para_ml_data.db"
+GEOJSON_DATA_DIR = BASE_DIR / "data" / "geojson_data"
+LEGACY_INDEX_PATH = BASE_DIR.parent / "legacy" / "index.html"
+
 def init_db():
-    db = sqlite3.connect("para_ml_data.db")
+    db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
     
     # 1. Original feedback table
@@ -72,7 +78,7 @@ async def lifespan(app: FastAPI):
     # 3. Build the Graph and attach it to app.state.G
     print("\n🚀 Building transit graph... (This may take a minute)")
     try:
-        G = build_transit_graph("./geojson_data")
+        G = build_transit_graph(str(GEOJSON_DATA_DIR))
         app.state.G = G  # <--- CRITICAL: Attaches graph to global state
         print(f"✅ Graph built! Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}\n")
     except Exception as e:
@@ -96,7 +102,9 @@ app.include_router(router)
 
 @app.get("/")
 async def serve_frontend():
-    return FileResponse("index.html")
+    # Serves the archived single-file demo. The production frontend now lives
+    # in ../frontend (run via `npm run dev` / its own build), separate from this API.
+    return FileResponse(str(LEGACY_INDEX_PATH))
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

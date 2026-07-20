@@ -16,61 +16,72 @@ Moving beyond static map algorithms, Para PH uses local Large Language Models (L
 
 **📍 Smart Geocoding & Memory:** Features "Lazy LLM Expansion" and an "Acronym Buster" cache. If you type "pitx", it instantly translates and caches it, ensuring zero-latency lookups on subsequent searches.
 
-**🗺️ Interactive Step-by-Step UI:** A responsive, mobile-first frontend (React, Tailwind, Leaflet) that renders color-coded polylines, collapsible step-by-step itineraries, and the ML feedback interface.
+**🗺️ Interactive Step-by-Step UI:** A responsive, mobile-first React frontend (Vite, React Router, Tailwind CSS) with a full page set — Home, Map, Routes Explorer, Gas Prices, Login/Signup, About, Contact — rendering color-coded polylines, collapsible step-by-step itineraries, and the ML feedback interface.
 
 ## 🛠️ Tech Stack
 **Backend:** Python, FastAPI, NetworkX, Pydantic, SQLite
 
 **AI & Geocoding:** Ollama (Llama 3.2), HTTPX, Geopy (Nominatim)
 
-**Frontend:** React (via Babel standalone), Leaflet.js, Tailwind CSS
+**Frontend:** React 19, Vite 7, React Router 7, Tailwind CSS v4, Firebase Auth, Supabase, Google Maps
 
 **Data:** GeoJSON (OpenStreetMap / Custom GIS exports), Spatial Hash Grids
+
+## 📁 Project Structure
+
+```
+para.v2/
+├── frontend/     # React/Vite SPA — see frontend/.env.example for required env vars
+├── backend/      # FastAPI routing engine (main.py, api_routes.py, graph_engine.py, llm_engine.py, models.py)
+│   ├── scripts/  # One-off data prep/debug scripts
+│   └── data/     # geojson_data/, Future/, knowledge_base.txt (SQLite dbs are created here at runtime)
+└── legacy/       # Archived single-file demo (pre-frontend-migration UI)
+```
 
 ## 🚀 Getting Started
 1. Prerequisites
 - Python 3.9+
+- Node.js 20+ (for the frontend)
 - Ollama installed and running in the background (for AI features).
-- GeoJSON files containing transit routes placed in the ./geojson_data directory.
+- GeoJSON files containing transit routes placed in `backend/data/geojson_data/`.
 
-## Installation
-1. Clone the repository:
-
-```
-git clone https://github.com/your-username/para-ph-routing.git
-cd para-ph-routing
-```
-
-2. Create and activate a Virtual Environment:
+## Installation — Backend
 
 ```
+cd backend
 python -m venv venv
 # On Windows:
 venv\Scripts\activate
 # On macOS/Linux:
 source venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-3. Install Dependencies
-
-```
-pip freeze > requirements.txt
-```
-
-4. Prepare the AI (Optional but Recommended):
-Ensure Ollama is running and download the lightweight Llama 3.2 model:
+Prepare the AI (optional but recommended) — ensure Ollama is running and download the lightweight Llama 3.2 model:
 
 ```
 ollama pull llama3.2
 ```
 
-5. Start the Server:
+Start the backend:
 
 ```
 python main.py
 ```
 
-6. Open the app through localhost
+This serves the API on `http://localhost:8000` (and the archived legacy demo at `/`).
+
+## Installation — Frontend
+
+```
+cd frontend
+npm install
+cp .env.example .env.local   # fill in your own Firebase/Supabase/Google Maps keys
+npm run dev
+```
+
+This serves the app on `http://localhost:5173`. `frontend/src/config/api.js` defaults API calls to `http://localhost:8000` in dev — override with `VITE_API_BASE_URL` if needed.
 
 ## 📊 How the ML Learning Engine Works
 1. The user requests a route (e.g., "Cubao to Ayala").

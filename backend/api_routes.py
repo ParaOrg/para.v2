@@ -2,12 +2,15 @@ import sqlite3
 import json
 import networkx as nx
 import uuid
+from pathlib import Path
 from fastapi import APIRouter, Request
 from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
 from graph_engine import haversine, SPEED_WALK_KMH
 from llm_engine import parse_chat_intent_async, ask_info_llm, geocode_location
 
 router = APIRouter()
+
+DB_PATH = Path(__file__).resolve().parent / "para_ml_data.db"
 
 # ==========================================
 # HELPER: Optimized Virtual Node Connection
@@ -226,7 +229,7 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
         return ChatResponse(reply_text="Hindi ko mahanap ang isa sa mga lokasyon sa mapa.", route_data=None, origin=origin_name, destination=dest_name)
 
     # CROWDSOURCED CHECK
-    db = sqlite3.connect("para_ml_data.db")
+    db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
     cursor.execute("""
         SELECT path_nodes, total_fare, total_time, rating_sum, trip_count 
@@ -283,7 +286,7 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
 
 @router.post("/feedback")
 async def submit_feedback(feedback: FeedbackRequest):
-    db = sqlite3.connect("para_ml_data.db")
+    db = sqlite3.connect(DB_PATH)
     cursor = db.cursor()
     
     cursor.execute("""
