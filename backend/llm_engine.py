@@ -4,6 +4,7 @@ import httpx
 import os
 import sqlite3
 import asyncio
+from pathlib import Path
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
@@ -12,8 +13,13 @@ OLLAMA_URL = "http://localhost:11434/api/chat"
 MODEL_NAME = "llama3.2"
 geolocator = Nominatim(user_agent="para_ph_transit_v1.1", timeout=5)
 
+# --- DB Paths (BASE_DIR-relative so behavior doesn't depend on CWD) ---
+BASE_DIR = Path(__file__).resolve().parent
+POI_DB_PATH = BASE_DIR / "para_poi.db"
+ML_DB_PATH = BASE_DIR / "para_ml_data.db"
+
 # --- RAG: Load Knowledge Base ---
-KB_PATH = "knowledge_base.txt"
+KB_PATH = BASE_DIR / "data" / "knowledge_base.txt"
 KB_CONTEXT = ""
 if os.path.exists(KB_PATH):
     with open(KB_PATH, 'r', encoding='utf-8') as f:
@@ -74,7 +80,7 @@ async def geocode_location(location_name: str) -> tuple:
     clean_name = location_name.lower().strip()
     
     # Connect to POI cache
-    db_poi = sqlite3.connect("para_poi.db")
+    db_poi = sqlite3.connect(str(POI_DB_PATH))
     cur_poi = db_poi.cursor()
     cur_poi.execute("CREATE TABLE IF NOT EXISTS geocode_cache (query TEXT PRIMARY KEY, lat REAL, lon REAL, display_name TEXT)")
     
@@ -88,7 +94,7 @@ async def geocode_location(location_name: str) -> tuple:
     db_poi.close()
 
     # 2. Check Llama's Acronym Memory (Instant, no LLM needed!)
-    db_ml = sqlite3.connect("para_ml_data.db")
+    db_ml = sqlite3.connect(str(ML_DB_PATH))
     cur_ml = db_ml.cursor()
     cur_ml.execute("SELECT formal_name FROM acronym_memory WHERE slang = ?", (clean_name,))
     memory = cur_ml.fetchone()
@@ -107,7 +113,7 @@ async def geocode_location(location_name: str) -> tuple:
             search_query = expanded[0] # Take the first/best guess
             
             # SAVE TO LLAMA MEMORY FOR NEXT TIME!
-            db_ml = sqlite3.connect("para_ml_data.db")
+            db_ml = sqlite3.connect(str(ML_DB_PATH))
             cur_ml = db_ml.cursor()
             cur_ml.execute("INSERT OR IGNORE INTO acronym_memory (slang, formal_name) VALUES (?, ?)", (clean_name, search_query))
             db_ml.commit()
@@ -124,7 +130,7 @@ async def geocode_location(location_name: str) -> tuple:
             print(f"✅ [GEOCODED] '{search_query}' -> {coords}")
             
             # Save to POI cache
-            db_poi = sqlite3.connect("para_poi.db")
+            db_poi = sqlite3.connect(str(POI_DB_PATH))
             cur_poi = db_poi.cursor()
             cur_poi.execute("INSERT OR REPLACE INTO geocode_cache (query, lat, lon, display_name) VALUES (?, ?, ?, ?)", 
                             (clean_name, coords[0], coords[1], location.address))
@@ -137,7 +143,7 @@ async def geocode_location(location_name: str) -> tuple:
     return None
     
 def _save_to_cache(query, lat, lon, name):
-    db = sqlite3.connect("para_poi.db")
+    db = sqlite3.connect(str(POI_DB_PATH))
     cursor = db.cursor()
     cursor.execute("INSERT OR REPLACE INTO geocode_cache (query, lat, lon, display_name) VALUES (?, ?, ?, ?)", (query, lat, lon, name))
     db.commit()

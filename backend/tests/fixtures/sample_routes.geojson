@@ -1,0 +1,37 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route_long_name": "Route A Jeepney",
+        "type": "jeep",
+        "bidirectional": false
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.0000, 14.6000],
+          [121.0010, 14.6000],
+          [121.0020, 14.6000]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route_long_name": "Route B Jeepney",
+        "type": "jeep",
+        "bidirectional": false
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [121.0000, 14.6006],
+          [121.0010, 14.6006],
+          [121.0020, 14.6006]
+        ]
+      }
+    }
+  ]
+}

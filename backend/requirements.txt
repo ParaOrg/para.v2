@@ -1,5 +1,6 @@
-fastapi
-uvicorn
-networkx
-pydantic
-httpx
+fastapi==0.139.2
+uvicorn==0.51.0
+networkx==3.6.1
+pydantic==2.13.4
+httpx==0.28.1
+geopy==2.5.0

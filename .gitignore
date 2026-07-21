@@ -20,6 +20,15 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.ruff_cache/
+frontend/coverage/
+
 Archive/
 
 # Frontend (Node/Vite) — each has its own nested .gitignore too, this is a backstop

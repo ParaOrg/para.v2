@@ -378,5 +378,5 @@ function estimateFare(type) {
     Walk: 0,
     Transit: 20
   };
-  return fares[type] || 15;
+  return fares[type] ?? 15;
 }

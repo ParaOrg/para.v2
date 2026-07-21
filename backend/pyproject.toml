@@ -1,0 +1,39 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+branch = true
+source = ["."]
+omit = [
+    "tests/*",
+    "scripts/*",
+    "__pycache__/*",
+    "main.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]
+
+# NOTE: lint/format enforcement is scoped to tests/ (new code) only for now.
+# api_routes.py, graph_engine.py, llm_engine.py, main.py, models.py predate this
+# tooling and carry pre-existing style debt (unsorted imports, trailing whitespace,
+# bare excepts). TODO: ratchet ruff/black out to those files in a dedicated,
+# logic-free formatting PR, then remove this exclude list.
+[tool.ruff]
+line-length = 120
+include = ["tests/**/*.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 120
+force-exclude = '^/(?!tests/).*\.py$'
