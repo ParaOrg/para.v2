@@ -97,6 +97,12 @@ This serves the app on `http://localhost:5173`. `frontend/src/config/api.js` def
 
 **POI Autocomplete:** A live, fuzzy-search dropdown in the chat UI powered by the 56,000+ ingested OpenStreetMap points.
 
+# For Contributors / Maintainers
+CI/CD pipeline, quality gates (lint, format, tests, coverage), dependency
+scanning, and Dependabot config are documented in
+[`docs/CI_CD.md`](docs/CI_CD.md) — read it before touching
+`.github/workflows/ci.yml` or `.github/dependabot.yml`.
+
 # Important Notes
 1. The path mixes routes, notable bridge and road paths.
 - Does not know proper exits out of establishments, leading to weird path generation
