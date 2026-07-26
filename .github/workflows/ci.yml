@@ -68,6 +68,35 @@ jobs:
           path: backend/coverage.xml
           retention-days: 14
 
+  backend-structural:
+    name: Backend (graph structural integrity)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      # Builds the full production graph from data/geojson_data (~15-30s) and
+      # checks connectivity/referential-integrity/coordinate-sanity against it.
+      # Kept out of the main pytest run (see pyproject.toml's `-m "not
+      # structural"` default) so the fast unit/integration job stays fast;
+      # runs as its own job here instead. See tests/structural/test_graph_health.py.
+      - name: Pytest (structural graph tests)
+        run: pytest -m structural -v
+
   frontend:
     name: Frontend (lint + test + build)
     needs: changes
@@ -147,15 +176,16 @@ jobs:
 
   ci-success:
     name: CI success
-    needs: [changes, backend, frontend]
+    needs: [changes, backend, backend-structural, frontend]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Check required jobs
         run: |
           backend_ok="${{ needs.backend.result == 'success' || needs.backend.result == 'skipped' }}"
+          backend_structural_ok="${{ needs.backend-structural.result == 'success' || needs.backend-structural.result == 'skipped' }}"
           frontend_ok="${{ needs.frontend.result == 'success' || needs.frontend.result == 'skipped' }}"
-          if [ "$backend_ok" != "true" ] || [ "$frontend_ok" != "true" ]; then
+          if [ "$backend_ok" != "true" ] || [ "$backend_structural_ok" != "true" ] || [ "$frontend_ok" != "true" ]; then
             echo "One or more required jobs failed."
             exit 1
           fi

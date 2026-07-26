@@ -4,12 +4,66 @@ import networkx as nx
 import pytest
 
 from graph_engine import (
+    SPEED_JEEP_KMH,
+    SPEED_WALK_KMH,
     TRANSFER_PENALTY_MIN,
+    _infer_vehicle_type,
     _inject_transfer_edges,
     _process_line,
     haversine,
     snap_coordinate,
 )
+
+
+class TestInferVehicleType:
+    def test_explicit_type_property_wins(self):
+        assert _infer_vehicle_type({"type": "jeep"}) == "jeep"
+
+    def test_explicit_mode_property_used_when_type_missing(self):
+        assert _infer_vehicle_type({"mode": "jeep"}) == "jeep"
+
+    def test_pedestrian_highway_tag_maps_to_walk(self):
+        for tag in ("footway", "path", "pedestrian", "steps", "cycleway", "track"):
+            assert _infer_vehicle_type({"highway": tag}) == "walk"
+
+    def test_untyped_non_pedestrian_road_returns_none(self):
+        # e.g. residential/tertiary/secondary road segments in walk_paths.geojson
+        # that carry no route_long_name/type/mode of their own -- must not be
+        # silently defaulted to "jeep" (the bug this test module guards against).
+        assert _infer_vehicle_type({"highway": "residential"}) is None
+        assert _infer_vehicle_type({}) is None
+
+    def test_explicit_type_overrides_highway_tag(self):
+        assert _infer_vehicle_type({"type": "jeep", "highway": "footway"}) == "jeep"
+
+
+class TestSpeedSelection:
+    def test_process_line_uses_jeep_speed_for_jeep_edges(self):
+        G = nx.DiGraph()
+        spatial_grid = defaultdict(list)
+        coords = [[121.0000, 14.6000], [121.0010, 14.6000]]  # ~107m apart
+
+        _process_line(G, spatial_grid, coords, "Route A", "jeep", False, 0.0005)
+
+        nodes = list(G.nodes)
+        edge = G.edges[nodes[0], nodes[1]]
+        expected_time_min = (edge["distance"] / 1000) / SPEED_JEEP_KMH * 60
+        assert edge["time_min"] == pytest.approx(expected_time_min)
+
+    def test_process_line_uses_walk_speed_for_walk_edges(self):
+        G = nx.DiGraph()
+        spatial_grid = defaultdict(list)
+        coords = [[121.0000, 14.6000], [121.0010, 14.6000]]  # ~107m apart
+
+        _process_line(G, spatial_grid, coords, "Some Footway", "walk", False, 0.0005)
+
+        nodes = list(G.nodes)
+        edge = G.edges[nodes[0], nodes[1]]
+        expected_time_min = (edge["distance"] / 1000) / SPEED_WALK_KMH * 60
+        assert edge["time_min"] == pytest.approx(expected_time_min)
+        # Walking should take meaningfully longer than jeep for the same distance.
+        jeep_time_min = (edge["distance"] / 1000) / SPEED_JEEP_KMH * 60
+        assert edge["time_min"] > jeep_time_min
 
 
 def test_haversine_known_distance():

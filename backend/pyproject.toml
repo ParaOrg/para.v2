@@ -3,7 +3,10 @@ testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m \"not structural\""
+markers = [
+    "structural: builds the full production graph from data/geojson_data (~15-20s). Run explicitly with `pytest -m structural` or in a dedicated CI job.",
+]
 
 [tool.coverage.run]
 branch = true

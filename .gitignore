@@ -31,6 +31,10 @@ frontend/coverage/
 
 Archive/
 
+# Runtime logs
+backend/.dev-server.log
+*.log
+
 # Frontend (Node/Vite) — each has its own nested .gitignore too, this is a backstop
 frontend/node_modules/
 frontend/dist/
