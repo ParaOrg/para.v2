@@ -1,0 +1,452 @@
+{
+ "type": "FeatureCollection",
+ "metadata": {
+  "source": "Wikidata (Q13422345, P625) cross-checked vs Wikipedia 'MRT Line 3 (Metro Manila)' station order; fare anchors from mrt3.com official fare page",
+  "verified_date": "2026-07-27",
+  "notes": "Distance-based fare (P13-P28) interpolated in graph_engine.calculate_fare; official per-station-pair matrix is published only as an image, not machine-readable."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "mrt3",
+    "mode": "mrt3",
+    "route_long_name": "MRT-3 North Avenue - Taft Avenue",
+    "bidirectional": true,
+    "last_updated": "2026-07-27",
+    "geometry_note": "straight-line interpolation between official station points, not true track alignment"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      121.032166666,
+      14.652444444
+     ],
+     [
+      121.03379340225,
+      14.649944444
+     ],
+     [
+      121.0354201385,
+      14.647444444000001
+     ],
+     [
+      121.03704687474999,
+      14.644944444
+     ],
+     [
+      121.038673611,
+      14.642444444
+     ],
+     [
+      121.040236111,
+      14.640011110666666
+     ],
+     [
+      121.04179861099999,
+      14.637577777333334
+     ],
+     [
+      121.043361111,
+      14.635144444
+     ],
+     [
+      121.044896111,
+      14.632001666199999
+     ],
+     [
+      121.046431111,
+      14.6288588884
+     ],
+     [
+      121.047966111,
+      14.625716110599999
+     ],
+     [
+      121.049501111,
+      14.6225733328
+     ],
+     [
+      121.051036111,
+      14.619430555
+     ],
+     [
+      121.05238749975,
+      14.616500693999999
+     ],
+     [
+      121.05373888849999,
+      14.613570833
+     ],
+     [
+      121.05509027725,
+      14.610640972
+     ],
+     [
+      121.056441666,
+      14.607711111
+     ],
+     [
+      121.0564856475,
+      14.6044157405
+     ],
+     [
+      121.056529629,
+      14.60112037
+     ],
+     [
+      121.0565736105,
+      14.5978249995
+     ],
+     [
+      121.056617592,
+      14.594529629
+     ],
+     [
+      121.0566615735,
+      14.5912342585
+     ],
+     [
+      121.056705555,
+      14.587938888
+     ],
+     [
+      121.05519305499999,
+      14.584668055
+     ],
+     [
+      121.053680555,
+      14.581397222
+     ],
+     [
+      121.051842592,
+      14.578852777333333
+     ],
+     [
+      121.050004629,
+      14.576308332666667
+     ],
+     [
+      121.048166666,
+      14.573763888
+     ],
+     [
+      121.047266666,
+      14.571462962333333
+     ],
+     [
+      121.046366666,
+      14.569162036666667
+     ],
+     [
+      121.045466666,
+      14.566861111
+     ],
+     [
+      121.0431922216,
+      14.5643294442
+     ],
+     [
+      121.0409177772,
+      14.5617977774
+     ],
+     [
+      121.0386433328,
+      14.5592661106
+     ],
+     [
+      121.0363688884,
+      14.5567344438
+     ],
+     [
+      121.034094444,
+      14.554202777
+     ],
+     [
+      121.03195370333334,
+      14.552449073333333
+     ],
+     [
+      121.02981296266667,
+      14.550695369666666
+     ],
+     [
+      121.027672222,
+      14.548941666
+     ],
+     [
+      121.02556249975001,
+      14.54715277725
+     ],
+     [
+      121.02345277750001,
+      14.545363888499999
+     ],
+     [
+      121.02134305525,
+      14.54357499975
+     ],
+     [
+      121.019233333,
+      14.541786111
+     ],
+     [
+      121.0156677774,
+      14.540932222
+     ],
+     [
+      121.0121022218,
+      14.540078333
+     ],
+     [
+      121.0085366662,
+      14.539224444
+     ],
+     [
+      121.00497111060001,
+      14.538370555
+     ],
+     [
+      121.001405555,
+      14.537516666
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "North Avenue",
+    "sequence": 1,
+    "coordinate_confidence": "high",
+    "station_code": "YL01"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.032166666,
+     14.652444444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Quezon Avenue",
+    "sequence": 2,
+    "coordinate_confidence": "high",
+    "station_code": "YL02"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.038673611,
+     14.642444444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "GMA-Kamuning",
+    "sequence": 3,
+    "coordinate_confidence": "high",
+    "station_code": "YL03"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.043361111,
+     14.635144444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Araneta Center-Cubao",
+    "sequence": 4,
+    "coordinate_confidence": "high",
+    "station_code": "YL04"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.051036111,
+     14.619430555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Santolan-Annapolis",
+    "sequence": 5,
+    "coordinate_confidence": "high",
+    "station_code": "YL05"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.056441666,
+     14.607711111
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Ortigas",
+    "sequence": 6,
+    "coordinate_confidence": "high",
+    "station_code": "YL06"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.056705555,
+     14.587938888
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Shaw Boulevard",
+    "sequence": 7,
+    "coordinate_confidence": "high",
+    "station_code": "YL07"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.053680555,
+     14.581397222
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Boni",
+    "sequence": 8,
+    "coordinate_confidence": "high",
+    "station_code": "YL08"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.048166666,
+     14.573763888
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Guadalupe",
+    "sequence": 9,
+    "coordinate_confidence": "high",
+    "station_code": "YL09"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.045466666,
+     14.566861111
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Buendia",
+    "sequence": 10,
+    "coordinate_confidence": "high",
+    "station_code": "YL10"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.034094444,
+     14.554202777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Ayala",
+    "sequence": 11,
+    "coordinate_confidence": "high",
+    "station_code": "YL11"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.027672222,
+     14.548941666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Magallanes",
+    "sequence": 12,
+    "coordinate_confidence": "high",
+    "station_code": "YL12"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.019233333,
+     14.541786111
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "mrt3",
+    "name": "Taft Avenue",
+    "sequence": 13,
+    "coordinate_confidence": "high",
+    "station_code": "YL13"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.001405555,
+     14.537516666
+    ]
+   }
+  }
+ ]
+}

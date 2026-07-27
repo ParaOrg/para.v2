@@ -4,12 +4,18 @@ import networkx as nx
 import pytest
 
 from graph_engine import (
+    FARE_MRT3_MAX_PHP,
+    FARE_MRT3_MIN_PHP,
+    RAIL_PROMO_DISCOUNT_MULTIPLIER,
     SPEED_JEEP_KMH,
     SPEED_WALK_KMH,
     TRANSFER_PENALTY_MIN,
     _infer_vehicle_type,
     _inject_transfer_edges,
     _process_line,
+    bearing_to_compass,
+    calculate_fare,
+    compass_to_bound,
     haversine,
     snap_coordinate,
 )
@@ -97,6 +103,20 @@ class TestProcessLine:
         assert edge["route"] == "Route A"
         assert edge["type"] == "jeep"
 
+    def test_forward_and_reverse_edges_have_opposite_directions(self):
+        G = nx.DiGraph()
+        spatial_grid = defaultdict(list)
+        coords = [[121.0000, 14.6000], [121.0000, 14.6010]]  # due north
+
+        _process_line(G, spatial_grid, coords, "Route A", "jeep", False, 0.0005)
+
+        nodes = list(G.nodes)
+        forward = G.edges[nodes[0], nodes[1]]
+        reverse = G.edges[nodes[1], nodes[0]]
+        assert forward["direction"] != reverse["direction"]
+        assert forward["direction"] == "N"
+        assert reverse["direction"] == "S"
+
     def test_no_teleportation_across_large_gaps(self):
         G = nx.DiGraph()
         spatial_grid = defaultdict(list)
@@ -153,6 +173,63 @@ class TestInjectTransferEdges:
         _inject_transfer_edges(G, spatial_grid)
 
         assert not G.has_edge("A", "B")
+
+
+class TestCalculateFare:
+    def test_jeep_matches_existing_base_plus_distance_formula(self):
+        assert calculate_fare("jeep", 2000) == pytest.approx(13.0)
+        assert calculate_fare("jeep", 5000) == pytest.approx(13.0 + 1.0 * 2.5)
+
+    def test_walk_is_free(self):
+        assert calculate_fare("walk", 5000) == 0.0
+
+    def test_uv_express_and_bus_prov_have_no_verified_formula_yet(self):
+        # No fabricated numbers for modes without verified route/fare data.
+        assert calculate_fare("uv_express", 5000) == 0.0
+        assert calculate_fare("bus_prov", 5000) == 0.0
+
+    def test_bus_city_matches_carousel_formula(self):
+        # P15 base for <=5km, no surcharge yet at exactly 5km.
+        assert calculate_fare("bus_city", 4000) == pytest.approx(15.0)
+        # +P2.65/km beyond 5km.
+        assert calculate_fare("bus_city", 6000) == pytest.approx(15.0 + 1.0 * 2.65)
+
+    def test_lrt1_uses_boarding_plus_per_km_formula(self):
+        assert calculate_fare("lrt1", 0) == pytest.approx(16.25)
+        assert calculate_fare("lrt1", 10_000) == pytest.approx(16.25 + 10 * 1.47)
+
+    def test_mrt3_interpolates_between_min_and_max_by_distance_fraction(self):
+        assert calculate_fare("mrt3", 0) == pytest.approx(FARE_MRT3_MIN_PHP * RAIL_PROMO_DISCOUNT_MULTIPLIER)
+        # Beyond the modeled line length, fare is capped at the (discounted) max.
+        assert calculate_fare("mrt3", 100_000) == pytest.approx(FARE_MRT3_MAX_PHP * RAIL_PROMO_DISCOUNT_MULTIPLIER)
+
+    def test_unrecognized_mode_returns_zero_rather_than_guessing(self):
+        assert calculate_fare("hoverboard", 1000) == 0.0
+
+
+class TestDirectionality:
+    def test_bearing_to_compass_cardinal_directions(self):
+        # Moving due north: lat increases, lng constant.
+        assert bearing_to_compass(14.0, 121.0, 14.1, 121.0) == "N"
+        # Moving due south.
+        assert bearing_to_compass(14.1, 121.0, 14.0, 121.0) == "S"
+        # Moving due east: lng increases, lat constant (near-equator so latitude
+        # scaling distortion is negligible).
+        assert bearing_to_compass(1.0, 121.0, 1.0, 121.1) == "E"
+        # Moving due west.
+        assert bearing_to_compass(1.0, 121.1, 1.0, 121.0) == "W"
+
+    def test_bearing_is_reversed_for_the_opposite_direction_of_travel(self):
+        forward = bearing_to_compass(14.0, 121.0, 14.1, 121.0)
+        backward = bearing_to_compass(14.1, 121.0, 14.0, 121.0)
+        assert forward != backward
+
+    def test_compass_to_bound_maps_known_directions(self):
+        assert compass_to_bound("N") == "Northbound"
+        assert compass_to_bound("S") == "Southbound"
+
+    def test_compass_to_bound_handles_none(self):
+        assert compass_to_bound(None) is None
 
 
 class TestBuildTransitGraph:

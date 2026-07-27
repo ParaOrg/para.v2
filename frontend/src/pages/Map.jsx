@@ -6,6 +6,7 @@ import RouteSteps from "../components/RouteSteps";
 import RouteOptionsPanel from "../components/RouteOptionsPanel";
 import { getGoogleMapsApiKey } from "../config/googleMaps";
 import { getApiBaseUrl } from "../config/api";
+import { adaptChatResponse } from "../services/routeAdapter";
 import { supabase } from "../../supabase";
 import paralogo from "../assets/images/paralogo.png";
 
@@ -170,15 +171,15 @@ export default function MapPage({ user }) {
 
     try {
         console.log("[Map] Sending search request:", searchInput);
-        const res = await fetch(`${API_BASE}/api/v1/chat`, {
+        const res = await fetch(`${API_BASE}/chat`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "Authorization": user ? `Bearer ${user.access_token}` : ''
             },
             body: JSON.stringify({
-              prompt: searchInput,
-              user_id: user?.id
+              user_id: user?.id ?? "guest",
+              message: searchInput
             })
         });
         const data = await res.json();
@@ -191,56 +192,26 @@ export default function MapPage({ user }) {
         setSelectedRoute(null);
         setShowRouteOptions(false);
 
-        // Check for route_options in either data.data or data.map_data
-        const mapData = data.data || data.map_data;
-        console.log("[Map] Checking for route_options...");
-        console.log("[Map] data.data exists?", !!data.data);
-        console.log("[Map] data.map_data exists?", !!data.map_data);
-        console.log("[Map] mapData:", mapData);
-        console.log("[Map] route_options exists?", !!mapData?.route_options);
-        console.log("[Map] is array?", Array.isArray(mapData?.route_options));
+        // Translate the backend's ChatResponse (route_data/alternatives) into
+        // the {markers, lines, route_options} shape the map/route UI expects.
+        const mapData = adaptChatResponse(data);
+        console.log("[Map] Adapted map data:", mapData);
 
-        if (mapData?.route_options && Array.isArray(mapData.route_options)) {
-            console.log("[Map] ✅ Received route options:", mapData.route_options.length, "options");
-            console.log("[Map] Route options data:", mapData.route_options);
+        if (mapData.route_options.length > 0) {
             setRouteOptions(mapData.route_options);
             setShowRouteOptions(true);
             setDestination(searchInput);
-            console.log("[Map] ✅ Set showRouteOptions to TRUE, destination:", searchInput);
-
-            // Set markers and lines from the first route for map preview
-            if (mapData.route_options.length > 0) {
-                const firstRoute = mapData.route_options[0];
-                console.log("[Map] Setting first route markers/lines for preview");
-                setMarkers(firstRoute.markers || []);
-                setLines(firstRoute.lines || []);
-            }
-        }
-        // Fallback to old structure (single route with markers/lines)
-        else {
-            console.log("[Map] ❌ No route_options, using fallback");
-            console.log("[Map] Full mapData:", mapData);
-
-            // Update markers if returned
-            if (mapData?.markers && Array.isArray(mapData.markers)) {
-                console.log("[Map] Setting markers:", mapData.markers.length, "markers");
-                setMarkers(mapData.markers);
-            }
-
-            // Update lines/routes if returned
-            if (mapData?.lines && Array.isArray(mapData.lines)) {
-                console.log("[Map] Setting lines:", mapData.lines.length, "lines");
-                setLines(mapData.lines);
-            }
+            setMarkers(mapData.markers);
+            setLines(mapData.lines);
         }
 
         // Set route response text
-        if (data.response) {
-            setRouteResponse(data.response);
+        if (data.reply_text) {
+            setRouteResponse(data.reply_text);
         }
 
         // Save search to database
-        await saveRecentSearch(searchInput, data.data);
+        await saveRecentSearch(searchInput, mapData);
     } catch (err) {
         console.error("[Map] Search error:", err);
         alert("Error searching for routes. Please try again.");

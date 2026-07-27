@@ -5,7 +5,7 @@ import uuid
 from pathlib import Path
 from fastapi import APIRouter, Request
 from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
-from graph_engine import haversine, SPEED_WALK_KMH
+from graph_engine import haversine, SPEED_WALK_KMH, calculate_fare, bearing_to_compass, compass_to_bound
 from llm_engine import parse_chat_intent_async, ask_info_llm, geocode_location
 
 router = APIRouter()
@@ -55,22 +55,18 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
             print(f"🔗 Fallback connected to {closest_node} at {min_dist:.0f}m")
             
     candidates.sort(key=lambda x: x[2])
-    
+
     # Connect to the top 5 closest nodes
     for node, dist, w_time in candidates[:5]:
         routing_weight = w_time  # Safely defined INSIDE the loop
-        
+        node_attrs = G.nodes[node]
+
         if is_source:
-            G.add_edge(v_node, node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_TO_TRANSIT", type="walk")
+            direction = bearing_to_compass(lat, lng, node_attrs['lat'], node_attrs['lng'])
+            G.add_edge(v_node, node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_TO_TRANSIT", type="walk", direction=direction)
         else:
-            G.add_edge(node, v_node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_FROM_TRANSIT", type="walk")
-    
-    # Connect to the top 5 closest nodes
-    for node, dist, walk_time in candidates[:5]:
-        if is_source:
-            G.add_edge(v_node, node, distance=dist, time_min=walk_time, route="WALK_TO_TRANSIT", type="walk")
-        else:
-            G.add_edge(node, v_node, distance=dist, time_min=walk_time, route="WALK_FROM_TRANSIT", type="walk")
+            direction = bearing_to_compass(node_attrs['lat'], node_attrs['lng'], lat, lng)
+            G.add_edge(node, v_node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_FROM_TRANSIT", type="walk", direction=direction)
 
 # ==========================================
 # HELPER: Segment Builder (Fixes the "Expensive Fare" bug)
@@ -118,28 +114,43 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
 
     steps = []
     total_dist = total_fare = total_time = 0.0
-    
+
     for seg in segments:
         total_dist += seg['distance']
         total_time += seg['time']
-        
-        # FIX: Calculate fare ONCE per continuous segment. 
-        # If it's a continuous jeep ride, it only gets ONE ₱13 base fare.
-        fare = 13.0 + max(0, (seg['distance'] / 1000 - 4)) * 2.5 if seg['type'] == 'jeep' else 0.0
+
+        # Calculate fare ONCE per continuous segment (e.g. a continuous jeep
+        # ride only gets ONE base fare), using the per-mode formula in
+        # graph_engine.calculate_fare rather than a jeep-only hardcode.
+        fare = calculate_fare(seg['type'], seg['distance'])
         total_fare += fare
-        
+
         action = "walk" if seg['type'] == 'walk' else ("board" if len(steps) == 0 or steps[-1].action == "walk" else "transfer")
-        
+
+        direction = None
+        if len(seg['geometry']) >= 2:
+            (lng1, lat1), (lng2, lat2) = seg['geometry'][0], seg['geometry'][-1]
+            if (lat1, lng1) != (lat2, lng2):
+                direction = bearing_to_compass(lat1, lng1, lat2, lng2)
+
         steps.append(RouteStep(
             action=action, vehicle_type=seg['type'], route_name=seg['route'],
             from_node="start", to_node="end", distance_m=seg['distance'],
-            duration_min=seg['time'], fare=fare, geometry=seg['geometry']
+            duration_min=seg['time'], fare=fare, geometry=seg['geometry'],
+            direction=direction
         ))
-        
+
+    message = f"{total_time:.0f} mins, ₱{total_fare:.0f}."
+    first_transit_step = next((s for s in steps if s.vehicle_type != 'walk' and s.direction), None)
+    if first_transit_step:
+        bound = compass_to_bound(first_transit_step.direction)
+        if bound:
+            message = f"{total_time:.0f} mins, ₱{total_fare:.0f}. Head {bound} on {first_transit_step.route_name}."
+
     return RouteResponse(
-        success=True, total_distance_m=total_dist, total_duration_min=total_time, 
+        success=True, total_distance_m=total_dist, total_duration_min=total_time,
         total_fare=total_fare, steps=steps, path_nodes=path,
-        message=f"{total_time:.0f} mins, ₱{total_fare:.0f}."
+        message=message
     )
     
 # ==========================================

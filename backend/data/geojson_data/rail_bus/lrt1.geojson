@@ -1,0 +1,833 @@
+{
+ "type": "FeatureCollection",
+ "metadata": {
+  "source": "Wikidata (Q4165124, P625)",
+  "verified_date": "2026-07-27",
+  "notes": "Mainline (FPJ-Baclaran) is high confidence. Cavite Extension segment included but flagged: public sources disagree on exact current operational cutover (some cite Dr. Santos as terminus, others suggest further extension); verify against lrta.gov.ph before treating as authoritative. Manuyo Uno/Las Pinas/Niog omitted entirely -- no verified coordinates found, not fabricated."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "lrt1",
+    "mode": "lrt1",
+    "route_long_name": "LRT-1 Fernando Poe Jr. - Baclaran",
+    "bidirectional": true,
+    "last_updated": "2026-07-27",
+    "geometry_note": "straight-line interpolation between official station points, not true track alignment"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      121.021211111,
+      14.657494444
+     ],
+     [
+      121.017761111,
+      14.657464443999999
+     ],
+     [
+      121.014311111,
+      14.657434444
+     ],
+     [
+      121.010861111,
+      14.657404443999999
+     ],
+     [
+      121.007411111,
+      14.657374444
+     ],
+     [
+      121.003961111,
+      14.657344444
+     ],
+     [
+      121.00061851833333,
+      14.656802777333333
+     ],
+     [
+      120.99727592566667,
+      14.656261110666666
+     ],
+     [
+      120.993933333,
+      14.655719443999999
+     ],
+     [
+      120.99059074033333,
+      14.655177777333334
+     ],
+     [
+      120.98724814766668,
+      14.654636110666667
+     ],
+     [
+      120.983905555,
+      14.654094444
+     ],
+     [
+      120.98379814766668,
+      14.650868518
+     ],
+     [
+      120.98369074033333,
+      14.647642592
+     ],
+     [
+      120.983583333,
+      14.644416666
+     ],
+     [
+      120.98316666633333,
+      14.641666665999999
+     ],
+     [
+      120.98274999966667,
+      14.638916666
+     ],
+     [
+      120.982333333,
+      14.636166666
+     ],
+     [
+      120.98186527749999,
+      14.633404166
+     ],
+     [
+      120.981397222,
+      14.630641666
+     ],
+     [
+      120.981910185,
+      14.628024999333334
+     ],
+     [
+      120.982423148,
+      14.625408332666666
+     ],
+     [
+      120.982936111,
+      14.622791666
+     ],
+     [
+      120.982847222,
+      14.619793054999999
+     ],
+     [
+      120.982758333,
+      14.616794444
+     ],
+     [
+      120.9826291665,
+      14.6139527775
+     ],
+     [
+      120.9825,
+      14.611111111
+     ],
+     [
+      120.982284722,
+      14.608293055499999
+     ],
+     [
+      120.982069444,
+      14.605475
+     ],
+     [
+      120.9817138885,
+      14.602237500000001
+     ],
+     [
+      120.981358333,
+      14.599
+     ],
+     [
+      120.9814902775,
+      14.595951388500001
+     ],
+     [
+      120.981622222,
+      14.592902777
+     ],
+     [
+      120.98238194425,
+      14.59029999925
+     ],
+     [
+      120.98314166649999,
+      14.587697221500001
+     ],
+     [
+      120.98390138875,
+      14.58509444375
+     ],
+     [
+      120.984661111,
+      14.582491666
+     ],
+     [
+      120.9863263885,
+      14.579561110499998
+     ],
+     [
+      120.987991666,
+      14.576630555
+     ],
+     [
+      120.989219444,
+      14.574493517999999
+     ],
+     [
+      120.990447222,
+      14.572356481
+     ],
+     [
+      120.991675,
+      14.570219444
+     ],
+     [
+      120.99267685166667,
+      14.567971296
+     ],
+     [
+      120.99367870333333,
+      14.565723148
+     ],
+     [
+      120.994680555,
+      14.563475
+     ],
+     [
+      120.99551296233334,
+      14.560359259
+     ],
+     [
+      120.99634536966667,
+      14.557243518
+     ],
+     [
+      120.997177777,
+      14.554127777
+     ],
+     [
+      120.99790416600001,
+      14.550955555
+     ],
+     [
+      120.998630555,
+      14.547783333
+     ],
+     [
+      120.99931481433333,
+      14.544797222
+     ],
+     [
+      120.99999907366667,
+      14.541811111
+     ],
+     [
+      121.000683333,
+      14.538825
+     ],
+     [
+      120.999522222,
+      14.5365652775
+     ],
+     [
+      120.998361111,
+      14.534305555
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "lrt1",
+    "mode": "lrt1",
+    "route_long_name": "LRT-1 Cavite Extension (Redemptorist - Dr. Santos)",
+    "bidirectional": true,
+    "last_updated": "2026-07-27",
+    "geometry_note": "straight-line interpolation between official station points, not true track alignment",
+    "status": "extension_operational_status_unconfirmed_2026-07-27"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      120.99294,
+      14.53028
+     ],
+     [
+      120.99309777777778,
+      14.526764444444444
+     ],
+     [
+      120.99325555555556,
+      14.523248888888888
+     ],
+     [
+      120.99341333333334,
+      14.519733333333333
+     ],
+     [
+      120.99357111111111,
+      14.516217777777777
+     ],
+     [
+      120.9937288888889,
+      14.512702222222222
+     ],
+     [
+      120.99388666666667,
+      14.509186666666666
+     ],
+     [
+      120.99404444444444,
+      14.505671111111111
+     ],
+     [
+      120.99420222222223,
+      14.502155555555555
+     ],
+     [
+      120.99436,
+      14.49864
+     ],
+     [
+      120.99413166666668,
+      14.501938333333333
+     ],
+     [
+      120.99390333333334,
+      14.505236666666667
+     ],
+     [
+      120.993675,
+      14.508535
+     ],
+     [
+      120.99344666666667,
+      14.511833333333334
+     ],
+     [
+      120.99321833333335,
+      14.515131666666667
+     ],
+     [
+      120.99299,
+      14.51843
+     ],
+     [
+      120.99242000000001,
+      14.515113333333334
+     ],
+     [
+      120.99185,
+      14.511796666666667
+     ],
+     [
+      120.99128,
+      14.50848
+     ],
+     [
+      120.99103428571429,
+      14.505168571428571
+     ],
+     [
+      120.99078857142857,
+      14.501857142857144
+     ],
+     [
+      120.99054285714286,
+      14.498545714285715
+     ],
+     [
+      120.99029714285714,
+      14.495234285714286
+     ],
+     [
+      120.99005142857143,
+      14.491922857142857
+     ],
+     [
+      120.98980571428571,
+      14.48861142857143
+     ],
+     [
+      120.98956,
+      14.4853
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Fernando Poe Jr. (FPJ / Roosevelt)",
+    "sequence": 1,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.021211111,
+     14.657494444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Balintawak",
+    "sequence": 2,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.003961111,
+     14.657344444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Monumento",
+    "sequence": 3,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.983905555,
+     14.654094444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "5th Avenue",
+    "sequence": 4,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.983583333,
+     14.644416666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "R. Papa",
+    "sequence": 5,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.982333333,
+     14.636166666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Abad Santos",
+    "sequence": 6,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.981397222,
+     14.630641666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Blumentritt",
+    "sequence": 7,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.982936111,
+     14.622791666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Tayuman",
+    "sequence": 8,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.982758333,
+     14.616794444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Bambang",
+    "sequence": 9,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.9825,
+     14.611111111
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Doroteo Jose",
+    "sequence": 10,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.982069444,
+     14.605475
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Carriedo",
+    "sequence": 11,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.981358333,
+     14.599
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Central Terminal",
+    "sequence": 12,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.981622222,
+     14.592902777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "United Nations",
+    "sequence": 13,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.984661111,
+     14.582491666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Pedro Gil",
+    "sequence": 14,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.987991666,
+     14.576630555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Quirino",
+    "sequence": 15,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.991675,
+     14.570219444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Vito Cruz",
+    "sequence": 16,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.994680555,
+     14.563475
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Gil Puyat",
+    "sequence": 17,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.997177777,
+     14.554127777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Libertad",
+    "sequence": 18,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.998630555,
+     14.547783333
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "EDSA",
+    "sequence": 19,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.000683333,
+     14.538825
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Baclaran",
+    "sequence": 20,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.998361111,
+     14.534305555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Redemptorist",
+    "sequence": 21,
+    "coordinate_confidence": "medium",
+    "note": "Cavite Extension; verify current operational status before relying on for live routing"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.99294,
+     14.53028
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Ninoy Aquino",
+    "sequence": 22,
+    "coordinate_confidence": "medium",
+    "note": "Cavite Extension; verify current operational status before relying on for live routing"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.99436,
+     14.49864
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "MIA (Manila International Airport)",
+    "sequence": 23,
+    "coordinate_confidence": "medium",
+    "note": "Cavite Extension; verify current operational status before relying on for live routing"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.99299,
+     14.51843
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Asia World",
+    "sequence": 24,
+    "coordinate_confidence": "medium",
+    "note": "Cavite Extension; verify current operational status before relying on for live routing"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.99128,
+     14.50848
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Dr. Santos",
+    "sequence": 25,
+    "coordinate_confidence": "medium",
+    "note": "Cavite Extension; verify current operational status before relying on for live routing"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.98956,
+     14.4853
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Zapote",
+    "sequence": 26,
+    "coordinate_confidence": "low",
+    "note": "coordinate present but operational status unconfirmed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.96294,
+     14.47006
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt1",
+    "name": "Talaba",
+    "sequence": 27,
+    "coordinate_confidence": "low",
+    "note": "coordinate present but operational status unconfirmed"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.95957,
+     14.46218
+    ]
+   }
+  }
+ ]
+}

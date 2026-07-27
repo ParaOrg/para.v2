@@ -19,6 +19,7 @@ class RouteStep(BaseModel):
     duration_min: float
     fare: float
     geometry: List[List[float]]
+    direction: Optional[str] = None  # Compass direction of travel, e.g. "N", "SE"
 
 class RouteResponse(BaseModel):
     success: bool

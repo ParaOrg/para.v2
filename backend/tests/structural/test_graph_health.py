@@ -30,6 +30,7 @@ defaulting to type="jeep" -- see graph_engine.py's _infer_vehicle_type):
 """
 
 import sys
+from collections import Counter
 from pathlib import Path
 
 import networkx as nx
@@ -44,7 +45,13 @@ from graph_engine import build_transit_graph  # noqa: E402
 pytestmark = pytest.mark.structural
 
 REQUIRED_EDGE_PROPS = {"distance", "time_min", "routing_weight", "route", "type"}
-RECOGNIZED_EDGE_TYPES = {"jeep", "walk"}
+RECOGNIZED_EDGE_TYPES = {"jeep", "walk", "mrt3", "lrt1", "lrt2", "bus_city"}
+
+# Modes with verified geometry as of 2026-07-27 (see docs/RAIL_BUS_DATA_SOURCES.md)
+# that must contribute at least one routable edge. uv_express/bus_prov are
+# deliberately excluded -- no verified route geometry exists for them yet,
+# see the same doc's "Known gaps" section.
+MODES_REQUIRING_EDGES = {"jeep", "walk", "mrt3", "lrt1", "lrt2", "bus_city"}
 
 # Generous Philippines bounding box -- wide enough to never false-positive on
 # legitimate data, tight enough to catch gross errors like swapped lat/lng.
@@ -69,10 +76,13 @@ MIN_DOMINANT_COMPONENT_COVERAGE = 0.40  # measured 47.6%; footway fragmentation 
 # Measured 2026-07-21: Malanday - Sta. Cruz (328/333 nodes in main
 # component), Monumento-Meycauayan (153/203), Cogeo - Cubao via Marcos
 # Hi-way (106/192).
+# Updated 2026-07-27: adding the LRT-1/LRT-2/MRT-3/EDSA Carousel datasets
+# (backend/data/geojson_data/rail_bus/) introduced new stations/transfer
+# edges near Cubao, which incidentally stitched "Cogeo - Cubao via Marcos
+# Hi-way" back into the dominant component -- removed from the allowlist.
 KNOWN_PARTIALLY_DISCONNECTED_ROUTES = {
     "Malanday - Sta. Cruz",
     "Monumento-Meycauayan",
-    "Cogeo - Cubao via Marcos Hi-way",
 }
 
 
@@ -123,6 +133,32 @@ def test_all_edges_have_recognized_type(production_graph):
         if d.get("type") not in RECOGNIZED_EDGE_TYPES
     ]
     assert bad == [], f"{len(bad)} edges with an unrecognized 'type', e.g. {bad[:5]}"
+
+
+def test_every_verified_mode_has_routable_edges(production_graph):
+    """Guards against the '500m no-teleportation rule silently drops every
+    inter-station edge' bug found while adding LRT-1/LRT-2/MRT-3/EDSA Carousel
+    data: station-to-station spacing on rail/bus lines can exceed 500m, so an
+    un-densified LineString produces a graph with nodes but zero edges for
+    that mode -- easy to miss since build_transit_graph doesn't error.
+    """
+    edge_counts = Counter(d.get("type") for _, _, d in production_graph.edges(data=True))
+    missing = {mode for mode in MODES_REQUIRING_EDGES if edge_counts.get(mode, 0) == 0}
+    assert missing == set(), f"Modes with zero routable edges: {sorted(missing)} (counts: {dict(edge_counts)})"
+
+
+def test_all_edges_have_valid_direction(production_graph):
+    """Every edge should carry an 8-point compass direction (see
+    graph_engine.bearing_to_compass) -- this backs the northbound/southbound
+    wording in RouteResponse.message and RouteStep.direction.
+    """
+    valid_directions = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+    bad = [
+        (u, v, d.get("direction"))
+        for u, v, d in production_graph.edges(data=True)
+        if d.get("direction") not in valid_directions
+    ]
+    assert bad == [], f"{len(bad)} edges with a missing/invalid 'direction', e.g. {bad[:5]}"
 
 
 def test_walk_transfer_edges_are_typed_walk(production_graph):

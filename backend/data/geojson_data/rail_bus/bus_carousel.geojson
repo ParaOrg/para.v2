@@ -1,0 +1,685 @@
+{
+ "type": "FeatureCollection",
+ "metadata": {
+  "source": "Wikipedia 'EDSA Carousel' for stop order; coordinates reused from MRT-3/LRT-1 verified data where co-located, else geocoded via OpenStreetMap Nominatim",
+  "verified_date": "2026-07-27",
+  "notes": "Fare formula (P15 base / 5km + P2.65/km) from LTFRB-regulated rate reported 2026. Routable graph edges only span the high-confidence (rail-anchored) subset of stops -- Bagong Barrio through Kaingin Road through PITX southern stretch is NOT wired in yet pending better-sourced coordinates. DFA/Shell-Starbucks stop has no coordinate at all (omitted, not guessed)."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "bus_city",
+    "mode": "bus_city",
+    "route_long_name": "EDSA Carousel Monumento - Taft Avenue (verified backbone only)",
+    "bidirectional": true,
+    "last_updated": "2026-07-27",
+    "geometry_note": "straight-line interpolation between official station points, not true track alignment",
+    "note": "Only the subset of stops with rail-anchored coordinates is wired into the routable graph; see metadata."
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      120.983905555,
+      14.654094444
+     ],
+     [
+      120.98724814766668,
+      14.654636110666667
+     ],
+     [
+      120.99059074033333,
+      14.655177777333334
+     ],
+     [
+      120.993933333,
+      14.655719443999999
+     ],
+     [
+      120.99727592566667,
+      14.656261110666666
+     ],
+     [
+      121.00061851833333,
+      14.656802777333333
+     ],
+     [
+      121.003961111,
+      14.657344444
+     ],
+     [
+      121.007411111,
+      14.657374444
+     ],
+     [
+      121.010861111,
+      14.657404443999999
+     ],
+     [
+      121.014311111,
+      14.657434444
+     ],
+     [
+      121.017761111,
+      14.657464443999999
+     ],
+     [
+      121.021211111,
+      14.657494444
+     ],
+     [
+      121.02394999975,
+      14.656231944
+     ],
+     [
+      121.02668888849999,
+      14.654969443999999
+     ],
+     [
+      121.02942777724999,
+      14.653706944
+     ],
+     [
+      121.032166666,
+      14.652444444
+     ],
+     [
+      121.03379340225,
+      14.649944444
+     ],
+     [
+      121.0354201385,
+      14.647444444000001
+     ],
+     [
+      121.03704687474999,
+      14.644944444
+     ],
+     [
+      121.038673611,
+      14.642444444
+     ],
+     [
+      121.040236111,
+      14.640011110666666
+     ],
+     [
+      121.04179861099999,
+      14.637577777333334
+     ],
+     [
+      121.043361111,
+      14.635144444
+     ],
+     [
+      121.044814506,
+      14.63209629588889
+     ],
+     [
+      121.046267901,
+      14.629048147777779
+     ],
+     [
+      121.04772129599999,
+      14.625999999666666
+     ],
+     [
+      121.04917469099999,
+      14.622951851555555
+     ],
+     [
+      121.050628086,
+      14.619903703444445
+     ],
+     [
+      121.052081481,
+      14.616855555333334
+     ],
+     [
+      121.053534876,
+      14.613807407222222
+     ],
+     [
+      121.054988271,
+      14.610759259111111
+     ],
+     [
+      121.056441666,
+      14.607711111
+     ],
+     [
+      121.0564856475,
+      14.6044157405
+     ],
+     [
+      121.056529629,
+      14.60112037
+     ],
+     [
+      121.0565736105,
+      14.5978249995
+     ],
+     [
+      121.056617592,
+      14.594529629
+     ],
+     [
+      121.0566615735,
+      14.5912342585
+     ],
+     [
+      121.056705555,
+      14.587938888
+     ],
+     [
+      121.05509999942856,
+      14.584927777
+     ],
+     [
+      121.05349444385713,
+      14.581916666
+     ],
+     [
+      121.0518888882857,
+      14.578905555
+     ],
+     [
+      121.05028333271429,
+      14.575894444
+     ],
+     [
+      121.04867777714286,
+      14.572883333
+     ],
+     [
+      121.04707222157143,
+      14.569872221999999
+     ],
+     [
+      121.045466666,
+      14.566861111
+     ],
+     [
+      121.0431922216,
+      14.5643294442
+     ],
+     [
+      121.0409177772,
+      14.5617977774
+     ],
+     [
+      121.0386433328,
+      14.5592661106
+     ],
+     [
+      121.0363688884,
+      14.5567344438
+     ],
+     [
+      121.034094444,
+      14.554202777
+     ],
+     [
+      121.03195370333334,
+      14.552449073333333
+     ],
+     [
+      121.02981296266667,
+      14.550695369666666
+     ],
+     [
+      121.027672222,
+      14.548941666
+     ],
+     [
+      121.02438888862501,
+      14.547513540999999
+     ],
+     [
+      121.02110555525,
+      14.546085416
+     ],
+     [
+      121.01782222187501,
+      14.544657291
+     ],
+     [
+      121.0145388885,
+      14.543229166
+     ],
+     [
+      121.011255555125,
+      14.541801041
+     ],
+     [
+      121.00797222175001,
+      14.540372915999999
+     ],
+     [
+      121.004688888375,
+      14.538944791
+     ],
+     [
+      121.001405555,
+      14.537516666
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Monumento",
+    "sequence": 1,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with LRT-1 Monumento"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.983905555,
+     14.654094444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Bagong Barrio",
+    "sequence": 2,
+    "coordinate_confidence": "medium",
+    "note": "geocoded from place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.9975628,
+     14.6573427
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Balintawak",
+    "sequence": 3,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with LRT-1 Balintawak"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.003961111,
+     14.657344444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Kaingin Road",
+    "sequence": 4,
+    "coordinate_confidence": "low",
+    "note": "geocoded from approximate place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.011818,
+     14.6575453
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Roosevelt / FPJ",
+    "sequence": 5,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with LRT-1 FPJ"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.021211111,
+     14.657494444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "SM North EDSA",
+    "sequence": 6,
+    "coordinate_confidence": "medium",
+    "note": "geocoded from place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.0313177,
+     14.6570926
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "North Avenue",
+    "sequence": 7,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 North Avenue"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.032166666,
+     14.652444444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Philam QC / Ormoc",
+    "sequence": 8,
+    "coordinate_confidence": "low",
+    "note": "geocoded from approximate place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.034505,
+     14.6480489
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Quezon Avenue",
+    "sequence": 9,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Quezon Avenue"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.038673611,
+     14.642444444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Kamuning",
+    "sequence": 10,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 GMA-Kamuning"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.043361111,
+     14.635144444
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Nepa Q-Mart",
+    "sequence": 11,
+    "coordinate_confidence": "medium",
+    "note": "geocoded from place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.0469575,
+     14.6284417
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Main Avenue",
+    "sequence": 12,
+    "coordinate_confidence": "medium",
+    "note": "geocoded from place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.053672,
+     14.6138608
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Santolan-Annapolis",
+    "sequence": 13,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Santolan-Annapolis"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.056441666,
+     14.607711111
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Ortigas / SM Megamall",
+    "sequence": 14,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Ortigas"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.056705555,
+     14.587938888
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Guadalupe",
+    "sequence": 15,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Guadalupe"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.045466666,
+     14.566861111
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Buendia",
+    "sequence": 16,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Buendia"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.034094444,
+     14.554202777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Ayala / One Ayala",
+    "sequence": 17,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Ayala"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.027672222,
+     14.548941666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Tramo",
+    "sequence": 18,
+    "coordinate_confidence": "low",
+    "note": "geocoded result looked imprecise (returned an Aurora Blvd point) -- verify"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.0043429,
+     14.5310617
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Taft Avenue",
+    "sequence": 19,
+    "coordinate_confidence": "high",
+    "note": "shared coordinate with MRT-3 Taft Avenue"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.001405555,
+     14.537516666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Roxas Boulevard",
+    "sequence": 20,
+    "coordinate_confidence": "low",
+    "note": "geocoded result inconsistent with expected north-south order -- verify"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.9906439,
+     14.5479694
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "SM Mall of Asia",
+    "sequence": 21,
+    "coordinate_confidence": "medium",
+    "note": "geocoded from place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.9815994,
+     14.5351818
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "Ayala Malls Manila Bay / Aseana City",
+    "sequence": 23,
+    "coordinate_confidence": "low",
+    "note": "geocode returned a nearby POI, not the exact stop -- verify"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.9880927,
+     14.5279781
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "bus_city",
+    "name": "PITX",
+    "sequence": 24,
+    "coordinate_confidence": "medium",
+    "note": "geocoded from place name (Nominatim)"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.9912389,
+     14.5081487
+    ]
+   }
+  }
+ ]
+}

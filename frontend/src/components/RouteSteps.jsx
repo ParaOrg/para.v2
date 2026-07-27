@@ -19,6 +19,7 @@ export default function RouteSteps({ markers, lines, response, onBack }) {
   // Group consecutive lines of the same type into steps
   const steps = [];
   let currentStep = null;
+  const hasRealFare = lines.some((line) => line.fare !== undefined);
 
   lines.forEach((line) => {
     if (!currentStep || currentStep.type !== line.type) {
@@ -31,11 +32,14 @@ export default function RouteSteps({ markers, lines, response, onBack }) {
         name: line.name || `${line.type} Route`,
         color: line.color,
         points: [...line.points],
+        fare: line.fare ?? 0,
+        direction: line.direction,
         stepNumber: steps.length + 1
       };
     } else {
       // Extend current step
       currentStep.points.push(...line.points);
+      currentStep.fare += line.fare ?? 0;
     }
   });
 
@@ -43,10 +47,10 @@ export default function RouteSteps({ markers, lines, response, onBack }) {
     steps.push(currentStep);
   }
 
-  // Calculate total fare
-  const totalFare = steps.reduce((sum, step) => {
-    return sum + estimateFare(step.type);
-  }, 0);
+  // Prefer the backend's real per-mode fare (see routeAdapter.js); fall back
+  // to the placeholder estimate only when no real fare data is present.
+  const fareFor = (step) => (hasRealFare ? step.fare : estimateFare(step.type));
+  const totalFare = steps.reduce((sum, step) => sum + fareFor(step), 0);
 
   // Minimized view
   if (isMinimized) {
@@ -282,7 +286,7 @@ export default function RouteSteps({ markers, lines, response, onBack }) {
                     {step.type} to {index < steps.length - 1 ? "Location " + (index + 2) : "Destination"}
                   </span>
                 </div>
-                <span className="text-sm font-medium text-gray-800">₱{estimateFare(step.type)}</span>
+                <span className="text-sm font-medium text-gray-800">₱{fareFor(step)}</span>
               </div>
             ))}
             <div className="flex items-center justify-between pt-3 border-t border-gray-200">

@@ -1,0 +1,497 @@
+{
+ "type": "FeatureCollection",
+ "metadata": {
+  "source": "Wikidata (Q4165317, P625)",
+  "verified_date": "2026-07-27",
+  "notes": "Fare: P13 min / P33 max (beep, Aug 2023 adjustment, still current per Jan 2026 sources) interpolated by distance in graph_engine.calculate_fare. 50% DOTr promo discount (effective 2026-03-23) applied via RAIL_PROMO_DISCOUNT_ACTIVE -- remove when promo ends."
+ },
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "lrt2",
+    "mode": "lrt2",
+    "route_long_name": "LRT-2 Pier 4/Recto - Antipolo",
+    "bidirectional": true,
+    "last_updated": "2026-07-27",
+    "geometry_note": "straight-line interpolation between official station points, not true track alignment"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      120.961536111,
+      14.603530555
+     ],
+     [
+      120.964656944,
+      14.603231944000001
+     ],
+     [
+      120.967777777,
+      14.602933333
+     ],
+     [
+      120.97090277699999,
+      14.6030461108
+     ],
+     [
+      120.97402777699999,
+      14.6031588886
+     ],
+     [
+      120.977152777,
+      14.6032716664
+     ],
+     [
+      120.980277777,
+      14.6033844442
+     ],
+     [
+      120.983402777,
+      14.603497222
+     ],
+     [
+      120.98649907333333,
+      14.602614814666666
+     ],
+     [
+      120.98959536966666,
+      14.601732407333333
+     ],
+     [
+      120.992691666,
+      14.60085
+     ],
+     [
+      120.9958173605,
+      14.601054166499999
+     ],
+     [
+      120.998943055,
+      14.601258333
+     ],
+     [
+      121.0020687495,
+      14.6014624995
+     ],
+     [
+      121.005194444,
+      14.601666666
+     ],
+     [
+      121.008175833,
+      14.6022724995
+     ],
+     [
+      121.01115722200001,
+      14.602878333
+     ],
+     [
+      121.014138611,
+      14.6034841665
+     ],
+     [
+      121.01712,
+      14.60409
+     ],
+     [
+      121.01936777775,
+      14.605706388749999
+     ],
+     [
+      121.0216155555,
+      14.607322777499999
+     ],
+     [
+      121.02386333325,
+      14.60893916625
+     ],
+     [
+      121.026111111,
+      14.610555555
+     ],
+     [
+      121.02885648133334,
+      14.611587962333333
+     ],
+     [
+      121.03160185166666,
+      14.612620369666667
+     ],
+     [
+      121.034347222,
+      14.613652777
+     ],
+     [
+      121.03714166633333,
+      14.615292592
+     ],
+     [
+      121.03993611066667,
+      14.616932407
+     ],
+     [
+      121.042730555,
+      14.618572222
+     ],
+     [
+      121.046032407,
+      14.619940740333332
+     ],
+     [
+      121.049334259,
+      14.621309258666667
+     ],
+     [
+      121.052636111,
+      14.622677777
+     ],
+     [
+      121.05565069425,
+      14.62400833275
+     ],
+     [
+      121.0586652775,
+      14.6253388885
+     ],
+     [
+      121.06167986074999,
+      14.62666944425
+     ],
+     [
+      121.064694444,
+      14.628
+     ],
+     [
+      121.06744907366667,
+      14.629032407333334
+     ],
+     [
+      121.07020370333333,
+      14.630064814666666
+     ],
+     [
+      121.072958333,
+      14.631097222
+     ],
+     [
+      121.0755499996,
+      14.6293055552
+     ],
+     [
+      121.0781416662,
+      14.6275138884
+     ],
+     [
+      121.08073333280001,
+      14.6257222216
+     ],
+     [
+      121.0833249994,
+      14.6239305548
+     ],
+     [
+      121.085916666,
+      14.622138888
+     ],
+     [
+      121.08950694375,
+      14.62167361025
+     ],
+     [
+      121.0930972215,
+      14.6212083325
+     ],
+     [
+      121.09668749925001,
+      14.620743054750001
+     ],
+     [
+      121.100277777,
+      14.620277777
+     ],
+     [
+      121.10374999933333,
+      14.621018517833333
+     ],
+     [
+      121.10722222166667,
+      14.621759258666668
+     ],
+     [
+      121.110694444,
+      14.6224999995
+     ],
+     [
+      121.11416666633333,
+      14.623240740333333
+     ],
+     [
+      121.11763888866668,
+      14.623981481166668
+     ],
+     [
+      121.121111111,
+      14.624722222
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Pier 4",
+    "sequence": 1,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.961536111,
+     14.603530555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Divisoria",
+    "sequence": 2,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.967777777,
+     14.602933333
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Recto",
+    "sequence": 3,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.983402777,
+     14.603497222
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Legarda",
+    "sequence": 4,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     120.992691666,
+     14.60085
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Pureza",
+    "sequence": 5,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.005194444,
+     14.601666666
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "V. Mapa",
+    "sequence": 6,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.01712,
+     14.60409
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "J. Ruiz",
+    "sequence": 7,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.026111111,
+     14.610555555
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Gilmore",
+    "sequence": 8,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.034347222,
+     14.613652777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Betty Go-Belmonte",
+    "sequence": 9,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.042730555,
+     14.618572222
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Araneta Center-Cubao",
+    "sequence": 10,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.052636111,
+     14.622677777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Anonas",
+    "sequence": 11,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.064694444,
+     14.628
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Katipunan",
+    "sequence": 12,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.072958333,
+     14.631097222
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Santolan",
+    "sequence": 13,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.085916666,
+     14.622138888
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Marikina-Pasig",
+    "sequence": 14,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.100277777,
+     14.620277777
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "type": "station",
+    "mode": "lrt2",
+    "name": "Antipolo",
+    "sequence": 15,
+    "coordinate_confidence": "high"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     121.121111111,
+     14.624722222
+    ]
+   }
+  }
+ ]
+}
