@@ -39,7 +39,7 @@ function AppRoutes() {
   const location = useLocation();
 
   // Hide navbar on full-screen pages
-  const hideNavbarPaths = ['/map', '/routes', '/admin'];
+  const hideNavbarPaths = ['/map'];
   const showNavbar = !hideNavbarPaths.includes(location.pathname);
 
   if (loading) {
