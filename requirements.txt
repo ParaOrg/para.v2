@@ -1,5 +1,6 @@
-fastapi
-uvicorn
-networkx
-pydantic
-httpx
+pip install fastapi==0.115.6
+pip install uvicorn==0.34.0
+pip install networkx==3.4.2
+pip install pydantic==2.10.4
+pip install httpx==0.28.1
+pip install geopy==2.4.1

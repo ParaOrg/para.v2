@@ -1,95 +1,336 @@
-# 🚐 Para PH: AI-Powered Multimodal Transit Routing Engine (v1.1.2)
-Para PH is a lightweight, self-learning, multimodal transit routing engine designed specifically for the unique and chaotic public transportation network of the Philippines (Jeepneys, LRT, MRT, UV Express, and Buses).
-Moving beyond static map algorithms, Para PH uses local Large Language Models (LLMs) for natural language understanding, crowdsourced machine learning to memorize commuter-approved routes, and commuter-realistic math to minimize painful transfers.
+# 🚐 Para PH v2.1 — Development Update
 
-## ✨ Key Features (v1.1.2)
+**Date:** July 28, 2026  
+**Status:** Pre-MVP — Core features complete, polish in progress
 
-**🧠 AI & Natural Language Processing:** Understands Taglish and local slang (e.g., "From admu to ust"). Uses a local Llama 3.2 model for intent parsing, with a robust regex fallback if offline.
+---
 
-**📈 Self-Learning ML Engine:** Features a crowdsourced "Mode Recommender." When users rate a route 👍, the exact path is saved. Future queries for that route instantly retrieve the "Commuter Favorite" without heavy graph math.
+# 📋 What We Built Today
 
-**🚐 Commuter-Realistic Routing:**
-- **Segment-Based Fares:** Groups consecutive GPS nodes into single rides, ensuring you are only charged the ₱13 jeepney base fare once per continuous ride, not per GPS dot.
-- **Massive Transfer Penalty:** Applies a 30-minute time penalty to vehicle transfers, forcing the algorithm to aggressively prioritize direct routes over illogical multi-hop shortcuts.
+## 1. Telemetry & Traffic Intelligence System
 
-**⚡ Guaranteed Alternative Routes:** Uses the industry-standard "Edge Penalty Method" to instantly generate a visually distinct, grey backup route in case the primary path is congested.
+**New file:** `telemetry_engine.py`
 
-**📍 Smart Geocoding & Memory:** Features "Lazy LLM Expansion" and an "Acronym Buster" cache. If you type "pitx", it instantly translates and caches it, ensuring zero-latency lookups on subsequent searches.
+### Features
+- Ingests GPS pings
+- Snaps locations to graph edges
+- Calculates congestion factors
+- Applies traffic-aware routing
 
-**🗺️ Interactive Step-by-Step UI:** A responsive, mobile-first frontend (React, Tailwind, Leaflet) that renders color-coded polylines, collapsible step-by-step itineraries, and the ML feedback interface.
+### Database
+- `telemetry_pings` — anonymized GPS data
+- `traffic_segments` — congestion analysis
 
-## 🛠️ Tech Stack
-**Backend:** Python, FastAPI, NetworkX, Pydantic, SQLite
+### API Endpoints
 
-**AI & Geocoding:** Ollama (Llama 3.2), HTTPX, Geopy (Nominatim)
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/telemetry/ping` | POST | Receive a single GPS ping |
+| `/telemetry/batch` | POST | Receive bulk GPS pings |
+| `/telemetry/simulate` | POST | Generate simulated GPS pings for development |
+| `/traffic/analyze` | POST | Trigger congestion recalculation |
+| `/traffic/geojson` | GET | Return heatmap GeoJSON for map overlays |
 
-**Frontend:** React (via Babel standalone), Leaflet.js, Tailwind CSS
+### Background Tasks
+- Congestion analysis runs automatically every **5 minutes**
 
-**Data:** GeoJSON (OpenStreetMap / Custom GIS exports), Spatial Hash Grids
+### Routing
+- `apply_traffic_to_graph()` multiplies graph edge weights using congestion factors before pathfinding.
 
-## 🚀 Getting Started
-1. Prerequisites
-- Python 3.9+
-- Ollama installed and running in the background (for AI features).
-- GeoJSON files containing transit routes placed in the ./geojson_data directory.
+---
 
-## Installation
-1. Clone the repository:
+## 2. Admin Dashboard
 
+### New Files
+- `admin_routes.py`
+- `src/pages/AdminDashboard.jsx`
+
+### Dashboard Tabs
+
+| Tab | Features |
+|------|----------|
+| **Overview** | Graph statistics, traffic summary, severity breakdown |
+| **Traffic** | Simulate pings, analyze congestion, inspect segments |
+| **Routes** | Browse routes, flip edge directions, rename routes |
+| **Telemetry** | Manual GPS ping submission and API examples |
+| **GIS Tools** | Reload CSV files and manage GIS data |
+
+---
+
+## 3. Frontend Migration (Google Maps → OpenStreetMap)
+
+### Removed
+- `@vis.gl/react-google-maps`
+- `useGoogleMaps`
+
+### Migrated
+- `map_component.jsx` → Leaflet
+- `RouteLines.jsx` → Leaflet
+- `RouteMarkers.jsx` → Leaflet
+- `map_constants.js` → Leaflet-compatible marker icons
+
+### Deleted
+- `src/hooks/useGoogleMaps.js`
+- `src/config/googleMaps.js`
+
+**Result:** Entire mapping stack now uses **Leaflet + OpenStreetMap**, eliminating Google Maps API keys and associated costs.
+
+---
+
+## 4. Route Explorer Page
+
+**File:** `src/pages/RoutesExplorer.jsx`
+
+### Features
+- Verified (GPS-traced) routes
+- All CSV routes
+- Search and filtering
+- Leaflet route visualization
+
+### Backend APIs
+- `/admin/routes/verified`
+- `/admin/routes/csv`
+
+---
+
+## 5. Bug Fixes
+
+### Frontend
+- ✅ Fixed WSOD by adding `<BrowserRouter>` in `main.jsx`
+- ✅ Fixed Tailwind by enabling `tailwindcss()` in `vite.config.js`
+- ✅ Removed duplicate `App()` function
+- ✅ Fixed `apiKey is not defined` in `Map.jsx`
+
+### Backend
+- ✅ Connected previously commented-out admin router
+- ✅ Fixed CSV path resolution
+- ✅ Added missing `/admin` Vite proxy
+
+### Authentication
+- ✅ Prevented `AuthContext` crash when Firebase keys are missing
+
+---
+
+## 6. Backend API Additions
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/admin/routes/csv` | GET | Cached CSV route list |
+| `/admin/routes/verified` | GET | Verified GPS routes |
+| `/admin/routes/geometry/{name}` | GET | Route GeoJSON |
+| `/admin/routes/reload` | POST | Clear CSV cache |
+| `/admin/routes/flip` | POST | Reverse edge direction |
+| `/admin/routes/rename` | POST | Rename route |
+| `/admin/traffic/summary` | GET | Traffic overview |
+| `/admin/traffic/segments` | GET | Segment congestion |
+| `/admin/telemetry/recent` | GET | Recent GPS pings |
+| `/admin/graph/stats` | GET | Graph statistics |
+
+---
+
+# 🔄 Changes Since Last Update
+
+## Architecture
+
+### Thread-safe Graph
+- `find_routes_with_alternatives()` now copies the routing graph before pathfinding to avoid race conditions.
+
+### Traffic-Aware Routing
+- Live congestion factors now influence shortest-path calculations.
+
+### CSV Route Loading
+- `full_jeepney_routes.csv` is loaded once and cached in memory for fast subsequent requests.
+
+---
+
+## Frontend
+
+### Mapping
+- Fully migrated to **OpenStreetMap + Leaflet**
+- No API keys required
+
+### New Pages
+
+| Route | Description |
+|--------|-------------|
+| `/admin` | Full administrative dashboard |
+| `/routes` | Route Explorer |
+| `/map` | Chat-based routing interface |
+
+### Map Features
+- Chat-powered trip planning
+- Step-by-step directions
+- Fare estimation
+- Route rating system
+
+---
+
+## Database
+
+Added:
+
+- `telemetry_pings`
+- `traffic_segments`
+
+Also introduced:
+
+- CSV route cache
+- Traffic congestion storage
+
+---
+
+## Project Structure
+
+### New Files
+
+```text
+telemetry_engine.py              # GPS ingestion & congestion analysis
+admin_routes.py                  # Admin API
+src/pages/AdminDashboard.jsx     # Admin dashboard
+src/pages/RoutesExplorer.jsx     # Route Explorer
 ```
-git clone https://github.com/your-username/para-ph-routing.git
-cd para-ph-routing
+
+### Modified Files
+
+```text
+main.py
+models.py
+api_routes.py
+
+src/App.jsx
+src/main.jsx
+
+vite.config.js
+
+src/components/map_component.jsx
+src/components/RouteLines.jsx
+src/components/RouteMarkers.jsx
+src/components/map_constants.js
+
+src/pages/Map.jsx
+
+src/context/AuthContext.jsx
 ```
 
-2. Create and activate a Virtual Environment:
+### Deleted Files
 
+```text
+src/hooks/useGoogleMaps.js
+src/config/googleMaps.js
 ```
-python -m venv venv
-# On Windows:
+
+---
+
+# 🚀 Pre-MVP Launch Checklist
+
+## Must Complete Before Launch
+
+- [ ] Run `ingest_pois.py` to populate `para_poi.db`
+- [ ] Populate `geojson_data/` with real Metro Manila routes
+- [ ] Test Ollama (Llama 3.2) using Filipino and Taglish queries
+- [ ] Validate geocoding for 20+ Metro Manila locations
+- [ ] Verify responsive layout on 375px mobile screens
+- [ ] Improve error states
+  - No route found
+  - Server unavailable
+  - Geocoding failure
+- [ ] Add loading indicators for all async operations
+- [ ] Configure Firebase Authentication (or remove auth before launch)
+
+---
+
+## Polish Tasks
+
+- [ ] Connect Gas Price widget to a live API
+- [ ] Connect Metro Countdown to a GTFS feed
+- [ ] Wire Waitlist to Supabase
+- [ ] Add SEO metadata and Open Graph tags
+- [ ] Verify `frontend/public/favicon.jpg`
+- [ ] Run production build
+- [ ] Test Docker deployment
+
+---
+
+## Known Issues
+
+| Issue | Severity | Planned Fix |
+|------|----------|-------------|
+| Initial CSV load (~690 KB) is slow | Low | Cached after first request |
+| Gas Price widget uses placeholder data | Medium | Connect to real API or remove |
+| Firebase Auth disabled | Low | Configure Firebase or remove login |
+| No real telemetry available | Low | Use simulation endpoint during demos |
+
+---
+
+# 🏗️ Running the Project
+
+## Development
+
+### Backend
+
+```bash
+cd para.v2
 venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-```
-
-3. Install Dependencies
-
-```
-pip freeze > requirements.txt
-```
-
-4. Prepare the AI (Optional but Recommended):
-Ensure Ollama is running and download the lightweight Llama 3.2 model:
-
-```
-ollama pull llama3.2
-```
-
-5. Start the Server:
-
-```
 python main.py
 ```
 
-6. Open the app through localhost
+### Frontend
 
-## 📊 How the ML Learning Engine Works
-1. The user requests a route (e.g., "Cubao to Ayala").
-2. The backend calculates the optimal path using composite weights (Time + Distance + Transfer Penalties).
-3. The UI displays the route with a 👍 (7/Perfect), 😐 (3/Okay), or 👎 (1/Bad) rating system.
-4. If the user clicks 👍, the backend saves the exact node path to the approved_routes table.
-5. The next time any user requests "Cubao to Ayala", the backend bypasses the math and instantly serves the community-approved route.
+```bash
+cd para.v2\frontend
+npm run dev
+```
 
-## 🔮 Roadmap (v1.2)
-**Live Deviation Tracking:** Browser *watchPosition* API to alert users if they veer off the approved route.
+### Local URLs
 
-**Incident Broadcasting:** WebSocket integration allowing users to report "Baha" (Flood) or "Walang Sakay" (No Fares) at specific nodes, dynamically updating edge weights in real-time.
+| Service | URL |
+|---------|-----|
+| Backend | http://localhost:8000 |
+| Frontend | http://localhost:5173 |
+| Admin Dashboard | http://localhost:5173/admin |
+| Route Explorer | http://localhost:5173/routes |
+| Interactive Map | http://localhost:5173/map |
 
-**POI Autocomplete:** A live, fuzzy-search dropdown in the chat UI powered by the 56,000+ ingested OpenStreetMap points.
+---
 
-# Important Notes
-1. The path mixes routes, notable bridge and road paths.
-- Does not know proper exits out of establishments, leading to weird path generation
-- The fix: manual route mapping of proper exits, campus maps, or online databases.
-2. Does not follow road rules just yet.
+## Production Build
 
-*Para PH v1.1.1 - Built by commuters, for commuters. 🇵🇭🚐*
+```bash
+cd para.v2\frontend
+npm run build
+```
+
+Serve the generated `frontend/dist/` directory using FastAPI static files.
+
+---
+
+# 📝 Next Development Session
+
+### High Priority
+
+1. Run POI ingestion
+2. Populate real GeoJSON route data
+3. Test Metro Manila geocoding accuracy
+4. Replace remaining placeholder widgets
+   - Gas Price
+   - Metro Countdown
+5. Complete mobile responsiveness audit
+6. Prepare for MVP launch
+
+---
+
+# 📌 Summary
+
+Today's work significantly advanced **Para PH v2.1** toward MVP readiness.
+
+### Major accomplishments
+
+- ✅ Built a complete telemetry and traffic intelligence system
+- ✅ Added a full-featured admin dashboard
+- ✅ Migrated the entire frontend from Google Maps to Leaflet/OpenStreetMap
+- ✅ Created a Route Explorer interface
+- ✅ Added comprehensive backend APIs
+- ✅ Improved routing with real-time congestion awareness
+- ✅ Resolved major frontend, backend, and authentication issues
+
+The project is now in the **Pre-MVP** stage. Remaining work focuses on real-world data, UI polish, testing, and deployment readiness before launch.

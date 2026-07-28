@@ -57,3 +57,29 @@ class ChatResponse(BaseModel):
     alternatives: Optional[List[RouteResponse]] = [] # NEW: For Yen's Algorithm
     origin: str = ""       # NEW: For the frontend feedback system
     destination: str = ""  # NEW: For the frontend feedback system
+
+# ==========================================
+# NEW: TELEMETRY MODELS
+# ==========================================
+class TelemetryPing(BaseModel):
+    device_id: str
+    lat: float
+    lng: float
+    speed_kmh: float = 0.0
+    heading: float = 0.0
+    trip_id: Optional[str] = None
+
+class TelemetryBatch(BaseModel):
+    pings: List[TelemetryPing]
+
+class TrafficSegmentResponse(BaseModel):
+    route_name: str
+    from_node: str
+    to_node: str
+    congestion_factor: float
+    observed_speed_kmh: Optional[float] = None
+    color: str = "#22c55e"
+
+class SimulateRequest(BaseModel):
+    route_name: Optional[str] = None
+    count: int = 1

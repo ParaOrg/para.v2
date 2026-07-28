@@ -4,6 +4,7 @@ import networkx as nx
 import uuid
 from fastapi import APIRouter, Request
 from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
+from models import TelemetryPing, TelemetryBatch, SimulateRequest  # NEW: Add missing imports
 from graph_engine import haversine, SPEED_WALK_KMH
 from llm_engine import parse_chat_intent_async, ask_info_llm, geocode_location
 
@@ -18,7 +19,6 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
     gx, gy = int(lat / grid_size), int(lng / grid_size)
     
     candidate_nodes = []
-    # Expand search to 5x5 grid to cover a wider area
     for dx in [-2, -1, 0, 1, 2]:
         for dy in [-2, -1, 0, 1, 2]:
             candidate_nodes.extend(spatial_grid.get((gx + dx, gy + dy), []))
@@ -28,11 +28,10 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
         node_attrs = G.nodes[node]
         dist = haversine(lat, lng, node_attrs['lat'], node_attrs['lng'])
         
-        if dist < 2500:  # 2.5km max walk for large campuses/malls
+        if dist < 2500:
             w_time = (dist / 1000) / SPEED_WALK_KMH * 60
             candidates.append((node, dist, w_time))
             
-    # FALLBACK: If absolutely no nodes are found within 2.5km, find the single closest node in the entire graph
     if not candidates:
         print(f"⚠️ No nodes within 2.5km. Finding absolute closest node in graph...")
         min_dist = float('inf')
@@ -44,7 +43,7 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
             if dist < min_dist:
                 min_dist = dist
                 closest_node = node
-                if dist < 500: break # Early exit if we find something reasonably close
+                if dist < 500: break
                 
         if closest_node:
             w_time = (min_dist / 1000) / SPEED_WALK_KMH * 60
@@ -53,24 +52,15 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
             
     candidates.sort(key=lambda x: x[2])
     
-    # Connect to the top 5 closest nodes
+    # Connect to the top 5 closest nodes (FIXED: removed duplicate loop)
     for node, dist, w_time in candidates[:5]:
-        routing_weight = w_time  # Safely defined INSIDE the loop
-        
         if is_source:
-            G.add_edge(v_node, node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_TO_TRANSIT", type="walk")
+            G.add_edge(v_node, node, distance=dist, time_min=w_time, routing_weight=w_time, route="WALK_TO_TRANSIT", type="walk")
         else:
-            G.add_edge(node, v_node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_FROM_TRANSIT", type="walk")
-    
-    # Connect to the top 5 closest nodes
-    for node, dist, walk_time in candidates[:5]:
-        if is_source:
-            G.add_edge(v_node, node, distance=dist, time_min=walk_time, route="WALK_TO_TRANSIT", type="walk")
-        else:
-            G.add_edge(node, v_node, distance=dist, time_min=walk_time, route="WALK_FROM_TRANSIT", type="walk")
+            G.add_edge(node, v_node, distance=dist, time_min=w_time, routing_weight=w_time, route="WALK_FROM_TRANSIT", type="walk")
 
 # ==========================================
-# HELPER: Segment Builder (Fixes the "Expensive Fare" bug)
+# HELPER: Segment Builder
 # ==========================================
 def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
     segments = []
@@ -86,8 +76,6 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
         v_type = edge.get('type', 'walk')
         r_name = edge.get('route', 'Unknown')
 
-        # FIX: Only start a new segment if the VEHICLE TYPE changes (e.g., jeep -> walk -> jeep).
-        # Consecutive 'jeep' edges are grouped together to prevent charging the base fare multiple times!
         if not current_segment or current_segment['type'] != v_type:
             if current_segment: 
                 segments.append(current_segment)
@@ -120,8 +108,6 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
         total_dist += seg['distance']
         total_time += seg['time']
         
-        # FIX: Calculate fare ONCE per continuous segment. 
-        # If it's a continuous jeep ride, it only gets ONE ₱13 base fare.
         fare = 13.0 + max(0, (seg['distance'] / 1000 - 4)) * 2.5 if seg['type'] == 'jeep' else 0.0
         total_fare += fare
         
@@ -140,11 +126,26 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
     )
     
 # ==========================================
-# CORE ROUTING: Edge Penalty Method (Fast & Guaranteed Alternatives)
+# CORE ROUTING: Traffic-Aware Edge Penalty Method
 # ==========================================
-def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
-    # FIX: Generate a unique ID for every single request to prevent race conditions
-    unique_id = str(uuid.uuid4())[:8] 
+def find_routes_with_alternatives(G_global: nx.DiGraph, req: RouteRequest, db_path: str = "para_ml_data.db") -> tuple:
+    """
+    Find primary + alternative routes with traffic-aware weights.
+    Uses graph COPY to prevent race conditions between concurrent requests.
+    """
+    from telemetry_engine import apply_traffic_to_graph
+    
+    # STEP 0: Deep copy for thread safety (CRITICAL)
+    G = G_global.copy()
+    
+    # STEP 1: Apply real-time traffic congestion
+    try:
+        G = apply_traffic_to_graph(G, db_path)
+    except Exception as e:
+        print(f"⚠️ [TRAFFIC] Could not apply traffic data: {e}")
+    
+    # STEP 2: Unique virtual node IDs
+    unique_id = str(uuid.uuid4())[:8]
     src_id = f"VIRTUAL_SRC_{unique_id}"
     tgt_id = f"VIRTUAL_TGT_{unique_id}"
     
@@ -155,43 +156,79 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
         _connect_virtual_node(G, src_id, req.origin_lat, req.origin_lng, is_source=True)
         _connect_virtual_node(G, tgt_id, req.dest_lat, req.dest_lng, is_source=False)
         
-        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0: return None, []
+        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0:
+            print(f"❌ [ROUTING] Virtual node has no connections")
+            return None, []
 
-        # 1. Find Primary Route
+        # STEP 3: Find Primary Route
         try:
             path_1 = nx.shortest_path(G, source=src_id, target=tgt_id, weight='routing_weight')
         except nx.NetworkXNoPath:
+            print("❌ [ROUTING] No path found")
             return None, []
             
         route_1 = _calculate_route_from_path(G, path_1)
-        if not route_1: return None, []
+        if not route_1 or not route_1.steps:
+            return None, []
+        
+        print(f"✅ [ROUTING] Primary: {route_1.total_duration_min:.0f} min, ₱{route_1.total_fare:.0f}")
 
-        # 2. Find Alternative Route using EDGE PENALTY
+        # STEP 4: Find Alternative Route (Edge Penalty)
         penalized_edges = []
         for i in range(len(path_1) - 1):
             u, v = path_1[i], path_1[i+1]
-            original_weight = G.edges[u, v].get('routing_weight', G.edges[u, v].get('time_min', 1.0))
-            penalized_edges.append((u, v, original_weight))
-            G.edges[u, v]['routing_weight'] = original_weight * 3.0
+            if G.has_edge(u, v):
+                original_weight = G.edges[u, v].get('routing_weight', G.edges[u, v].get('time_min', 1.0))
+                penalized_edges.append((u, v, original_weight))
+                G.edges[u, v]['routing_weight'] = original_weight * 3.0
 
+        route_2 = None
         try:
             path_2 = nx.shortest_path(G, source=src_id, target=tgt_id, weight='routing_weight')
-            route_2 = _calculate_route_from_path(G, path_2)
+            
+            # Only accept if meaningfully different
+            if path_2 != path_1:
+                route_2 = _calculate_route_from_path(G, path_2)
+                if route_2 and route_2.steps:
+                    same_dist = abs(route_2.total_distance_m - route_1.total_distance_m) < 10
+                    same_steps = len(route_2.steps) == len(route_1.steps)
+                    if same_dist and same_steps:
+                        print("⚠️ [ROUTING] Alternative too similar — discarding")
+                        route_2 = None
+                    else:
+                        print(f"✅ [ROUTING] Alternative: {route_2.total_duration_min:.0f} min, ₱{route_2.total_fare:.0f}")
         except nx.NetworkXNoPath:
-            route_2 = None
+            print("⚠️ [ROUTING] No alternative found after penalty")
         finally:
+            # ALWAYS restore original weights
             for u, v, orig_weight in penalized_edges:
-                G.edges[u, v]['routing_weight'] = orig_weight
+                if G.has_edge(u, v):
+                    G.edges[u, v]['routing_weight'] = orig_weight
 
+        # STEP 5: Add congestion warnings
         all_routes = [route_1]
         if route_2 and route_2.steps:
-            if route_2.total_distance_m != route_1.total_distance_m or len(route_2.steps) != len(route_1.steps):
-                all_routes.append(route_2)
+            all_routes.append(route_2)
+        
+        for route in all_routes:
+            congested = 0
+            total_segs = 0
+            for i in range(len(route.path_nodes) - 1):
+                u, v = route.path_nodes[i], route.path_nodes[i+1]
+                if G.has_edge(u, v):
+                    cf = G.edges[u, v].get('congestion_factor', 1.0)
+                    total_segs += 1
+                    if cf > 1.3:
+                        congested += 1
+            if total_segs > 0 and congested / total_segs > 0.5:
+                route.message += " 🚦 Heavy traffic detected!"
+            elif total_segs > 0 and congested / total_segs > 0.2:
+                route.message += " 🟡 Moderate traffic on some segments."
 
         return all_routes[0], all_routes[1:]
 
     finally:
-        # FIX: Safely remove only THIS request's unique nodes
+        # ALWAYS clean up virtual nodes
         if G.has_node(src_id): G.remove_node(src_id)
         if G.has_node(tgt_id): G.remove_node(tgt_id)
 
@@ -202,6 +239,8 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(msg: ChatMessage, request: Request):
     G = request.app.state.G
+    db_path = request.app.state.db_path  # NEW: Get db_path from app state
+    
     intent_data = await parse_chat_intent_async(msg.message)
     
     # PATH A: CUSTOMER SERVICE / INFO
@@ -219,7 +258,6 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
     o_coords = await geocode_location(origin_name)
     d_coords = await geocode_location(dest_name)
     
-    # DIAGNOSTIC: See the exact coordinates
     print(f"📍 GEOCODED: Start={o_coords}, End={d_coords}")
 
     if not o_coords or not d_coords:
@@ -255,10 +293,10 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
                 origin=origin_name, destination=dest_name
             )
 
-    # FALLBACK: Run the Math (Edge Penalty Method)
+    # FALLBACK: Run routing algorithm WITH traffic data
     print("🗺️ Calculating Primary + Alternative routes...")
     req = RouteRequest(origin_lat=o_coords[0], origin_lng=o_coords[1], dest_lat=d_coords[0], dest_lng=d_coords[1])
-    primary_route, alt_routes = find_routes_with_alternatives(G, req)
+    primary_route, alt_routes = find_routes_with_alternatives(G, req, db_path)  # UPDATED: pass db_path
     
     if not primary_route:
         return ChatResponse(reply_text="Walang nakitang ruta.", route_data=None, origin=origin_name, destination=dest_name)
@@ -272,7 +310,6 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
         print(f"   📊 Total Steps: {len(primary_route.steps)}")
         print(f"   📏 First step geometry points: {len(primary_route.steps[0].geometry)}")
         
-    # HERE IS THE RETURN CHATRESPONSE:
     return ChatResponse(
         reply_text=reply, 
         route_data=primary_route, 
@@ -311,7 +348,93 @@ async def submit_feedback(feedback: FeedbackRequest):
             print(f"💾 [LEARNED] Saved approved route: {feedback.origin_name} -> {feedback.destination_name}")
         except Exception as e:
             print(f"⚠️ Error saving approved route: {e}")
-            
+    
     db.commit()
     db.close()
     return {"status": "success"}
+
+# ==========================================
+# TELEMETRY ENDPOINTS
+# ==========================================
+
+@router.post("/telemetry/ping")
+async def receive_ping(ping: TelemetryPing, request: Request):
+    """Receive a single GPS ping from a device."""
+    from telemetry_engine import ingest_ping
+    
+    db_path = request.app.state.db_path
+    ping_id = ingest_ping(
+        db_path=db_path,
+        device_id=ping.device_id,
+        lat=ping.lat,
+        lng=ping.lng,
+        speed_kmh=ping.speed_kmh,
+        heading=ping.heading,
+        trip_id=ping.trip_id
+    )
+    
+    return {"status": "ok", "ping_id": ping_id}
+
+
+@router.post("/telemetry/batch")
+async def receive_batch(batch: TelemetryBatch, request: Request):
+    """Receive multiple GPS pings at once (e.g., from a phone's buffered log)."""
+    from telemetry_engine import ingest_ping
+    
+    db_path = request.app.state.db_path
+    accepted = 0
+    rejected = 0
+    
+    for ping in batch.pings:
+        ping_id = ingest_ping(
+            db_path=db_path,
+            device_id=ping.device_id,
+            lat=ping.lat,
+            lng=ping.lng,
+            speed_kmh=ping.speed_kmh,
+            heading=ping.heading,
+            trip_id=ping.trip_id
+        )
+        if ping_id > 0:
+            accepted += 1
+        else:
+            rejected += 1
+    
+    return {"status": "ok", "accepted": accepted, "rejected": rejected}
+
+
+@router.get("/traffic/geojson")
+async def get_traffic_geojson(request: Request):
+    """Return GeoJSON of current traffic conditions for map overlay."""
+    from telemetry_engine import get_traffic_geojson
+    
+    db_path = request.app.state.db_path
+    return get_traffic_geojson(db_path)
+
+
+@router.post("/telemetry/simulate")
+async def simulate_pings(sim: SimulateRequest, request: Request):
+    """FOR TESTING: Generate simulated GPS pings along routes."""
+    from telemetry_engine import simulate_telemetry_ping
+    
+    G = request.app.state.G
+    db_path = request.app.state.db_path
+    
+    results = []
+    for _ in range(sim.count):
+        result = simulate_telemetry_ping(db_path, G, sim.route_name)
+        results.append(result)
+    
+    return {"status": "ok", "simulated": len(results), "results": results}
+
+
+@router.post("/traffic/analyze")
+async def trigger_congestion_analysis(request: Request):
+    """Manually trigger congestion analysis (normally runs every 5 min)."""
+    from telemetry_engine import update_congestion
+    
+    G = request.app.state.G
+    db_path = request.app.state.db_path
+    
+    summary = update_congestion(db_path, G)
+    return {"status": "ok", "summary": summary}
