@@ -29,6 +29,60 @@ function ChangeChip({ price, prev }) {
   return              <span className="text-xs text-red-500  ml-1 font-medium">↑ {diff.toFixed(2)}</span>;
 }
 
+function StaleDataBanner({ ageDays }) {
+  return (
+    <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center">
+      <p className="text-xs sm:text-sm text-amber-800">
+        ⚠️ Brand price data is <strong>{ageDays} days old</strong> — our source hasn't published an update recently.
+        DOE's own weekly range below is still current; individual brand prices may have moved since.
+      </p>
+    </div>
+  );
+}
+
+function DoeSummaryLine({ summary }) {
+  if (!summary || !summary.gasoline_direction) return null;
+  const arrow = (dir) => (dir === 'increase' ? '↑' : dir === 'decrease' ? '↓' : '—');
+  const parts = [
+    summary.gasoline_change_min != null && `Gasoline ${arrow(summary.gasoline_direction)} ₱${summary.gasoline_change_min.toFixed(2)}–${summary.gasoline_change_max.toFixed(2)}/L`,
+    summary.diesel_change_min != null && `Diesel ${arrow(summary.diesel_direction)} ₱${summary.diesel_change_min.toFixed(2)}–${summary.diesel_change_max.toFixed(2)}/L`,
+    summary.kerosene_change_min != null && `Kerosene ${arrow(summary.kerosene_direction)} ₱${summary.kerosene_change_min.toFixed(2)}–${summary.kerosene_change_max.toFixed(2)}/L`,
+  ].filter(Boolean);
+  if (parts.length === 0) return null;
+
+  return (
+    <p className="text-xs text-gray-400 mt-1">
+      DOE Oil Monitor, effective {summary.effective_start}–{summary.effective_end}: {parts.join(' · ')}
+    </p>
+  );
+}
+
+function NewsCitation({ news }) {
+  const item = news?.[0];
+  if (!item) return null;
+  const directionLabel = item.direction === 'rollback' ? '↓ Rollback' : item.direction === 'hike' ? '↑ Hike' : 'Fuel news';
+
+  return (
+    <section className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-800 mb-2">In the News</h2>
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-start gap-3 group no-underline"
+      >
+        <span className={`shrink-0 text-xs font-semibold px-2 py-1 rounded-full ${item.direction === 'rollback' ? 'bg-green-50 text-green-700' : item.direction === 'hike' ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-500'}`}>
+          {directionLabel}
+        </span>
+        <span className="text-sm text-gray-700 group-hover:text-pink-600 transition-colors">
+          {item.title}
+          {item.published_at && <span className="text-gray-400"> · {item.published_at}</span>}
+        </span>
+      </a>
+    </section>
+  );
+}
+
 function PriceTagIcon({ className = 'h-5 w-5' }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -141,6 +195,7 @@ export default function GasPricePage() {
         />
 
         {/* Hero */}
+        {data.stale && <StaleDataBanner ageDays={data.data_age_days} />}
         <div className="bg-white border-b border-gray-100 px-6 py-10 text-center">
           <span className="inline-block text-4xl mb-3">⛽</span>
           <h1 className="text-3xl font-bold text-gray-900">Fuel Prices Philippines</h1>
@@ -152,9 +207,11 @@ export default function GasPricePage() {
             }
             {' '}· <span className="font-medium text-gray-700">as of {data.last_updated}</span>
           </p>
+          <DoeSummaryLine summary={data.doe_summary} />
         </div>
 
         <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
+          {data.news?.length > 0 && <NewsCitation news={data.news} />}
 
           {/* Summary cards */}
           <section>

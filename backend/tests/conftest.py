@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 import api_routes
 import llm_engine
 import main
+import gas_price_db
 from graph_engine import build_transit_graph
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -29,8 +30,12 @@ def isolated_db(tmp_path, monkeypatch):
     monkeypatch.setattr(api_routes, "DB_PATH", db_path)
     monkeypatch.setattr(llm_engine, "ML_DB_PATH", db_path)
     monkeypatch.setattr(llm_engine, "POI_DB_PATH", poi_db_path)
+    monkeypatch.setattr(gas_price_db, "DB_PATH", db_path)
 
     main.init_db()
+    conn = gas_price_db.get_connection()
+    gas_price_db.init_gas_price_tables(conn)
+    conn.close()
     return db_path
 
 

@@ -1,0 +1,1747 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	 xmlns:media="http://search.yahoo.com/mrss/" >
+
+<channel>
+	<title>Business</title>
+	<atom:link href="https://www.rappler.com/business/feed/" rel="self" type="application/rss+xml" />
+	<link>https://www.rappler.com/business/</link>
+	<description>RAPPLER &#124; Philippine &#38; World News &#124; Investigative Journalism &#124; Data &#124; Civic Engagement &#124; Public Interest</description>
+	<lastBuildDate>Mon, 27 Jul 2026 17:26:15 +0800</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://www.altis-dxp.com/?v=6.8.3</generator>
+
+<image>
+	<url>https://www.rappler.com/tachyon/2022/11/cropped-Piano-Small.png?fit=32%2C32</url>
+	<title>Business</title>
+	<link>https://www.rappler.com/business/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Why Energy Secretary Garin says Pax Silica is ‘too dangerous’ to plug into grid</title>
+		<link>https://www.rappler.com/newsbreak/inside-track/pax-silica-load-danger-grid-energy-secretary-garin/</link>
+					<comments>https://www.rappler.com/newsbreak/inside-track/pax-silica-load-danger-grid-energy-secretary-garin/#respond</comments>
+		
+		<dc:creator><![CDATA[Lance Spencer Yu]]></dc:creator>
+		<pubDate>Mon, 27 Jul 2026 10:00:03 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Industries]]></category>
+		<category><![CDATA[Inside Track]]></category>
+		<category><![CDATA[Newsbreak]]></category>
+		<category><![CDATA[Department of Energy]]></category>
+		<category><![CDATA[energy industry]]></category>
+		<category><![CDATA[Pax Silica]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[Energy Secretary Sharon Garin tells Rappler why Pax Silica will likely need its own power system if plugged into the Luzon grid]]></description>
+										<content:encoded><![CDATA[
+<p class="has-drop-cap">How much electricity is 3 gigawatts? Enough to give Energy Secretary Sharon Garin pause.</p>
+
+
+
+<p><a href="https://www.rappler.com/technology/features/things-to-know-pax-silica-philippines-goals-concerns/">Pax Silica</a>, the planned artificial intelligence, semiconductor, and advanced manufacturing hub in New Clark City, could eventually require <a href="https://www.abs-cbn.com/news/business/2026/7/24/energy-solutions-for-remote-rural-areas-1213">3,000 megawatts</a>.</p>
+
+
+
+<p>That&#8217;s about 19% of Luzon’s projected 2026 <a href="https://www.ngcp.ph/Attachment-Uploads/2025-2027%20LVM%20WPO%20with%20LOLPC%20with%20capacity%20sharing%20Revision%200-2025-01-02-11-50-02.pdf?utm_source=chatgpt.com">peak demand</a> and nearly equivalent to the entire Visayas grid. It&#8217;s also close to the combined capacity of five 620-MW Bataan Nuclear Power Plants, the Philippines&#8217; <a href="https://www.rappler.com/environment/nuclear-energy-clean-but-can-philippines-handle-risks/">mothballed</a> nuclear plant that never produced commercial electricity.</p>
+
+
+
+<p>Or, as Garin put it: &#8220;<em>Malaki siya. Malaki</em>.&#8221; (It&#8217;s big. Big.)</p>
+
+
+
+<figure class="wp-block-image size-full"><img fetchpriority="high" width="1024" height="576" decoding="async" src="https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg" alt="inside track logo" class="wp-image-2995518" srcset="https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg?resize=1024%2C576&amp;zoom=1 1024w, https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg?resize=1024%2C576&amp;zoom=0.5 512w, https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg?resize=1024%2C576&amp;zoom=0.25 256w" sizes="(max-width: 1024px) 100vw, 1024px" /></figure>
+
+
+
+<p>In an exclusive interview with Rappler, Garin made clear that Pax Silica cannot simply plug its full demand into the Luzon grid without exposing households and businesses to serious risk.</p>
+
+
+
+<p>“If you put it on the grid, and then suddenly this 3 gigawatt demand will be lost, the grid will just shut down,” Garin told Rappler.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-too-dangerous-for-consumers">&#8216;Too dangerous for consumers&#8217;</h5>
+
+
+
+<p>Garin’s concern was that introducing a 3-GW load tied to one industrial area could become a problem of grid stability.</p>
+
+
+
+<p>“It’s too dangerous for our usual consumers. So, there are ways to do it. But the primary concern is that we don&#8217;t destabilize the grid because that will affect other businesses and households,” she said on Friday, July 24.</p>
+
+
+
+<p>To mitigate risks, the energy secretary said that the massive US-led project will likely scale up over the years rather than drawing the full 3 GW at once. In the meantime, the Luzon grid might be able to absorb the project’s early phases. (READ: <a href="https://www.rappler.com/philippines/environmental-issues-sona-2026/">Pax Silica, El Niño: Environmental issues for SONA 2026</a>)</p>
+
+
+
+<p>From 100 or 200 megawatts is still manageable. “But once it scales up, we have to provide them with their own power plant,” Garin said.</p>
+
+
+
+<p>The quality of that energy supply matters as much as quantity. A data center will need “cheap power and stable power” with a quality component that demands no red and yellow alerts whatsoever.</p>
+
+
+
+<p>Asked whether Pax Silica’s demand could drive up prices in the electricity spot market, Garin said she did not expect it to do so. But she urged caution, pointing to the <a href="https://www.rappler.com/technology/big-tech-data-centers-driving-up-power-bills-factories-rust-belt/">problems other countries have encountered</a> in their race to build out data centers.</p>
+
+
+
+<p>“There are problems in other countries already,” Garin said. “So, for us to avoid that, learning from their mistakes, one is to come up with a system or technology that can cater to their needs,” she added in a mix of English and Filipino.</p>
+
+
+
+<p>Her preferred solution is effectively a separate ecosystem with its own power, water, and supporting infrastructure.</p>
+
+
+
+<p>“If it’s going to be bigger and bigger, I would rather have it on a stand-alone system where it has its own power plant, whether it’s renewable or gas,” she added.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/technology/features/tech-thoughts-responsibility-pax-silica-route/">
+							<h1 class="related-article__title-text"> [Tech Thoughts] We need to be more responsible if we&#8217;re taking the Pax Silica route </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/technology/features/tech-thoughts-responsibility-pax-silica-route/">
+					 		<img decoding="async" width="449" height="253" src="https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?fit=449%2C449" class=" wp-image-3206212 wp-post-image" alt="[Tech Thoughts] We need to be more responsible if we&#8217;re taking the Pax Silica route" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?fit=449%2C253&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?fit=449%2C253&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?fit=449%2C253&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?fit=449%2C253&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?fit=449%2C253&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<h5 class="wp-block-heading" id="h-can-that-renewable-promise-even-be-met">Can that renewable promise even be met?</h5>
+
+
+
+<p>The Bases Conversion and Development Authority (BCDA) has said Pax Silica would rely <a href="https://www.gmanetwork.com/news/money/economy/995915/pax-silica-ai-hub-to-consume-3-gigawatts-at-full-development-bcda/story/">on renewable energy</a>, mainly solar. The first concrete piece is a deal with <a href="https://pia.gov.ph/news/luzon/cl/bcda-acwa-project-to-boost-renewable-energy-sustainable-growth-in-new-clark-city/">Saudi Arabia’s ACWA Power</a>, which leased a 500-hectare site in New Clark City for a solar photovoltaic and battery storage project with a capacity of up to 500 MW.</p>
+
+
+
+<p>But that is only one-sixth of Pax Silica’s projected requirement.</p>
+
+
+
+<p>There&#8217;s also a proposed 1,200-MW LNG or liquefied natural gas terminal and power plant, for which the US International Development Finance Corporation has <a href="https://mb.com.ph/2026/07/15/philippines-us-eye-november-signing-for-clark-ai-hub-framework">reportedly approved funding</a> for a feasibility study.</p>
+
+
+
+<p>Together, that would provide 1,700 MW on paper, still leaving a 1,300 MW gap.</p>
+
+
+
+<p>And even this is generous; remember, a solar facility rated at 500 MW does not deliver 500 MW around the clock. Would the mega-investors being courted for Pax Silica really leave the fate of their data centers at the mercy of passing clouds?</p>
+
+
+
+<p>The LNG proposal brings its own problems. Clark has an airport, not a seaport. LNG arrives by ship. The fuel would first have to enter through a coastal import terminal, then be transported inland, most plausibly through a new pipeline from Subic or another port. None of that infrastructure is operating yet, while the proposed power plant remains at the feasibility-study stage.</p>
+
+
+
+<p>Gas also complicates BCDA’s green sales pitch. The proposed LNG plant alone would cover 40% of Pax Silica’s projected requirement. But LNG is not considered green or renewable. Unless significantly more renewable capacity is added, fossil gas could end up doing much of the heavy lifting.</p>
+
+
+
+<p>Energy industry sources have been raising the same questions with Rappler. Their point is not that solar has no place in the project, but that nameplate capacity isn&#8217;t the same as round-the-clock, high-quality power. Facilities that cannot tolerate interruptions would still need substantial battery storage and likely grid support.</p>
+
+
+
+<p>And best pray that Pax Silica doesn&#8217;t destablize the Luzon grid.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/voices/thought-leaders/in-this-economy-risks-pax-silica/">
+							<h1 class="related-article__title-text"> [In This Economy] Risks of Pax Silica </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/voices/thought-leaders/in-this-economy-risks-pax-silica/">
+					 		<img decoding="async" width="449" height="253" src="https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?fit=449%2C449" class=" wp-image-3187000 wp-post-image" alt="[In This Economy] Risks of Pax Silica" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?fit=449%2C253&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?fit=449%2C253&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?fit=449%2C253&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?fit=449%2C253&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?fit=449%2C253&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<h5 class="wp-block-heading" id="h-still-early-still-talking">Still early, still talking</h5>
+
+
+
+<p>Asked whether Pax Silica had been planned from the beginning with a complete energy strategy, Garin told Rappler that much is still being firmed up.</p>
+
+
+
+<p>“We’re still in the early stages. But we need to be more rational about it, in the sense that we need to plan properly,” she said in a mix of English and Filipino. There&#8217;s been close consultation too with the Department of Energy, Department of Information and Communications Technology, and Department of Trade and Industry.</p>
+
+
+
+<p>Garin said actual locators must first make firm commitments so generation can be planned around real demand. Such commitments can justify building a power plant. This has all to be in sync, Garin added.</p>
+
+
+
+<p>Power plants take time. Garin estimated three to five years for conventional facilities and around a decade for nuclear.</p>
+
+
+
+<p>“Energy is one big factor,” she said, “and I’d rather do it properly.” <strong>– Rappler.com</strong></p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/newsbreak/inside-track/pax-silica-load-danger-grid-energy-secretary-garin/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg?resize=75%2C75&amp;crop=307px%2C0px%2C576px%2C576px" />
+		<media:content url="https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg" medium="image">
+			<media:title type="html">newsbreak-inside-track</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2025/05/newsbreak-inside-track.jpeg?resize=75%2C75&amp;crop=307px%2C0px%2C576px%2C576px" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg" medium="image">
+			<media:title type="html">tech-thoughts-pax-silica</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/tech-thoughts-pax-silica.jpg?resize=75%2C75&amp;crop=416px%2C0px%2C1080px%2C1080px" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg" medium="image">
+			<media:title type="html">PAX SILICA</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/05/PAX-SILICA.jpg?resize=75%2C75&amp;crop=496px%2C0px%2C1080px%2C1080px" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/07/PAX-SILICA-LUZON.jpg</image>	</item>
+		<item>
+		<title>Bangko Sentral recycles old peso bills into armchairs for this Davao City classroom</title>
+		<link>https://www.rappler.com/business/bangko-sentral-recycles-old-peso-bills-armchairs-davao-city-classroom/</link>
+					<comments>https://www.rappler.com/business/bangko-sentral-recycles-old-peso-bills-armchairs-davao-city-classroom/#respond</comments>
+		
+		<dc:creator><![CDATA[Lance Spencer Yu]]></dc:creator>
+		<pubDate>Sun, 26 Jul 2026 10:00:00 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Mindanao]]></category>
+		<category><![CDATA[Stocks & Banking]]></category>
+		<category><![CDATA[Bangko Sentral ng Pilipinas]]></category>
+		<category><![CDATA[Davao City]]></category>
+		<category><![CDATA[public school]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[The next stop for some worn-out Philippine banknotes is not the shredder or the landfill, but the classroom]]></description>
+										<content:encoded><![CDATA[
+<p>MANILA, Philippines – Nearly 100 armchairs made entirely from recycled polymer banknotes have been donated to Doña Pilar L. Marfori Elementary School in Davao City, giving the notes a second life after they were deemed unfit for circulation.</p>
+
+
+
+<p>The chairs were turned over on Wednesday, July 22, through the Banknote-to-Armchair Project of the BSP Employees Association Inc. (BSPEAI).</p>
+
+
+
+<p>BSP Deputy Governor Mamerto Tangonan, BSP Mindanao Regional Office officer-in-charge Jason Capocao, BSPEAI president Brent Lucero, and Currency Policy and Integrity Department director Eloisa Glindro led the ceremonial turnover to the school, represented by principal Eloisa Questo.</p>
+
+
+
+<p>The project transforms damaged or worn-out polymer notes, along with manufacturing byproducts, into durable classroom furniture. The employees’ association partnered with private recycling company Envirotech Waste Recycling Inc. to produce the armchairs.</p>
+
+
+
+<p>“Polymer banknotes follow a planned lifecycle from circulation to recycling. End-of-life management is built into their design,” Tangonan said.</p>
+
+
+
+<figure class="wp-block-image size-large"><img loading="lazy" width="1024" height="682" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?fit=1024%2C1024" alt="" class="wp-image-3210043" srcset="https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?fit=1024%2C682&amp;zoom=2 2048w, https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?fit=1024%2C682&amp;zoom=1.5 1536w, https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?fit=1024%2C682&amp;zoom=1 1024w, https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?fit=1024%2C682&amp;zoom=0.5 512w, https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?fit=1024%2C682&amp;zoom=0.25 256w" sizes="auto, (max-width: 1024px) 100vw, 1024px" /><figcaption class="wp-element-caption">Bangko Sentral ng Pilipinas Deputy Governor Mamerto Tangonan stands in front of a class in Doña Pilar L. Marfori Elementary School in Davao City. Photo by Bangko Sentral ng Pilipinas.</figcaption></figure>
+
+
+
+<p>Lucero said the Davao City elementary school was selected after the group assessed the needs and priorities of communities on the ground.</p>
+
+
+
+<p>The project also highlights one of the BSP’s arguments for shifting from paper to polymer notes: they are designed to last longer and require less frequent replacement. (READ: <a href="https://www.rappler.com/business/senators-farmers-question-design-new-one-thousand-polymer-bills/">Senators, farmers question design of new P1,000 polymer bills</a>)</p>
+
+
+
+<p>From 2022 to May 2026, the BSP said just 0.02% of the <a href="https://www.rappler.com/business/why-bangko-sentral-pilipinas-chose-one-thousand-pesos-polymer-banknotes-test/">P1,000 polymer banknotes</a> issued to banks were returned to the BSP because they were already worn out or damaged. By comparison, 54.75% of the P1,000 paper banknotes issued over the same period were eventually returned in worn-out or damaged condition.</p>
+
+
+
+<p>The BSP said it had also yet to receive any unfit lower-denomination polymer notes since the new P50, P100, and P500 polymer bills were first released in December 2024. <strong>– Rappler.com</strong></p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/business/bangko-sentral-recycles-old-peso-bills-armchairs-davao-city-classroom/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?resize=75%2C75&amp;crop_strategy=attention" />
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg" medium="image">
+			<media:title type="html">Photo 3_Banknote-to-Armchair Project Turnover Ceremony</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Photo-3_Banknote-to-Armchair-Project-Turnover-Ceremony-scaled.jpg?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/07/banknote-bsp-armchair-davao.jpg</image>	</item>
+		<item>
+		<title>[Finterest] Apple Pay, LRT1 tap-to-pay? What’s next in BSP’s digital payment roadmap</title>
+		<link>https://www.rappler.com/business/finterest-apple-pay-lrt1-tap-to-pay-what-next-bangko-sentral-digital-payment-roadmap/</link>
+					<comments>https://www.rappler.com/business/finterest-apple-pay-lrt1-tap-to-pay-what-next-bangko-sentral-digital-payment-roadmap/#respond</comments>
+		
+		<dc:creator><![CDATA[Lance Spencer Yu]]></dc:creator>
+		<pubDate>Sat, 25 Jul 2026 09:00:00 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Personal Finance]]></category>
+		<category><![CDATA[Stocks & Banking]]></category>
+		<category><![CDATA[Bangko Sentral ng Pilipinas]]></category>
+		<category><![CDATA[banks in the Philippines]]></category>
+		<category><![CDATA[e-commerce]]></category>
+		<category><![CDATA[financial technology]]></category>
+		<category><![CDATA[Finterest]]></category>
+		<category><![CDATA[LRTA]]></category>
+		<category><![CDATA[Metro Manila transportation]]></category>
+		<category><![CDATA[MRT3]]></category>
+		<category><![CDATA[public transportation]]></category>
+		<category><![CDATA[transport]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA['Stay tuned kasi may alam akong mga banks mag-lalaunch,' a high-ranking Bangko Sentral ng Pilipinas official says about Apple Pay ahead of its expected Q3 2026 launch]]></description>
+										<content:encoded><![CDATA[
+<p>MANILA, Philippines – The long-awaited launch of Apple Pay in the Philippines could be just around the corner, along with other digital payment methods.</p>
+
+
+
+<p>Bangko Sentral ng Pilipinas (BSP) Deputy Governor Mamerto Tangonan said local banks are preparing to launch Apple Pay, while a tap-to-pay system for Light Rail Transit Line 1 (LRT1) is awaiting a final agreement with the rail line’s private operator.</p>
+
+
+
+<p>Here&#8217;s a quick rundown of what we could see in the coming months.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-apple-pay-stay-tuned">Apple Pay: ‘Stay tuned’</h5>
+
+
+
+<p>Apple Pay has yet to officially launch in the Philippines, but Tangonan hinted that the wait may be nearly over.</p>
+
+
+
+<p>“We didn’t object to it. So, it’s up to the banks,” Tangonan told reporters during a roundtable.</p>
+
+
+
+<p>“Stay tuned <em>kasi may alam akong mga banks mag-lalaunch</em> (because I know some banks are looking to launch). Stay tuned,” he added, without mentioning the banks or giving an exact date.</p>
+
+
+
+<p>Earlier reports had placed Apple Pay’s Philippine entry in the <a href="https://www.gmanetwork.com/news/money/companies/974053/apple-pay-ph-launch-seen-in-q3-2026/story/">third quarter of 2026</a>, as local banks worked to satisfy the platform’s technical requirements. As of <a href="https://support.apple.com/en-ph/102897">Apple’s latest published list</a> of supported markets on July 10, however, the Philippines was still not included.</p>
+
+
+
+<p>Google Pay arrived earlier, <a href="https://www.rappler.com/technology/google-pay-wallet-philippines-launch/">launching</a> in the Philippines on November 18, 2025, with initial partners including China Bank, EastWest, GCash, GoTyme, Maya, RCBC, UnionBank, Wise, and Zed.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-lrt1-could-complete-the-rail-rollout">LRT1 could complete the rail rollout</h5>
+
+
+
+<p>The next visible change for commuters may be LRT1.</p>
+
+
+
+<p>“Coming soon,” Tangonan said, adding that the parties were down to a “final agreement” with the operator. He said he was hopeful that the system could be rolled out within the quarter.</p>
+
+
+
+<p>LRT1 would follow MRT3, which began rolling out its tap-to-pay fare system in July 2025, and LRT2, which also launched contactless payments across all 13 stations on July 13, 2026.</p>
+
+
+
+<p>The new systems let commuters tap Visa or Mastercard bank cards, use NFC-enabled phones and wearables, or scan supported QR codes instead of buying a single-journey ticket or loading a Beep card. GCash is the principal payment partner for MRT3, while RCBC serves as the acquiring bank and fare-gate partner for LRT2.</p>
+
+
+
+<p>“We just want to make sure that we provide an interoperable payment system,” Tangonan said. “<em>Kahit ano ang gawin niyo diyan, basta ‘yung payment system</em> (Whatever you do there, just make sure that the payment system is), interoperable.”</p>
+
+
+
+<p>Interoperability means commuters should eventually be able to use an existing bank card, mobile wallet, or other accepted instrument across several transport systems, rather than buying a proprietary card for each one.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/business/tap-pay-visa-card-lrt2/">
+							<h1 class="related-article__title-text"> You can now tap your Visa or Mastercard to pay for your LRT2 ride </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/business/tap-pay-visa-card-lrt2/">
+					 		<img decoding="async" width="449" height="299" src="https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?fit=449%2C449" class=" wp-image-2214881 wp-post-image" alt="You can now tap your Visa or Mastercard to pay for your LRT2 ride" loading="lazy" srcset="https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?fit=449%2C299&amp;zoom=2 898w, https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?fit=449%2C299&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?fit=449%2C299&amp;zoom=1 449w, https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?fit=449%2C299&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?fit=449%2C299&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<h5 class="wp-block-heading" id="h-what-about-buses">What about buses?</h5>
+
+
+
+<p>The bus network is a more complicated test.</p>
+
+
+
+<p>Beep is already accepted on selected routes, but it&#8217;s not the only cashless option. The EDSA Busway launched a separate<a href="https://newsinfo.inquirer.net/2155970/cashless-payment-now-available-at-edsa-busway-2"> GCash SoundPay pilot</a> in December 2025, initially covering 260 buses. Passengers scan a QR code displayed on a conductor’s device and enter their fare.</p>
+
+
+
+<p>That still falls short of the BSP’s broader vision. Tangonan said he hoped bus operators, including provincial services, would eventually carry terminals that could accept several payment instruments. </p>
+
+
+
+<p>Connectivity remains a practical problem too on long-distance routes with stretches of highway that are mobile dead spots, meaning payment systems may also need ways to process or store transactions offline.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-tokenized-bonds-and-cross-border-payments">Tokenized bonds and cross-border payments</h5>
+
+
+
+<p>Some BSP projects are less visible to consumers but could eventually affect how they invest or send money abroad.</p>
+
+
+
+<p>Under Project Agila 2, the BSP plans to test the near-simultaneous settlement of tokenized Treasury bonds and allow participating financial institutions to use those securities to obtain liquidity.</p>
+
+
+
+<p>This is a <a href="https://www.rappler.com/business/explainer-project-agila-bangko-sentral-pilipinas-digital-peso-pilot/">wholesale central bank digital currency project</a> for financial institutions, not a retail “digital peso” intended to replace cash in consumers’ wallets.</p>
+
+
+
+<p>Tangonan said tokenization could also help financial institutions divide government securities into smaller, more affordable investment units, although banks and fintech firms would still have to develop the products offered to customers.</p>
+
+
+
+<p>The BSP is also working with the Bank for International Settlements and other central banks on <a href="https://www.bis.org/about/bisih/topics/cbdc/mandala.htm">Project Mandala</a>, which explores encoding regulatory checks into digital certificates or tokens. It could complement <a href="https://www.bis.org/press/p240701.htm?utm_source=chatgpt.com">Project Nexus</a>, the initiative linking participating countries’ instant-payment systems, by making cross-border compliance faster and potentially less expensive. <strong>– Rappler.com</strong></p>
+
+
+
+<p><em>Finterest is Rappler’s all-in-one financial literacy hub. </em></p>
+
+
+
+<p>Below are other Finterest articles you may have missed: </p>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="h9cY8dFsCL"><a href="https://www.rappler.com/business/finterest-how-to-start-saving-pag-ibig-mp2-program/">[Finterest] How do you start saving with Pag-IBIG’s MP2 program?</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Finterest] How do you start saving with Pag-IBIG’s MP2 program?&#8221; &#8212; RAPPLER" src="https://www.rappler.com/business/finterest-how-to-start-saving-pag-ibig-mp2-program/embed/#?secret=VcAtAfkckr#?secret=h9cY8dFsCL" data-secret="h9cY8dFsCL" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="7KJ0MuU1sp"><a href="https://www.rappler.com/business/finterest-gcash-maya-initial-public-offering-2026/">[Finterest] GCash, Maya IPOs in 2026? What this means for potential investors</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Finterest] GCash, Maya IPOs in 2026? What this means for potential investors&#8221; &#8212; RAPPLER" src="https://www.rappler.com/business/finterest-gcash-maya-initial-public-offering-2026/embed/#?secret=iZ0pEkBswo#?secret=7KJ0MuU1sp" data-secret="7KJ0MuU1sp" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<p><em>Click here for other <a href="https://www.rappler.com/business/n78558678-finterest/">Finterest</a> articles. </em></p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/business/finterest-apple-pay-lrt1-tap-to-pay-what-next-bangko-sentral-digital-payment-roadmap/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?resize=75%2C75&amp;crop=467px%2C0px%2C933px%2C933px" />
+		<media:content url="https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg" medium="image">
+			<media:title type="html">LRT</media:title>
+			<media:description type="html">Commuters queue to board trains at the LRT-2 Masinag Station in Antipolo on February 1, 2023.</media:description>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2023/02/lrt-2-masinag-commuters-february-1-2023-004.jpg?resize=75%2C75&amp;crop=467px%2C0px%2C933px%2C933px" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2024/04/digital-payments-April-26-2024.jpg</image>	</item>
+		<item>
+		<title>[Vantage Point] Oil’s false prophets</title>
+		<link>https://www.rappler.com/voices/thought-leaders/vantage-point-oil-prices-false-prophets-wrong-forecast-economist/</link>
+					<comments>https://www.rappler.com/voices/thought-leaders/vantage-point-oil-prices-false-prophets-wrong-forecast-economist/#respond</comments>
+		
+		<dc:creator><![CDATA[Val A. Villanueva]]></dc:creator>
+		<pubDate>Sat, 25 Jul 2026 08:00:00 +0800</pubDate>
+				<category><![CDATA[Asia Pacific]]></category>
+		<category><![CDATA[Business]]></category>
+		<category><![CDATA[Consumer Issues]]></category>
+		<category><![CDATA[Editors' Pick]]></category>
+		<category><![CDATA[Europe]]></category>
+		<category><![CDATA[Explainers]]></category>
+		<category><![CDATA[Global Affairs]]></category>
+		<category><![CDATA[Industries]]></category>
+		<category><![CDATA[Middle East]]></category>
+		<category><![CDATA[Thought Leaders]]></category>
+		<category><![CDATA[Voices]]></category>
+		<category><![CDATA[China]]></category>
+		<category><![CDATA[Department of Energy]]></category>
+		<category><![CDATA[energy and resource]]></category>
+		<category><![CDATA[energy industry]]></category>
+		<category><![CDATA[insurance industry]]></category>
+		<category><![CDATA[Iran]]></category>
+		<category><![CDATA[Japan]]></category>
+		<category><![CDATA[logistics industry]]></category>
+		<category><![CDATA[Middle East crisis impact]]></category>
+		<category><![CDATA[oil and gas industry]]></category>
+		<category><![CDATA[oil industry]]></category>
+		<category><![CDATA[Saudi Arabia]]></category>
+		<category><![CDATA[transport]]></category>
+		<category><![CDATA[United Arab Emirates]]></category>
+		<category><![CDATA[United States]]></category>
+		<category><![CDATA[US-Israel war on Iran]]></category>
+		<category><![CDATA[Vantage Point]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[Why oil forecasts fail when war, inventories, and China rewrite the math]]></description>
+										<content:encoded><![CDATA[
+<p class="has-drop-cap">T<em>he Economist</em> mocked investors in late April for predicting Brent crude oil to reach roughly US$88 per barrel by the end of the year. </p>
+
+
+
+<p>Brent Crude—a light, sweet crude oil originally extracted from the North Sea—is widely used as the primary international benchmark for pricing oil globally because its properties make it easy to refine into high-demand products like gasoline and diesel. On July 2, however, the <a href="https://www.economist.com/leaders/2026/07/02/we-woz-wrong-about-oil">publication issued a retraction</a> as spot Brent prices plummeted to slightly over $70.</p>
+
+
+
+<p>That mea culpa looked sincere, but it committed a new forecasting mistake. It compared oil for delivery at year-end with a single day’s price in July, erroneously treating the difference as a verdict on a war and a timeline that have yet to conclude.</p>
+
+
+
+<p>A December futures contract and a July spot Brent answer different questions. While spot measures an immediately available barrel, a year-end contract reflects expected supply, demand, inventories, storage costs, interest rates, and geopolitical risk months ahead.&nbsp;</p>
+
+
+
+<p>The valid test was not whether spot stood below $88 on July 2, but how that December contract had moved since April and where it eventually settled. Brent surged toward $100 as <a href="https://www.rappler.com/world/middle-east/houthis-claim-attacks-saudi-tankers-red-sea-chokepoint-risk/">attacks against tankers</a> and threats to the <a href="https://www.rappler.com/world/middle-east/things-to-know-strait-of-hormuz/">Strait of Hormuz</a> and Bab el-Mandeb returned, making the apology another attempt to call the ending before the final act. </p>
+
+
+
+<p>The two maritime straits are the world’s most critical chokepoints, handling a combined total of over 20 million barrels of oil daily and a significant percentage of global container trade. Recent <a href="https://www.rappler.com/world/middle-east/trump-resumes-iran-port-blockade-threatens-strikes-energy-targets-july-14-2026/">blockades</a> due to the ongoing conflict between the United States and Iran have severely disrupted these global energy and commercial shipping corridors.</p>
+
+
+
+<p>Oil forecasting in wartime fails because analysts confuse three quantities: gross supply disruption, net market deficit, and quoted price. During March, April and May, flows averaged only 2.7 million, implying a 17.3-million-barrel reduction in daily traffic.&nbsp;</p>
+
+
+
+<p>Global production fell 10.1 million barrels a day in March. By May, it stood 13.6 million below its prewar level. The International Energy Agency (IEA) was not exaggerating when it called this the <a href="https://www.rappler.com/business/world-faces-largest-ever-oil-supply-disruption-middle-east-war/">largest physical oil disruption in history</a>.</p>
+
+
+
+<p>Losing 13.6 million barrels of production, however, does not create an equal market deficit. The balance is production plus inventory releases, minus consumption and stockbuilding.&nbsp;</p>
+
+
+
+<p>In the second quarter, global demand fell by almost 5 million barrels a day year on year. IEA countries authorized 400 million barrels from emergency reserves, while observed inventories declined at an average 3.8 million barrels daily after hostilities began. Atlantic Basin exports redirected toward Asia rose by 3.5 million barrels a day. These responses did not erase the loss; they prevented its full force from appearing in spot Brent.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-china-saves-the-world">China &#8216;saves the world&#8217;? </h5>
+
+
+
+<p>Although China supplied a separate adjustment, saying that Beijing “saved the world” confuses a drop in demand with actual production. Chinese imports dropped from a five-year average of 11.5 million barrels a day to about 8 million during the crisis, then plunged to 7.12 million in June—the lowest since 2016.&nbsp;</p>
+
+
+
+<p><a href="https://www.rappler.com/world/middle-east/asia-battles-rising-uneven-toll-energy-crisis-iran-war/">China</a> and <a href="https://www.rappler.com/world/asia-pacific/japan-plans-support-help-asia-secure-oil/">Japan</a> together cut imports by nearly 6 million barrels daily as refinery runs and industrial consumption weakened. Those absent Chinese bids released cargoes for other buyers, but no additional oil was manufactured.</p>
+
+
+
+<p>This is where linear forecasts collapse. Analysts estimate how much supply is lost and apply an assumed price response, but neither side remains stable. A closure may stop tankers without destroying production; producers store oil until tanks fill, after which output must be shut. Consumers drive less, delay flights, switch fuels, or accept slower growth.&nbsp;</p>
+
+
+
+<p>Governments release reserves, <a href="https://www.rappler.com/philippines/marcos-signs-law-allowing-president-suspend-reduce-fuel-excise-tax-march-2026/">suspend taxes</a>, and <a href="https://www.rappler.com/philippines/marcos-rolls-out-puv-service-contracting-program-fuel-subsidy-april-15-2026/">subsidize transport</a>. Every price increase alters the demand it measures, making oil a feedback system rather than static arithmetic.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/business/philippines-strategic-petroleum-reserves-oil-buffer-stocks/">
+							<h1 class="related-article__title-text"> How much does the Philippines need to build a strategic petroleum reserve?  </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/business/philippines-strategic-petroleum-reserves-oil-buffer-stocks/">
+					 		<img decoding="async" width="449" height="229" src="https://www.rappler.com/tachyon/2026/04/1000030593.jpg?fit=449%2C449" class=" wp-image-3165874 wp-post-image" alt="How much does the Philippines need to build a strategic petroleum reserve? " loading="lazy" srcset="https://www.rappler.com/tachyon/2026/04/1000030593.jpg?fit=449%2C229&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/04/1000030593.jpg?fit=449%2C229&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/04/1000030593.jpg?fit=449%2C229&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/04/1000030593.jpg?fit=449%2C229&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/04/1000030593.jpg?fit=449%2C229&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<p>Opacity compounds the problem. Nobody outside Beijing can measure China’s strategic stocks or predict when officials will replenish them. Spare production is counted even when the barrels sit behind a blocked strait. Announced pipeline capacity is confused with usable capacity: Saudi Arabia and the United Arab Emirates had about 2.6 million barrels a day of spare bypass capacity before the crisis, which is a fraction of normal Hormuz traffic. Politics is less tractable still. A ceasefire can remove $20 of risk premium; one tanker attack can restore it overnight.</p>
+
+
+
+<p>Brent can give false comfort. Motorists buy refined fuel, not crude, and their bill includes refinery margins, freight, war-risk insurance, currencies, taxes, and inventory timing. During the crisis, crude weakened, while diesel and gasoline remained scarce. Refining margins exceeded $60 a barrel, while Asian refined-product imports remained below prewar levels.&nbsp;</p>
+
+
+
+<p>Moderate Brent could thus coexist with punishing Philippine diesel prices. Anyone watching crude alone was measuring the input, while missing the damaged machinery converting it into fuel.</p>
+
+
+
+<p>The honest method is scenario analysis, not theatrical precision. A durable reopening of Hormuz may return Brent toward $70 to $80; intermittent disruption combined with Chinese restocking can support $90 to $110; simultaneous restrictions at Hormuz and Bab el-Mandeb can make $120 plausible.&nbsp;</p>
+
+
+
+<p>These are conditional ranges, not prophecies. These are conditional figures that must be adjusted as key factors shift. These factors include transit volumes, inventory releases, Chinese import levels, consumer demand drop-offs, and overall geopolitical conflict duration.</p>
+
+
+
+<p><em>The Economist</em> deserves credit for admitting error, but its deeper mistake was believing that one price snapshot could settle the argument. The shock was real: more than 1.3 billion barrels of cumulative Middle East supply were lost, while inventories and emergency reserves absorbed the damage.&nbsp;</p>
+
+
+
+<p>The world was not rescued from scarcity; it borrowed barrels from the past, suppressed present demand, and reduced its insurance against the future. Forecasting fails when analysts mistake temporary resilience for abundance—and forget that in wartime, the crucial number is not today’s price, but how many cushions remain when tomorrow’s disruption arrives. – <strong>Rappler.com</strong></p>
+
+
+
+<p><em>This analysis draws on oil-market data from the International Energy Agency, including its March, April, and June 2026 reports and its assessment of the Strait of Hormuz disruption; the US Energy Information Administration’s estimates of normal Hormuz traffic and available Saudi and UAE bypass capacity; and Reuters reports on Brent prices, China’s crude imports, global refining margins, and Asia’s refined-product shortage.&nbsp;</em></p>
+
+
+
+<p><em>The projected Brent ranges of $70–$80, $90–$110 and $120 or higher are my own scenario estimates, not forecasts issued by these institutions, and depend on the duration of the conflict, Hormuz transit volumes, Chinese restocking, inventory depletion, and any simultaneous disruption at Bab el-Mandeb.</em></p>
+
+
+
+<p>Below are other Vantage Point articles you may have missed: </p>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="qeldnB3b88"><a href="https://www.rappler.com/voices/newsletters/vantage-point-pax-silica-america-blueprint-ai-economy/">[Vantage Point] Pax Silica: America&#8217;s blueprint for the AI economy</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Vantage Point] Pax Silica: America&#8217;s blueprint for the AI economy&#8221; &#8212; RAPPLER" src="https://www.rappler.com/voices/newsletters/vantage-point-pax-silica-america-blueprint-ai-economy/embed/#?secret=55jsuHahr8#?secret=qeldnB3b88" data-secret="qeldnB3b88" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="rPqzC84CL6"><a href="https://www.rappler.com/voices/newsletters/vantage-point-dangerous-religion-gross-domestic-product-growth/">[Vantage Point] The dangerous religion of growth</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Vantage Point] The dangerous religion of growth&#8221; &#8212; RAPPLER" src="https://www.rappler.com/voices/newsletters/vantage-point-dangerous-religion-gross-domestic-product-growth/embed/#?secret=VXKWaqofvc#?secret=rPqzC84CL6" data-secret="rPqzC84CL6" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<p><em>Click here for other <a href="https://www.rappler.com/author/valavillanueva/">Vantage Point</a> articles.</em></p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/voices/thought-leaders/vantage-point-oil-prices-false-prophets-wrong-forecast-economist/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2026/04/1000030593.jpg?resize=75%2C75&amp;crop=270px%2C0px%2C541px%2C541px" />
+		<media:content url="https://www.rappler.com/tachyon/2026/04/1000030593.jpg" medium="image">
+			<media:title type="html">1000030593</media:title>
+			<media:description type="html">STRATEGIC. Petron Corp. has proposed the PNOC Industrial Park in Mariveles, Bataan as the site to store the country&#039;s strategic petroleum reserves.</media:description>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/04/1000030593.jpg?resize=75%2C75&amp;crop=270px%2C0px%2C541px%2C541px" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/07/OIL-FALSE-PROPHETS.jpg</image>	</item>
+		<item>
+		<title>Trump imposes forced labor tariffs on 60 trading partners, including Philippines</title>
+		<link>https://www.rappler.com/world/us-canada/trump-imposes-forced-labor-duties-trading-partners-including-philippines/</link>
+					<comments>https://www.rappler.com/world/us-canada/trump-imposes-forced-labor-duties-trading-partners-including-philippines/#comments</comments>
+		
+		<dc:creator><![CDATA[Reuters]]></dc:creator>
+		<pubDate>Fri, 24 Jul 2026 18:12:32 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Economy & Governance]]></category>
+		<category><![CDATA[Editors' Pick]]></category>
+		<category><![CDATA[Philippine News]]></category>
+		<category><![CDATA[US & Canada]]></category>
+		<category><![CDATA[World]]></category>
+		<category><![CDATA[Department of Trade and Industry]]></category>
+		<category><![CDATA[Donald Trump]]></category>
+		<category><![CDATA[exports]]></category>
+		<category><![CDATA[global trade]]></category>
+		<category><![CDATA[international trade]]></category>
+		<category><![CDATA[labor rights]]></category>
+		<category><![CDATA[Philippine labor]]></category>
+		<category><![CDATA[Philippine trade]]></category>
+		<category><![CDATA[slavery]]></category>
+		<category><![CDATA[trade agreements]]></category>
+		<category><![CDATA[trade policy]]></category>
+		<category><![CDATA[United States]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[(1st UPDATE) 'We can still negotiate,' says Philippine Ambassador to the US Jose Manuel  Romualdez in a message to Rappler, when asked whether Trump's decision was final]]></description>
+										<content:encoded><![CDATA[
+<p>WASHINGTON, USA&nbsp;–&nbsp;The&nbsp;Trump&nbsp;administration on Friday, July 24 imposed new tariffs of 10% and 12.5% on goods from 60 trading partners, including Europe, China, the Philippines, over allegations of lax enforcement of&nbsp;forced&nbsp;labor&nbsp;bans, just as a temporary 10% global tariff expired.</p>
+
+
+
+<p>The move is the White House&#8217;s latest effort to restore President Donald Trump&#8217;s vision of a near-global tariff after the <a href="https://www.rappler.com/world/us-canada/supreme-court-decision-strikes-down-donald-trump-global-tariffs/">US Supreme Court in February</a> struck down his &#8220;reciprocal&#8221; duties of 10% to 50% imposed under a national emergencies law to try to shrink the US trade deficit.</p>
+
+
+	<div class="shortcode shortcode--youtube">
+		<div class="youtube-video" data-youtube-id="8obQKsl9gH4" data-title="">
+	<button class="youtube-video__load-button">
+				<span class="screen-reader-text">Play  Video</span>
+	</button>
+	<img
+	src="https://img.youtube.com/vi/8obQKsl9gH4/hqdefault.jpg"
+	data-srcset="https://img.youtube.com/vi/8obQKsl9gH4/default.jpg 120w, https://img.youtube.com/vi/8obQKsl9gH4/mqdefault.jpg 320w, https://img.youtube.com/vi/8obQKsl9gH4/hqdefault.jpg 480w, https://img.youtube.com/vi/8obQKsl9gH4/sddefault.jpg 640w"
+	data-sizes=""
+	data-src="https://img.youtube.com/vi/8obQKsl9gH4/hqdefault.jpg"
+	class="youtube-video__image-overlay"
+	alt="Trump imposes forced labor tariffs on 60 trading partners, including Philippines"
+	loading="lazy"
+>
+	<div class="youtube-video__iframe"></div>
+</div>
+	</div>
+	
+
+
+<p>New tariffs had been expected, but trade partners around the world joined in strongly disputing the justification for them. Some, however, noted they would make little difference to current levies. There was little early reaction on financial markets more focused on the Middle East conflict.</p>
+
+
+
+<p>In a statement on Friday, the Philippine Trade and Industry Secretary Cristina Roque said it takes note of the unilateral move, and that it would &#8220;continue to engage with the US.&#8221; </p>
+
+
+
+<p>“We just got the news that we were imposed a 12.5% tariff and this will supposedly start already after July 24. Just like all other [Trump tariff] impositions before, we will have to abide by it, but the negotiations will continue as we always do,” Roque said in an interview on <a href="https://www.youtube.com/watch?v=YXsxLREyQEs">ANC&#8217;s Market Edge</a> on Friday.&nbsp;</p>
+
+
+
+<p>&#8220;That has always been our stand, to get a lower tariff,” she added, when asked whether the Philippines will seek to get a better deal. </p>
+
+
+
+<p>&#8220;We note that this is based on the alleged failure to impose and effectively enforce prohibition of imports made by forced labor,&#8221; Roque said in her statement. </p>
+
+
+
+<p>&#8220;The Philippines will continue to engage with the US to emphasize that the country has a strong policy against forced labor consistent with various International Labor Organizations (ILO) Conventions. In fact, just yesterday we signed a Joint Administrative Order with Department of Finance and Department of Labor and Employment to provide institutional mechanism to address the issue of forced labor.&#8221; </p>
+
+
+
+<p>Sought for comment, Philippine Ambassador to the US Jose Manuel &#8220;Babe&#8221; Romualdez said the Trump administration&#8217;s move was subject to talks. </p>
+
+
+
+<p>&#8220;We can still negotiate,&#8221; he said in a message to Rappler, when asked if there was still wiggle room on the issue. </p>
+
+
+
+<p>The Department of Foreign Affairs issued a statement, Saturday, July 25, rejecting the allegations of forced labor:</p>
+
+
+
+<p>&#8220;The Philippines has long demonstrated that its locally produced goods, including<br>those exported to the US, do not rely on forced labor.</p>
+
+
+
+<p>The Philippines already has existing laws prohibiting forced labor and continues to strengthen its legal and institutional framework through the development of appropriate mechanisms to effectively investigate and address goods allegedly produced wholly or in part through forced labor.&#8221;</p>
+
+
+
+<p>The DFA also said that they &#8220;will continue to engage with US counterparts on this matter.&#8221;</p>
+
+
+
+<p>The new tariffs, announced in a&nbsp;<a href="https://ustr.gov/sites/default/files/files/Press/Releases/2026/FLIP%20301%20Investigation%20Final%20Action%20FRN%207-23-26%20FINAL.pdf" target="_blank" rel="noreferrer noopener">Federal Register notice</a>, cover 99.4% of US imports, but include numerous product exemptions, such as oil and gas, fertilizer and certain food items.</p>
+
+
+
+<p>&#8220;The United States has had a&nbsp;forced&nbsp;labor&nbsp;import ban for nearly a century, and rigorously enforces it. It’s well past time for our trading partners to do the same,&#8221; US Trade Representative Jamieson Greer said in a statement.</p>
+
+
+
+<p>&#8220;Today’s action will begin to correct what is both a human rights abuse and distortive trade practice to improve the welfare of workers everywhere.&#8221;</p>
+
+
+
+<p>Imposed under Section 301 of the Trade Act of 1974, the new duties allow the administration to maintain a tariff floor on virtually all US imports despite the Supreme Court setback. The tariffs are also likely to face less legal risk as Section 301 has survived prior court challenges.</p>
+
+
+
+<p>Trump&#8217;s temporary 10% global tariff expired at 12:01 a.m. EDT on Friday (0401 GMT) after 150 days. The new duties took effect at that exact same moment, with goods in transit exempted until 12:01 am EDT on July 28.</p>
+
+
+
+<p>The US imposed a 10% duty on goods of Argentina, Bangladesh, Britain, Cambodia, Canada, Ecuador, El Salvador, Guatemala, Honduras, India, Indonesia, Jordan, Malaysia, Mexico, Pakistan, Sri Lanka, Trinidad and Tobago.</p>
+
+
+
+<p>The European Union, Taiwan, Japan, South Korea and Switzerland were assigned rates that, combined with pre-existing most-favored-nation tariff rates, totaled 10% or 12.5%.</p>
+
+
+
+<p>The other 38 countries were assigned a 12.5% rate. These include the Philippines, as well as Vietnam, which issued a new decree this week that sets out more detailed rules banning imports of goods made with&nbsp;forced&nbsp;labor, and China — accused by the US of detaining Uyghur minorities in work camps, which Beijing denies.</p>
+
+
+
+<p>Greer previously pledged that for countries with trade deals with Washington capping US tariff rates, the new&nbsp;forced&nbsp;labor&nbsp;duties would not push them above those caps — a point which the EU noted in its response.</p>
+
+
+
+<p>&#8220;The EU notes positively the fact that this outcome is in line with the US tariff commitments agreed under the EU-US Joint Statement,&#8221; a European Commission spokesperson&nbsp;said, adding it provided &#8220;positive momentum&#8221; to continue the work on exploring further tariff exemptions and deepening cooperation.</p>
+
+
+
+<p>While disputing the allegations underlying the&nbsp;forced&nbsp;labor&nbsp;investigation, the Swiss government also&nbsp;said&nbsp;the United States was adhering to past commitments on tariff ceilings, in its case of up to 12.5%.</p>
+
+
+
+<p>Britain&nbsp;said&nbsp;the move would have no negative effects.</p>
+
+
+
+<p>&#8220;There is no negative change to the tariff rate facing UK businesses as a result of this announcement. Our agreement with the US remains in place, and today we see an improvement to our trading terms with zero tariffs on whisky and medical technology,&#8221; a government spokesperson said.</p>
+
+
+
+<p>Trump&nbsp;administration officials have told Chinese counterparts they intend to rebuild&nbsp;Trump&#8217;s second-term tariffs on Chinese goods back up to the 20% that was agreed upon in a trade truce with Chinese President Xi Jinping in November 2025 – but not exceed that level. Prior to Friday&#8217;s action, China&#8217;s tariff rate had fallen to 10%, excluding the 25% imposed during&nbsp;Trump&#8217;s first term on industrial goods.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-widely-telegraphed-move-with-exemptions">Widely telegraphed move with exemptions</h5>
+
+
+
+<p>The action drew stronger protests from some trade partners.</p>
+
+
+
+<p>Australia&nbsp;and&nbsp;Brazil&nbsp;described the new tariffs as unjustified and said they would seek to have them removed, while Norway said there was &#8220;no basis&#8221; for them.</p>
+
+
+
+<p>Canada — hit on Monday with new&nbsp;Trump&nbsp;tariffs on $20 billion worth of goods — issued a muted response.</p>
+
+
+
+<p>&#8220;We will continue engaging constructively with the United States on this matter, as well as other outstanding issues, over the coming weeks to the mutual benefit of our citizens,&#8221; said Dominic LeBlanc, Canada&#8217;s minister in charge of US trade.</p>
+
+
+
+<p>Kelly Ann Shaw, a former White House trade adviser in&nbsp;Trump&#8217;s first term and a partner with the Akin Gump Strauss Hauer &amp; Feld law firm, said the new tariffs tracked what had been telegraphed, although some changes had been made, including the addition of some 471 products to an exclusion list.</p>
+
+
+
+<p>&#8220;I think this is more status quo in terms of the economic impact,&#8221; she said.</p>
+
+
+
+<p>Many goods will be exempted from the duties, including oil and gas, fertilizer, certain foodstuffs and goods already subject to Section 232 national security tariffs, such as autos, steel, aluminum and copper, the official said. Aircraft and parts will also be exempted, along with critical minerals.</p>
+
+
+
+<p>There were some winners.</p>
+
+
+
+<p>The Antwerp World Diamond Centre said the restored exemption was significant news for the local diamond sector. Belgium exported $2.1 billion of polished diamonds to the United States in 2024. The exemption had lapsed after the US Supreme Court struck down&nbsp;Trump&#8217;s global tariffs in February. –<strong> with reports from Bea Cupin/Rappler.com</strong></p>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="4q86vlmkK8"><a href="https://www.rappler.com/philippines/groups-fact-sheet-modern-slavery-impacting-filipinos/">Groups unveil fact sheet on modern slavery impacting over 800,000 Filipinos</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;Groups unveil fact sheet on modern slavery impacting over 800,000 Filipinos&#8221; &#8212; RAPPLER" src="https://www.rappler.com/philippines/groups-fact-sheet-modern-slavery-impacting-filipinos/embed/#?secret=FTTfgYsXGS#?secret=4q86vlmkK8" data-secret="4q86vlmkK8" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/world/us-canada/trump-imposes-forced-labor-duties-trading-partners-including-philippines/feed/</wfw:commentRss>
+			<slash:comments>2</slash:comments>
+		
+		
+		
+<image>https://www.rappler.com/tachyon/2026/05/donald-trump-march-31-2026-reuters.jpg</image>	</item>
+		<item>
+		<title>[ANALYSIS] What&#8217;s driving the current Philippine stock market rally?</title>
+		<link>https://www.rappler.com/business/analysis-tracking-foreign-investors-activity-philippine-stock-market-rally-july-2026/</link>
+					<comments>https://www.rappler.com/business/analysis-tracking-foreign-investors-activity-philippine-stock-market-rally-july-2026/#respond</comments>
+		
+		<dc:creator><![CDATA[Den Somera]]></dc:creator>
+		<pubDate>Fri, 24 Jul 2026 08:00:00 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Editors' Pick]]></category>
+		<category><![CDATA[Stocks & Banking]]></category>
+		<category><![CDATA[Enrique Razon]]></category>
+		<category><![CDATA[food and beverage industry]]></category>
+		<category><![CDATA[foreign investments in the Philippines]]></category>
+		<category><![CDATA[logistics industry]]></category>
+		<category><![CDATA[Philippine Stock Exchange]]></category>
+		<category><![CDATA[stock markets]]></category>
+		<category><![CDATA[stock recommendation]]></category>
+		<category><![CDATA[stocks]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[Curiously, foreign investors appear to have been favoring International Container Terminal Services Inc. and Century Pacific Food Inc. ]]></description>
+										<content:encoded><![CDATA[
+<p>Foreign fund flows often serve as a critical determinant to the stock market’s direction, for they account for over 50% of total value turnover on the average.&nbsp;So, when they enter, the market goes up, and when they exit, the market goes down.&nbsp; &nbsp;</p>
+
+
+
+<p>This is exactly what happened in the market’s latest rally in the last two weeks.&nbsp;Foreign investors shifted into the net buying position.&nbsp;The amount they poured in overwhelmed domestic profit-taking.&nbsp;It also enabled the <a href="https://www.rappler.com/business/finterest-things-to-know-philippine-stock-exchange-index/">Philippine Stock Exchange Index</a> (PSEi) to break the 6,400 milestone that stubbornly held in the last four months. </p>
+
+
+
+<p>Curiously, foreign investors appear to have been favoring Enrique Razon Jr.&#8217;s <a href="https://www.rappler.com/business/enrique-razon-ictsi-buys-manila-harbor-center-port-services/">International Container Terminal Services Inc.</a> (ICTSI) and the Po family&#8217;s Century Pacific Food Inc. (CNPF), to mention two of their top picks.  </p>
+
+
+
+<p>ICTSI has been lately the market&#8217;s primary engine, pushing the market higher for its high-growth structural expansions.&nbsp;CNPF is actively sought as a defensive consumer hedge against broader macroeconomic uncertainty.&nbsp;</p>
+
+
+
+<p>The return of foreign funds to the local market is at the moment being driven, according to analysts, by a shift from cooling US inflation pressures to proactive, hawkish local central bank policies. This combination has incidentally stabilized the local currency and boosted investors’ confidence.&nbsp;</p>
+
+
+
+<p>There is reportedly a downward shift in the US June producer price index, which eased global anxieties regarding aggressive US Federal Reserve policy, directly driving capital back into emerging markets like the Philippines.  Sentiments were further reinforced by robust international interest in local energy infrastructure, notably highlighted by the massive US$5 billion foreign acquisition proposal for the <a href="https://www.rappler.com/business/energy-development-corporation-history-lopez-family-gave-up-meralco-takeover-target/">Lopez family&#8217;s Energy Development Corporation</a> (EDC).</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/business/indonesian-billionaire-energy-development-corporation-billion-offer-raising-stakes-lopez-feud/">
+							<h1 class="related-article__title-text"> An Indonesian billionaire wants EDC: The $5-B offer raising the stakes in the Lopez feud </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/business/indonesian-billionaire-energy-development-corporation-billion-offer-raising-stakes-lopez-feud/">
+					 		<img decoding="async" width="449" height="253" src="https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?fit=449%2C449" class=" wp-image-3206301 wp-post-image" alt="An Indonesian billionaire wants EDC: The $5-B offer raising the stakes in the Lopez feud" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?fit=449%2C253&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?fit=449%2C253&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?fit=449%2C253&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?fit=449%2C253&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?fit=449%2C253&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<p>The US Consumer Price Index (CPI) for June also slowed significantly to 3.5%, down from 4.2% in May.&nbsp;This cooler-than-expected outcome immediately softened fears of an aggressive, multi-rate hike path from the US Federal Reserve.&nbsp;</p>
+
+
+
+<p>Likewise, the US Producer Price Index (PPI) dropped by 0.3% in June. This contraction mitigated long-term policy uncertainties, sparking a global &#8220;risk-on&#8221; sentiment that redirected institutional capital away from safe-haven US assets and into emerging markets like the Philippines, again.&nbsp;</p>
+
+
+
+<p>While global pressures are easing, the Bangko Sentral ng Pilipinas (BSP) has taken a highly aggressive stance to defend domestic economic stability.&nbsp;To combat stubborn commodity prices, the <a href="https://www.rappler.com/business/bangko-sentral-pilipinas-monetary-policy-interest-rates-june-2026/">BSP Monetary Board raised</a> its benchmark reverse repurchase (RRP) rate by 25 basis points to 4.75%.&nbsp; &nbsp;</p>
+
+
+
+<p>BSP Governor Eli Remolona Jr. has explicitly stated that the robust domestic economy can absorb an additional interest rate hike if needed to anchor inflation expectations.&nbsp;This resolute monetary discipline reassures foreign funds that the central bank will not let domestic inflation slip out of control.&nbsp;</p>
+
+
+
+<p>In contrast, local price pressures are showing signs of exhaustion.&nbsp;<a href="https://www.rappler.com/business/inflation-rate-philippines-june-2026/">Philippine headline inflation slowed to 6.4% in June</a> from 6.8% in May.&nbsp;While still high, this moderation proves that the BSP&#8217;s aggressive rate cycle is successfully cooling the economy, giving foreign investors a clear entry window before prices normalize further.&nbsp;</p>
+
+
+
+<p>A primary concern for international fund managers is currency depreciation, which can erode equity gains. The BSP’s higher local interest rates, coupled with resilient overseas remittances, have successfully stabilized the Philippine peso. By creating an attractive interest-rate differential against the US dollar, foreign portfolios face less foreign-exchange risk, making the local bourse a safer location to park capital. (READ: <a href="https://www.rappler.com/voices/thought-leaders/in-this-economy-60-peso-dollar-exchange-rate-impact-philippines/">[In This Economy] The peso is now at P60 to the dollar. Now what?</a>)</p>
+
+
+
+<p>In addition, foreign capital is actively anchoring on large-cap blue chips such as ICTSI and other conglomerate-heavyweights which are providing a vital psychological safety net as they have successfully absorbed geopolitical shocks stemming from the escalating US-Iran conflict.&nbsp;</p>
+
+
+
+<h5 class="wp-block-heading" id="h-expected-q2-corporate-earnings-results"><strong>Expected Q2 corporate earnings results</strong></h5>
+
+
+
+<p>A double-digit growth figure is projected in the net income and revenues of ICTSI for the Q2. This builds seamlessly on its Q1 momentum, where net profits surged by 23%, equivalent to US$293.57 million. &nbsp;</p>
+
+
+
+<p>Its core drivers for this growth are due to an 11% surge in global container volumes and aggressive, self-funded international hub expansions like the Durban Gateway Terminal in South Africa and Batu Ampar in Indonesia. &nbsp;</p>
+
+
+
+<p>Furthermore, a long-term extension of its Melbourne port concession until 2066 reinforces a highly secure, multi-decade cash flow outlook that justifies its aggressive foreign premium buying. At the same time, it could allow ICTSI to easily absorb local macroeconomic pressures. </p>
+
+
+
+<p>For CNPF, foreign investors are seeking out CNPF as both a stable and defensive stock play. The company is <a href="https://www.rappler.com/business/century-pacific-capital-expenditure-milk-coconut-expansion-2025/">experiencing parallel double-digit expansions</a> across both its domestic and export markets.  </p>
+
+
+
+<p>Foreigner investors are utilizing CNPF as a margin cushion.&nbsp;The company’s dollar-denominated export naturally acts as hedge on local input cost adjustments.&nbsp;Conversely, CNPF’s pricing power on grocery shelf essentials also shields its business from broader inflationary shifts.</p>
+
+
+
+<p>CNPF’s earnings result for Q2 is scheduled to be reported on August 7, 2026.&nbsp;EPS is estimated to average at P1.82 apiece, based on analysts’ forecasts.&nbsp;In this regard, the company’s executive chairman Christopher Po has expressed that the company expects to sustain a double-digit growth in revenue and profit for the full year despite a challenging year due to supply chain factors. &nbsp;</p>
+
+
+
+<h5 class="wp-block-heading" id="h-prognosis-on-the-market-rally"><strong>Prognosis on the market rally</strong></h5>
+
+
+
+<p>Again, the market’s rally is driven by expectations of an accommodative policy stance from the central bank, attractive valuations, and growing investors’ optimism on corporate earnings results for the second-quarter. &nbsp;</p>
+
+
+
+<p>As mentioned earlier, the last time the market broke the 6,400 level was four months ago on February 10, when it closed at 6,474.60.  </p>
+
+
+
+<p>However, the market fell last Tuesday, July 21, at the 6,333.80 level, down 81.92 points or 1.28% from a market transaction of P7.39 billion, excluding cross transactions. Trading was apparently affected by the <a href="https://www.rappler.com/business/fuel-prices-adjustments-july-21-2026/">rise in oil prices by two digits</a> that took effect within the day. Investors&#8217; sentiments were dampened, as they were reminded of the continuing global risk caused by rising oil prices.</p>
+
+
+
+<p>On Wednesday, July 22, the market opened with a strong start in the morning session – surging by as much as 1% before trimming gains – as investor sentiment cooled off by midday to sit at 6,286.55 by the noon recess.</p>
+
+
+
+<p>At the end of the day, the market closed at 6,267.85, down 65.59 points or 1.04% on a smaller total value turnover of P5.78 billion, excluding cross transactions. It was apparently affected by the upcoming index methodology changes to be implemented, which would trigger portfolio repositioning. &nbsp;</p>
+
+
+
+<p>Asked what he thinks about the current market rally, Jofer Gaite, vice president for sales of B.A. Securities, Inc., was quite straightforward in giving a not-so-encouraging assessment. In his observation, “foreign inflows and retail investors are pushing the market higher, momentarily ignoring the US-Iran noise.” But the headwinds of slower growth, tacky inflation, and elevated interest rates continue to be big challenges to company revenues and profits. </p>
+
+
+
+<p>On a technical basis, “the market&#8217;s rise is not broad-based but mainly due to ICTSI&#8217;s fantastic run.” The market&#8217;s value turnover has been also anemic that foreign inflows are &#8220;tipping the balance greatly.”</p>
+
+
+
+<p>Joel de la Peña, market strategist and chief trader of H.E. Bennett Securities Inc., has a better outlook. While the market is only oversold, incomes of companies are getting better. He likens the current market with what it was in 2013. Investors also started to reposition then, looking for bargain stocks. At that time, dividends were getting better as they are now. </p>
+
+
+
+<p>Moreover, while the market is lingering at a low level, he believes that it may soon continue to rise as the economy grows albeit at a low pace due to high inflation.</p>
+
+
+
+<p>Even with the market’s two-day consecutive decline, Andro Leo “Andoy” I. Beltran, vice president and head of the Digital Solutions &amp; Investor Engagement Division of First Metro Securities Brokerage Corp. (FirstMetroSec) of the Metrobank Group, has an equally positive assessment about the market’s status.  </p>
+
+
+
+<p>Over the short term, according to him, investors are once again pricing geopolitical risk, leading to risk-off sentiment – a market environment where investors prioritize capital preservation and avoid volatility due to economic uncertainty or geopolitical fear. &nbsp;</p>
+
+
+
+<p>Nevertheless, over the medium to long term, corporate earnings, interest rates, and economic fundamentals will have a much greater influence on where the market will be ultimately.</p>
+
+
+
+<p>Stockbroker Rene de los Reyes of Abacus Securities Inc. of Abacus Capital &amp; Investment Corporation group, feels that the market rally is both fundamentally and technically driven. For the longest time, according to their studies, the market has been “ridiculously” undervalued, even though it is at present technically lifted by foreign interest in ICTSI, which has an assigned weight of 27% in the main index.</p>
+
+
+
+<p>Deliberately funny, Reuben Mark A. Angeles, first vice-president and Equity Research Division and Customer Experience head of FirstMetroSec of the Metrobank Group, sums the market’s current rally as what he calls “investors’ fatigue on the Middle East issue.” </p>
+
+
+
+<p>Come to think of it, one stops being scared at some point in time. Nonetheless, being brave is not enough. He recommends to follow wisely what the foreign investors are doing at the moment: focus on blue-chip conglomerates, steady dividend payers, and resilient consumer brands with high-volume, liquid stocks driven by strong price action, near-term catalysts, or index changes.  </p>
+
+
+
+<p>Agreeably, the current market is primarily a &#8220;reset&#8221; driven by bargain hunting, foreign inflows, and relief as oil prices ease from previous Middle East war peaks.&nbsp;However, with the market trading near the 6,400 to 6,450 resistance zone, it will be ultimately sustained by developing macroeconomic triggers where fundamentals will ultimately prevail. – <strong>Rappler.com</strong></p>
+
+
+
+<p><em>(The article has been prepared for general circulation for the reading public and must not be construed as an offer, or solicitation of an offer to buy or sell any securities or financial instruments whether referred to herein or otherwise.&nbsp;Moreover, the public should be aware that the writer or any investing parties mentioned in the column may have a conflict of interest that could affect the objectivity of their reported or mentioned investment activity. You may reach the writer at densomera@yahoo.com) &nbsp;</em></p>
+
+
+
+<p>Below are some other articles of the author on the Philippine stock market you may want to read: </p>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="fEu2i6798t"><a href="https://www.rappler.com/business/analysis-first-philippines-pldt-data-center-reit-initial-public-offering/">[ANALYSIS] First of its kind: PLDT&#8217;s P24.2B data center REIT IPO</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[ANALYSIS] First of its kind: PLDT&#8217;s P24.2B data center REIT IPO&#8221; &#8212; RAPPLER" src="https://www.rappler.com/business/analysis-first-philippines-pldt-data-center-reit-initial-public-offering/embed/#?secret=D3TVABj9Bc#?secret=fEu2i6798t" data-secret="fEu2i6798t" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="F2FU3Asla6"><a href="https://www.rappler.com/business/analysis-market-implications-mynt-gcash-ipo/">[ANALYSIS] The market implications of a GCash IPO</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[ANALYSIS] The market implications of a GCash IPO&#8221; &#8212; RAPPLER" src="https://www.rappler.com/business/analysis-market-implications-mynt-gcash-ipo/embed/#?secret=4OiYuIqk9X#?secret=F2FU3Asla6" data-secret="F2FU3Asla6" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="z1zmn5TDCe"><a href="https://www.rappler.com/business/deep-dive-capital-market-reforms-securities-exchange-commission-chairman-francis-lim/">A deep dive on capital market reforms with SEC Chairman Francis Lim</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;A deep dive on capital market reforms with SEC Chairman Francis Lim&#8221; &#8212; RAPPLER" src="https://www.rappler.com/business/deep-dive-capital-market-reforms-securities-exchange-commission-chairman-francis-lim/embed/#?secret=6avmvx4KxE#?secret=z1zmn5TDCe" data-secret="z1zmn5TDCe" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="R1VHC2HeOD"><a href="https://www.rappler.com/business/injap-sia-merrymart-disconcerting-voluntary-delisting-plan/">[ANALYSIS] Injap Sia&#8217;s MerryMart’s disconcerting voluntary delisting plan</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[ANALYSIS] Injap Sia&#8217;s MerryMart’s disconcerting voluntary delisting plan&#8221; &#8212; RAPPLER" src="https://www.rappler.com/business/injap-sia-merrymart-disconcerting-voluntary-delisting-plan/embed/#?secret=gxfG1vqVnf#?secret=R1VHC2HeOD" data-secret="R1VHC2HeOD" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/business/analysis-tracking-foreign-investors-activity-philippine-stock-market-rally-july-2026/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?resize=75%2C75&amp;crop=390px%2C0px%2C1080px%2C1080px" />
+		<media:content url="https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg" medium="image">
+			<media:title type="html">EDC-PH-geothermal-energy-July-16-2026</media:title>
+			<media:description type="html">$5-B OFFER. Energy Development Corp. chairman Federico &#039;Piki&#039; Lopez (left) and Indonesian billionaire Barito Pacific Group&#039;s founder Prajogo Pangetsu, with an EDC power plant in the background.</media:description>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/EDC-PH-geothermal-energy-July-16-2026.jpg?resize=75%2C75&amp;crop=390px%2C0px%2C1080px%2C1080px" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/07/Whats-driving-the-current-Philippine-stock-market-rally.jpg</image>	</item>
+		<item>
+		<title>WATCH: No more InstaPay transfer fees? Here&#8217;s what changed.</title>
+		<link>https://www.rappler.com/newsbreak/podcasts-videos/no-more-instapay-transfer-fees-what-changed/</link>
+					<comments>https://www.rappler.com/newsbreak/podcasts-videos/no-more-instapay-transfer-fees-what-changed/#respond</comments>
+		
+		<dc:creator><![CDATA[Lance Spencer Yu]]></dc:creator>
+		<pubDate>Fri, 24 Jul 2026 07:00:00 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Newsbreak]]></category>
+		<category><![CDATA[Newsbreak Podcasts and Videos]]></category>
+		<category><![CDATA[Personal Finance]]></category>
+		<category><![CDATA[Stocks & Banking]]></category>
+		<category><![CDATA[Bangko Sentral ng Pilipinas]]></category>
+		<category><![CDATA[Banking and Financial Services]]></category>
+		<category><![CDATA[Banking And Financial Services]]></category>
+		<category><![CDATA[banks in the Philippines]]></category>
+		<category><![CDATA[e-commerce]]></category>
+		<category><![CDATA[financial technology]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[Nearly every bank has dropped their InstaPay fees from as high as P15 to zero]]></description>
+										<content:encoded><![CDATA[
+<p>MANILA, Philippines – This July, banks have been lowering or even <a href="https://www.rappler.com/business/banks-dropping-transfer-fees-why-it-took-so-long/">completely dropping their InstaPay transfer fees</a>. What changed, and will the <a href="https://www.rappler.com/newsbreak/inside-track/bangko-sentral-presses-gcash-maya-explain-transfer-fees/">two e-wallet giants</a> follow?</p>
+
+
+
+<p>Watch this report by Lance Spencer Yu to learn more. – Rappler.com</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/newsbreak/podcasts-videos/no-more-instapay-transfer-fees-what-changed/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+<image>https://www.rappler.com/tachyon/2023/11/instapay-update.jpg</image>	</item>
+		<item>
+		<title>MariBank now officially reclassified as digital bank by BSP</title>
+		<link>https://www.rappler.com/business/maribank-officially-reclassified-digital-bank-bangko-sentral-pilipinas/</link>
+					<comments>https://www.rappler.com/business/maribank-officially-reclassified-digital-bank-bangko-sentral-pilipinas/#respond</comments>
+		
+		<dc:creator><![CDATA[Lance Spencer Yu]]></dc:creator>
+		<pubDate>Thu, 23 Jul 2026 17:37:05 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Personal Finance]]></category>
+		<category><![CDATA[Stocks & Banking]]></category>
+		<category><![CDATA[Bangko Sentral ng Pilipinas]]></category>
+		<category><![CDATA[Banking and Financial Services]]></category>
+		<category><![CDATA[banks in the Philippines]]></category>
+		<category><![CDATA[e-commerce]]></category>
+		<category><![CDATA[financial technology]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[MariBank is the Philippine banking arm of Singapore-based MariBank, which belongs to Sea Limited, the technology group behind e-commerce platform Shopee]]></description>
+										<content:encoded><![CDATA[
+<p>MANILA, Philippines – MariBank has officially become a licensed digital bank after the Bangko Sentral ng Pilipinas (BSP) approved its reclassification from a rural bank, formalizing a business model that had already been operating almost entirely through digital channels.</p>
+
+
+
+<p>For existing customers, however, little changes. Customers do not need to take any action following the reclassification. (READ: <a href="https://www.rappler.com/business/finterest-is-digital-bank-safe-how-to-use-tips/">[Finterest] Is a digital bank safe, and how can you best use it?</a>)</p>
+
+
+
+<p>MariBank said clients can continue using the app and services as before, with deposits of up to P1 million remaining insured by the Philippine Deposit Insurance Corporation (PDIC). The bank also remains under BSP supervision.</p>
+
+
+
+<p>The change is largely regulatory. Before securing its digital banking license, MariBank operated under a rural bank license while offering app-based banking products nationwide. As a rural bank, it had to operate a physical banking presence in Laguna. With the new digital license, Maribank may operate without branches that offer banking services, though it must still maintain a head office in the country. MariBank can also now officially market itself as a digital bank.</p>
+
+
+
+<p>“MariBank has been an early supporter of the Bangko Sentral’s digital payments agenda, having been among the first financial institutions to offer free fund transfers. Now, as a fully operational digital bank, I am confident that MariBank will deliver an even stronger value proposition, driving innovation and competition while benefiting both consumers and the broader banking industry,” BSP Deputy Governor Mamerto Tangonan said in a statement.</p>
+
+
+
+<p>MariBank is the Philippine banking arm of Singapore-based MariBank, which belongs to Sea Limited, the technology group behind e-commerce platform Shopee. The company rebranded from SeaBank Philippines to MariBank in 2025.</p>
+
+
+
+<p>One feature that helped MariBank stand out in its early years was its unlimited free fund transfers, which came well before many larger banks droped their transfer fees. That advantage has since narrowed in recent weeks after the BSP pushed banks to <a href="https://www.rappler.com/philippines/list-banks-e-wallets-transfers-free-cheaper/">drop their transfer fees</a>.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/business/banks-dropping-transfer-fees-why-it-took-so-long/">
+							<h1 class="related-article__title-text"> Banks are dropping transfer fees. Here’s why it took so long. </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/business/banks-dropping-transfer-fees-why-it-took-so-long/">
+					 		<img decoding="async" width="449" height="253" src="https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?fit=449%2C449" class=" wp-image-3178250 wp-post-image" alt="Banks are dropping transfer fees. Here’s why it took so long." loading="lazy" srcset="https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?fit=449%2C253&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?fit=449%2C253&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?fit=449%2C253&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?fit=449%2C253&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?fit=449%2C253&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<p>But perhaps counterintuitively, Lim said the shift has actually eased one of the costs of being an early mover.</p>
+
+
+
+<p>“When we were one of the few banks offering unlimited free transfers, we attracted customers making hundreds of transactions, and subsidizing that became expensive,” he said in a <a href="https://www.linkedin.com/posts/siew-ghee-kung-lim-55104112_when-we-launched-the-maribank-philippines-activity-7481552122501693440-XXeB?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAADJSKgMB0UCWzLCrfom6uhgdlsxWHgHX7Mo">LinkedIn post</a>.</p>
+
+
+
+<p>Now that more banks have adopted free transfers and switch costs have fallen, heavy transaction volumes are spread across more institutions. Lim said MariBank no longer had to absorb outsized transfer costs simply to remain competitive.</p>
+
+
+
+<p>The country’s digital banks now include Maya Bank, GoTyme Bank, Tonik Digital Bank, UNO Digital Bank, UnionDigital Bank, Overseas Filipino Bank, and MariBank.&nbsp;<strong>– Rappler.com</strong></p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/business/maribank-officially-reclassified-digital-bank-bangko-sentral-pilipinas/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?resize=75%2C75&amp;crop=477px%2C0px%2C1080px%2C1080px" />
+		<media:content url="https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg" medium="image">
+			<media:title type="html">DIGITAL-TOWN-SQUARE-graphics</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/05/DIGITAL-TOWN-SQUARE-graphics.jpg?resize=75%2C75&amp;crop=477px%2C0px%2C1080px%2C1080px" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/07/bsp-maribank-july-23-2026-2.jpg</image>	</item>
+		<item>
+		<title>[Between Islands] Calloused hands and the 3-language exchange in PH-Japan relations</title>
+		<link>https://www.rappler.com/voices/thought-leaders/between-islands-calloused-hands-languages-exchange-philippine-japan-relations/</link>
+					<comments>https://www.rappler.com/voices/thought-leaders/between-islands-calloused-hands-languages-exchange-philippine-japan-relations/#comments</comments>
+		
+		<dc:creator><![CDATA[Ricky Sabornay]]></dc:creator>
+		<pubDate>Thu, 23 Jul 2026 08:58:31 +0800</pubDate>
+				<category><![CDATA[Asia Pacific]]></category>
+		<category><![CDATA[Business]]></category>
+		<category><![CDATA[Editors' Pick]]></category>
+		<category><![CDATA[People]]></category>
+		<category><![CDATA[Thought Leaders]]></category>
+		<category><![CDATA[Voices]]></category>
+		<category><![CDATA[between-islands-column]]></category>
+		<category><![CDATA[business groups in PH]]></category>
+		<category><![CDATA[Japan]]></category>
+		<category><![CDATA[Japanese culture]]></category>
+		<category><![CDATA[language]]></category>
+		<category><![CDATA[overseas Filipinos]]></category>
+		<category><![CDATA[Philippine languages]]></category>
+		<category><![CDATA[Philippines-Japan relations]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA[The strongest bridge between two countries has always been the people who choose to build a life across them]]></description>
+										<content:encoded><![CDATA[
+<p>TOKYO, Japan – Last June 25, I watched in awe as Philippine Chamber of Commerce and Industry in Japan (PCCIJ) chairman Allan Reyes step onto the podium and welcomed the room in Japanese before shifting effortlessly to English. The transition was so natural that it almost went unnoticed. It was one of the most remarkable moments of the evening for me.</p>
+
+
+
+<figure class="wp-block-image size-full"><img loading="lazy" width="624" height="468" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png" alt="Crowd, Person, Adult" class="wp-image-3208703" srcset="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png?resize=624%2C468&amp;zoom=1 624w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png?resize=624%2C468&amp;zoom=0.5 312w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png?resize=624%2C468&amp;zoom=0.25 156w" sizes="auto, (max-width: 624px) 100vw, 624px" /><figcaption class="wp-element-caption">Philippine Chamber of Commerce and Industry in Japan (PCCIJ) chairman Allan Reyes delivers his anniversary message to the members and guests of PCCIJ on June 25, 2026.. Photo by the author</figcaption></figure>
+
+
+
+<p>Language, after all, is rarely just language.</p>
+
+
+
+<figure class="wp-block-image size-full"><img loading="lazy" width="450" height="328" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-1.48.21-PM.png" alt="Philippine Chamber of Commerce and Industry chairman Allan Reyes" class="wp-image-3208743" srcset="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-1.48.21-PM.png?resize=450%2C328&amp;zoom=1 450w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-1.48.21-PM.png?resize=450%2C328&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-1.48.21-PM.png?resize=450%2C328&amp;zoom=0.25 113w" sizes="auto, (max-width: 450px) 100vw, 450px" /><figcaption class="wp-element-caption">PCCIJ chairman Allan Reyes reflects on the past 50 years of PCCIJ and its vital role in the Philippines-Japan relations, on June 25, 2026.. Photo courtesy of PCCIJ.&nbsp;</figcaption></figure>
+
+
+
+<p>I expected Allan to crack his trademark joke in Tagalog, but none came this time. The PCCIJ was celebrating its 50th anniversary, and the moment called for reflection rather than laughter.</p>
+
+
+
+<p>Allan’s fluency was not the product of a polished classroom. It was a language with callouses on its hands, earned over decades of living between two countries.</p>
+
+
+
+<p>Allan arrived in Japan as a high school student over three decades ago, supporting himself through all sorts of <em>arubaito</em> (part-time jobs) before eventually working for Japanese companies and later establishing his own successful business consultancy. As he looked across the ballroom, it was clear that he was speaking not only to business leaders but to people whose journeys echoed his own.</p>
+
+
+
+<p>The room understood what it meant to build a life from the unfamiliar.</p>
+
+
+
+<figure class="wp-block-image size-full"><img loading="lazy" width="452" height="280" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.17-PM.png" alt="Philippine embassy officials in Japan and guests attend the PCCIJ 50th Anniversary " class="wp-image-3208770" srcset="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.17-PM.png?resize=452%2C280&amp;zoom=1 452w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.17-PM.png?resize=452%2C280&amp;zoom=0.5 226w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.17-PM.png?resize=452%2C280&amp;zoom=0.25 113w" sizes="auto, (max-width: 452px) 100vw, 452px" /><figcaption class="wp-element-caption">Embassy officials and guests attend the PCCIJ 50th anniversary in Tokyo, on June 25, 2026 Courtesy of PCCIJ</figcaption></figure>
+
+
+
+<p>The Kiku ballroom in Hilton Tokyo reflected that shared experience. Japanese executives in dark suits sat beside Filipino entrepreneurs, Embassy officials, professionals, and past and present members of the PCCIJ Board, many dressed in elegant Filipiniana. Conversations flowed easily across tables, switching from Japanese to English and, every so often, to Filipino.</p>
+
+
+
+<p>The evening celebrated 50 years of an institution, but more importantly, it celebrated thousands of individual journeys that made such an institution necessary.</p>
+
+
+
+<p>Most people never think about chambers of commerce.</p>
+
+
+
+<figure class="wp-block-image size-full"><img loading="lazy" width="730" height="488" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.53-PM.png" alt="Current directors of PCCIJ stand together in celebration of 50 years of promoting trade and investment between Philippines and Japan" class="wp-image-3208775" srcset="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.53-PM.png?resize=730%2C488&amp;zoom=1 730w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.53-PM.png?resize=730%2C488&amp;zoom=0.5 365w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.53-PM.png?resize=730%2C488&amp;zoom=0.25 183w" sizes="auto, (max-width: 730px) 100vw, 730px" /><figcaption class="wp-element-caption">Current directors of PCCIJ stand together in celebration of 50 years of promoting trade and investment between Philippines and Japan, in Tokyo, on June 25, 2026. Photo courtesy of PCCIJ.&nbsp;</figcaption></figure>
+
+
+
+<p>They are rarely visible to the public, yet many of the investments, partnerships, and business relationships that shape the Philippine-Japan economic relationship begin in rooms exactly like this one. Organizations such as the PCCIJ create opportunities for companies to meet, exchange ideas, and navigate the practical challenges of doing business across borders. That work has become increasingly important as the relationship between our two countries continues to deepen. </p>
+
+
+
+<p>This year also marks the <a href="https://www.rappler.com/voices/thought-leaders/between-islands-philippines-japan-relations-weaving-shared-future/">70th anniversary of the normalization of diplomatic relations</a> between the Philippines and Japan. Diplomacy opened the doors. Businesses walked through them. Over time, so did families, professionals, students, and entrepreneurs.</p>
+
+
+
+<p>The result is visible throughout Japan today.</p>
+
+
+
+<p>As recent statistics reveal, nearly 261,000 Filipinos were employed in Japan by the end of 2025, a figure that continues to grow as Japan confronts demographic decline and labor shortages. Whether in manufacturing, healthcare, hospitality, logistics, engineering, or technology, Filipinos have become an increasingly important part of Japan&#8217;s economy.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/voices/thought-leaders/between-islands-filipino-professionals-japan-bloom/">
+							<h1 class="related-article__title-text"> [Between Islands] Filipino Professionals in Japan: Buds before the bloom  </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/voices/thought-leaders/between-islands-filipino-professionals-japan-bloom/">
+					 		<img decoding="async" width="449" height="253" src="https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?fit=449%2C449" class=" wp-image-3163890 wp-post-image" alt="[Between Islands] Filipino Professionals in Japan: Buds before the bloom " loading="lazy" srcset="https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?fit=449%2C253&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?fit=449%2C253&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?fit=449%2C253&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?fit=449%2C253&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?fit=449%2C253&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<p>Yet behind those numbers lies another story—one that rarely appears in employment statistics or investment reports.</p>
+
+
+
+<p>Over the past seven years practicing law in Tokyo, I have come to see that building a life in Japan is not simply about finding work or starting a business. It is also about navigating a legal system where stability often depends on careful compliance with rules that many people take for granted.</p>
+
+
+
+<p>A visa renewal submitted too late. A company that suddenly closes. An employer that unknowingly mishandles immigration requirements. A family that struggles to understand unfamiliar procedures after the death of a loved one.</p>
+
+
+
+<p>These are not dramatic headlines but ordinary problems that can place years of hard work at risk.</p>
+
+
+
+<p>For many Filipinos, belonging is never something assumed; rather something continuously maintained through documents, deadlines, and responsibilities that quietly shape everyday life.</p>
+
+
+
+<p>That reality gives evenings like the PCCIJ anniversary a different meaning.</p>
+
+
+
+<p>The entrepreneurs celebrating new investments, the professionals exchanging business cards, and the executives discussing future projects all share something beyond commercial ambition. Each has learned to navigate two systems, two cultures, and often two languages at once. Success here requires more than technical expertise. It requires patience, adaptability, and a willingness to keep learning long after arriving in Japan.</p>
+
+
+
+<p>When Allan concluded his remarks, the room came alive once more.</p>
+
+
+
+<figure class="wp-block-image size-full"><img loading="lazy" width="554" height="366" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.51.10-PM.png" alt="Japanese, Filipinos exchange business cards in PCCIJ's 50 anniversary in Japan " class="wp-image-3209008" srcset="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.51.10-PM.png?resize=554%2C366&amp;zoom=1 554w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.51.10-PM.png?resize=554%2C366&amp;zoom=0.5 277w, https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.51.10-PM.png?resize=554%2C366&amp;zoom=0.25 139w" sizes="auto, (max-width: 554px) 100vw, 554px" /><figcaption class="wp-element-caption">Japanese and Filipino business leaders exchange cards during the 50th anniversary of the PCCIJ, on June 25, 2026. Photo courtesy of PCCIJ.</figcaption></figure>
+
+
+
+<p>Across the ballroom, conversations resumed in Japanese, English, and Filipino. A Japanese executive discussed an investment opportunity with a Filipino entrepreneur. Nearby, two professionals shifted naturally between English and Japanese before ending their conversation with a cheerful “<em>Salamat po</em>.” (Thank you.)</p>
+
+
+
+<p>Watching the room, I realized that the three languages were doing different kinds of work.</p>
+
+
+
+<p>Japanese built trust. English connected businesses across borders. Filipino reminded everyone where many of those journeys had begun.</p>
+
+
+
+<figure class="wp-block-image size-full"><img loading="lazy" width="892" height="513" decoding="async" src="https://www.rappler.com/tachyon/2026/07/Screenshot_20260722_175425_Word.jpg" alt="Philippine Chamber of Commerce and Industry in Japan " class="wp-image-3209009" srcset="https://www.rappler.com/tachyon/2026/07/Screenshot_20260722_175425_Word.jpg?resize=892%2C513&amp;zoom=1 892w, https://www.rappler.com/tachyon/2026/07/Screenshot_20260722_175425_Word.jpg?resize=892%2C513&amp;zoom=0.5 446w, https://www.rappler.com/tachyon/2026/07/Screenshot_20260722_175425_Word.jpg?resize=892%2C513&amp;zoom=0.25 223w" sizes="auto, (max-width: 892px) 100vw, 892px" /><figcaption class="wp-element-caption">A group photo of those who joined the 50th anniversary of the PCCIJ in Japan on June 25, 2026. Photo courtesy of PCCIJ </figcaption></figure>
+
+
+
+<p>Before leaving the stage, Allan stepped down from the podium and was immediately surrounded by old friends and new faces. He greeted each person in whichever language the moment required.</p>
+
+
+
+<p>Perhaps that is the quiet achievement worth celebrating after 50 years. Not simply stronger trade or larger investments, but the growth of a community that has become at home in both the Philippines and Japan. In that room, three languages were being spoken, but they all expressed the same idea: that the strongest bridge between two countries has always been the people who choose to build a life across them. – <strong>Rappler.com</strong></p>
+
+
+
+<p><em><a href="https://sabornaylaw.com/attorneys/">Ricky Aringo Sabornay</a>&nbsp;is a cross-border lawyer who moves between the Philippines and Japan, helping people navigate not just different legal systems, but different ways of thinking. He runs&nbsp;<a href="https://sabornaylaw.com/about/">Sabornay Law</a>, a member firm of&nbsp;<a href="https://uryuitoga.com/uwp/en/">Uryu &amp; Itoga</a>, where his work sits at the intersection of two legal systems and two cultures that don’t always speak the same language.</em>&nbsp;<em>Connect with him on&nbsp;<a href="https://www.linkedin.com/in/ricky-aringo-sabornay-fciarb-94154786/">LinkedIn</a>.</em></p>
+
+
+
+<p>Below are other Between Islands columns you may have missed: </p>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="2nVMCwv2NP"><a href="https://www.rappler.com/voices/thought-leaders/between-islands-riehata-swag-queen-new-rhythm-philippines-japan-relations/">[Between Islands] The Queen of Swag and a new rhythm for Philippines-Japan relations</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Between Islands] The Queen of Swag and a new rhythm for Philippines-Japan relations&#8221; &#8212; RAPPLER" src="https://www.rappler.com/voices/thought-leaders/between-islands-riehata-swag-queen-new-rhythm-philippines-japan-relations/embed/#?secret=bQjy1lKG5C#?secret=2nVMCwv2NP" data-secret="2nVMCwv2NP" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="Uxh8YiQ0SQ"><a href="https://www.rappler.com/voices/thought-leaders/between-islands-filipino-food-japan-slowly-more-visible/">[Between Islands] Still no Jollibee in Japan, but Filipino food slowly becoming more visible</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Between Islands] Still no Jollibee in Japan, but Filipino food slowly becoming more visible&#8221; &#8212; RAPPLER" src="https://www.rappler.com/voices/thought-leaders/between-islands-filipino-food-japan-slowly-more-visible/embed/#?secret=IwBWNOg4hI#?secret=Uxh8YiQ0SQ" data-secret="Uxh8YiQ0SQ" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+
+
+
+<figure class="wp-block-embed is-type-wp-embed is-provider-rappler wp-block-embed-rappler"><div class="wp-block-embed__wrapper">
+<blockquote class="wp-embedded-content" data-secret="7qOvfKITuM"><a href="https://www.rappler.com/voices/thought-leaders/between-islands-women-heart-philippine-japan-relations/">[Between Islands] Mender of frayed threads: 70 years of women at the heart of PH–Japan ties</a></blockquote><iframe loading="lazy" class="wp-embedded-content" sandbox="allow-scripts" security="restricted"  title="&#8220;[Between Islands] Mender of frayed threads: 70 years of women at the heart of PH–Japan ties&#8221; &#8212; RAPPLER" src="https://www.rappler.com/voices/thought-leaders/between-islands-women-heart-philippine-japan-relations/embed/#?secret=f3ZPU8Vpkk#?secret=7qOvfKITuM" data-secret="7qOvfKITuM" width="600" height="338" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+</div></figure>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/voices/thought-leaders/between-islands-calloused-hands-languages-exchange-philippine-japan-relations/feed/</wfw:commentRss>
+			<slash:comments>4</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png?resize=75%2C75&amp;crop_strategy=attention" />
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png" medium="image">
+			<media:title type="html">Screenshot 2026-07-22 at 4.49.46 PM</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.49.46-PM.png?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-1.48.21-PM.png" medium="image">
+			<media:title type="html">Screenshot 2026-07-22 at 1.48.21 PM</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-1.48.21-PM.png?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.17-PM.png" medium="image">
+			<media:title type="html">Screenshot 2026-07-22 at 4.50.17 PM</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.17-PM.png?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.53-PM.png" medium="image">
+			<media:title type="html">Screenshot 2026-07-22 at 4.50.53 PM</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.50.53-PM.png?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg" medium="image">
+			<media:title type="html">Filipino Professionals in Japan Buds Before the Bloom</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/04/Filipino-Professionals-in-Japan-Buds-Before-the-Bloom-1.jpg?resize=75%2C75&amp;crop=324px%2C0px%2C720px%2C720px" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.51.10-PM.png" medium="image">
+			<media:title type="html">Screenshot 2026-07-22 at 4.51.10 PM</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot-2026-07-22-at-4.51.10-PM.png?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/Screenshot_20260722_175425_Word.jpg" medium="image">
+			<media:title type="html">Screenshot_20260722_175425_Word</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/Screenshot_20260722_175425_Word.jpg?resize=75%2C75&amp;crop_strategy=attention" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/07/JAPAN-OFW.jpg</image>	</item>
+		<item>
+		<title>BSP senior official hits bank secrecy limits in Sara Duterte subpoenas</title>
+		<link>https://www.rappler.com/business/bangko-sentral-official-hits-bank-secrecy-limits-sara-duterte-subpoena/</link>
+					<comments>https://www.rappler.com/business/bangko-sentral-official-hits-bank-secrecy-limits-sara-duterte-subpoena/#comments</comments>
+		
+		<dc:creator><![CDATA[Lance Spencer Yu]]></dc:creator>
+		<pubDate>Wed, 22 Jul 2026 20:17:05 +0800</pubDate>
+				<category><![CDATA[Business]]></category>
+		<category><![CDATA[Economy & Governance]]></category>
+		<category><![CDATA[Stocks & Banking]]></category>
+		<category><![CDATA[Anti-Money Laundering Council]]></category>
+		<category><![CDATA[Bangko Sentral ng Pilipinas]]></category>
+		<category><![CDATA[Banking and Financial Services]]></category>
+		<category><![CDATA[corruption]]></category>
+		<category><![CDATA[Corruption in the Philippines]]></category>
+		<category><![CDATA[investment scams]]></category>
+		<category><![CDATA[money laundering]]></category>
+		<category><![CDATA[Sara Duterte]]></category>
+		<category><![CDATA[Sara Duterte impeachment]]></category>
+		<guid isPermaLink="false"></guid>
+
+					<description><![CDATA['The other day, the impeachment court issued an order to open bank deposits. But lo and behold, you cannot open FCDU deposits,' says BSP Deputy Governor Elmore Capule as he lamented the Philippines' outdated bank secrecy rules]]></description>
+										<content:encoded><![CDATA[
+<p>MANILA, Philippines – A senior Bangko Sentral ng Pilipinas (BSP) official has criticized the country’s decades-old bank secrecy laws after the House prosecution’s attempt to examine Vice President Sara Duterte’s money trail was <a href="https://www.rappler.com/philippines/senate-impeachment-court-subpoenas-sara-duterte-bank-tax-records/">stopped at foreign currency deposits</a>, which seem to remain beyond reach even in impeachment cases.</p>
+
+
+
+<p>Bangko Sentral ng Pilipinas (BSP) Deputy Governor Elmore Capule referenced the Senate impeachment court&#8217;s decision as he sharply criticized bank secrecy laws that he said have frustrated investigators for decades.</p>
+
+
+	<div class="shortcode shortcode--youtube">
+		<div class="youtube-video" data-youtube-id="O0sZMn7Y-D0" data-title="">
+	<button class="youtube-video__load-button">
+				<span class="screen-reader-text">Play  Video</span>
+	</button>
+	<img
+	src="https://img.youtube.com/vi/O0sZMn7Y-D0/hqdefault.jpg"
+	data-srcset="https://img.youtube.com/vi/O0sZMn7Y-D0/default.jpg 120w, https://img.youtube.com/vi/O0sZMn7Y-D0/mqdefault.jpg 320w, https://img.youtube.com/vi/O0sZMn7Y-D0/hqdefault.jpg 480w, https://img.youtube.com/vi/O0sZMn7Y-D0/sddefault.jpg 640w"
+	data-sizes=""
+	data-src="https://img.youtube.com/vi/O0sZMn7Y-D0/hqdefault.jpg"
+	class="youtube-video__image-overlay"
+	alt="BSP senior official hits bank secrecy limits in Sara Duterte subpoenas"
+	loading="lazy"
+>
+	<div class="youtube-video__iframe"></div>
+</div>
+	</div>
+	
+
+
+<p>“The other day, the impeachment court issued an order to open bank deposits. But lo and behold, you cannot open FCDU deposits,” Capule said during the signing of an information-sharing agreement between the BSP and the Department of Justice.</p>
+
+
+
+<p>FCDU refers to foreign currency deposit unit accounts, which are commonly denominated in US dollars and other foreign currencies.</p>
+
+
+
+<p>“We are talking of bank secrecy being used to hide illegal activities,” Capule added during his speech on Wednesday, July 22.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/philippines/bank-documents-do-not-lie-subpoena-trace-sara-duterte-money-trail-oscar-moreno-estrada-prosecutor/">
+							<h1 class="related-article__title-text"> &#8216;Bank documents don&#8217;t lie&#8217;: Financial records can trace Duterte&#8217;s money trail – ex-prosecutor </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/philippines/bank-documents-do-not-lie-subpoena-trace-sara-duterte-money-trail-oscar-moreno-estrada-prosecutor/">
+					 		<img decoding="async" width="449" height="299" src="https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?fit=449%2C449" class=" wp-image-3207469 wp-post-image" alt="&#8216;Bank documents don&#8217;t lie&#8217;: Financial records can trace Duterte&#8217;s money trail – ex-prosecutor" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?fit=449%2C299&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?fit=449%2C299&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?fit=449%2C299&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?fit=449%2C299&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?fit=449%2C299&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<p>The Senate, sitting as an impeachment court, <a href="LIST: Companies covered by VP Sara Duterte records subpoena">approved subpoenas</a> on Monday, July 20, for <a href="https://www.rappler.com/philippines/list-sara-duterte-bank-accounts-amlc-records-subpoena-request/">bank and Anti-Money Laundering Council (AMLC) records</a> involving Duterte, her husband Manases Carpio, and several linked companies.</p>
+
+
+
+<p>The prosecution sought the records to establish a financial baseline that could be compared with the couple’s declared income, assets, liabilities, and business interests. The request forms part of the impeachment article accusing Duterte of amassing unexplained wealth. </p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/newsbreak/data-documents/sara-duterte-wealth-findings-house-impeachment-hearings/">
+							<h1 class="related-article__title-text"> IN NUMBERS: What impeachment hearings unveiled about Sara Duterte&#8217;s wealth </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/newsbreak/data-documents/sara-duterte-wealth-findings-house-impeachment-hearings/">
+					 		<img decoding="async" width="449" height="253" src="https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?fit=449%2C449" class=" wp-image-3176582 wp-post-image" alt="IN NUMBERS: What impeachment hearings unveiled about Sara Duterte&#8217;s wealth" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?fit=449%2C253&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?fit=449%2C253&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?fit=449%2C253&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?fit=449%2C253&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?fit=449%2C253&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<p>But the court excluded the couple’s dollar accounts from the subpoenas because foreign currency deposits enjoy stricter protection under the Foreign Currency Deposit Act than peso accounts do under the Bank Secrecy Law. The Bank Secrecy Law expressly allows bank inquiries in impeachment cases. The Foreign Currency Deposit Act does not contain the same exception and requires the depositor’s written permission before an account may be examined.</p>
+
+
+
+<p>That could leave prosecutors with only part of the possible financial picture, even after securing the impeachment court’s approval.</p>
+
+
+
+<h5 class="wp-block-heading" id="h-it-can-be-used-by-criminals">&#8216;It can be used by criminals&#8217;</h5>
+
+
+
+<p>Capule is one of the BSP’s most senior legal officials. Before becoming deputy governor, he served as the central bank’s general counsel and spent years working on banking legislation and financial sector reforms. He was also closely involved in developing the <a href="https://www.rappler.com/business/bangko-sentral-pilipinas-upgrade-banks-fraud-management-systems/">Anti-Financial Account Scamming Act</a> (AFASA), which created new powers for tracing money used in scams and money-muling.</p>
+
+
+
+<p>His frustration and distaste with bank secrecy stems from one of his earliest brushes with possible government corruption. Capule recalled that one of the first cases he handled in government involved a state-owned corporation that transferred funds to a private account at the height of the EDSA revolution.</p>
+
+
+
+<p>He said he argued that authorities should be allowed to examine the account because the deposited money was itself the subject of litigation.</p>
+
+
+
+<p>It took about a year to secure a favorable ruling.</p>
+
+
+
+<p>“Lo and behold, the fund was transferred one year before,” Capule said. “So what do we do now? We have to trace it. So essentially, it’s dead.”</p>
+
+
+
+<p>“That is my first experience with the secrecy. It can be used by criminals. Thirty-five years later, fast forward, bank secrecy is still very much alive,” he added.</p>
+
+
+
+<p>Capule also criticized the treatment of bank secrecy as it &#8220;mutated&#8221; into state policy under the <a href="https://www.rappler.com/philippines/reasons-sara-duterte-opposes-subpoenas-bank-tax-amlc-files-impeachment/">Anti-Money Laundering Act</a>.</p>
+
+
+
+<p>“Whenever other jurisdictions see that, they are telling me, ‘Are you joking? Bank secrecy and then money laundering in one statute?’” he said.</p>
+
+
+
+<p>Note that Capule did not allege that Duterte held undisclosed foreign currency deposits or that any account contained illegal proceeds. His biggest criticism is that the Philippines&#8217; outdated bank secrecy laws can stop authorities from getting a complete financial trail.</p>
+
+
+
+<p><a href="EXPLAINER: How the AFASA law aims to combat financial scams">AFASA</a>, the new law that he helped craft, provides a narrow exception. In investigations involving financial scams and money-muling, a designated BSP officer may inquire into accounts, including foreign currency deposits, to trace disputed funds and help build cases.</p>
+
+
+
+<p>Capule noted that this gives the BSP officer authority to examine foreign currency accounts “which the impeachment court cannot do.” That power, however, applies only to suspected violations of AFASA.</p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/business/sara-duterte-bir-box-philippine-tax-secrecy/">
+							<h1 class="related-article__title-text"> What Sara Duterte’s traveling BIR box says about Philippine tax secrecy </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/business/sara-duterte-bir-box-philippine-tax-secrecy/">
+					 		<img decoding="async" width="449" height="299" src="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?fit=449%2C449" class=" wp-image-3201682 wp-post-image" alt="What Sara Duterte’s traveling BIR box says about Philippine tax secrecy" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+<h5 class="wp-block-heading" id="h-bsp-has-no-role-in-subpoenas">BSP has no role in subpoenas</h5>
+
+
+
+<p>BSP General Counsel Roberto Figueroa separately clarified that the central bank was not a recipient of the subpoenas and would not direct banks on how to respond.</p>
+
+
+
+<p>“So far, we haven’t received any subpoena,” Figueroa told Rappler along the sidelines of the event.</p>
+
+
+
+<p>The subpoenas were directed at individual banks, leaving their respective legal teams to determine how to respond, including whether to comply, raise objections, or seek clarification from the impeachment court.</p>
+
+
+
+<p>“It’s for their own legal counsel to determine what they’re going to do, whether they’re going to comply with the subpoena or not,” Figueroa said.</p>
+
+
+
+<p>He also stressed that the Anti-Money Laundering Council, which was separately ordered to submit financial records, is institutionally distinct from the BSP.</p>
+
+
+
+<p>“I know the AMLC was mentioned,” he said. “But again, that’s AMLC, so that’s not BSP.”</p>
+
+
+
+<p>Although BSP Governor Eli Remolona Jr. also chairs the AMLC, the council is a separate government agency with its own statutory powers, procedures, and confidentiality requirements. <strong>– Rappler.com</strong></p>
+
+
+<div class="related-article ">
+			<div class="related-article__container">
+				<div class="related-article__text">
+					<div class="related-article__eyebrow">Must Read</div>
+					<div class="related-article__title">
+						<a class="related-article__title-link" href="https://www.rappler.com/philippines/fight-over-sara-duterte-bank-tax-records-explained/">
+							<h1 class="related-article__title-text"> 3 obstacles the prosecution must hurdle in Sara Duterte&#8217;s money trail </h1>
+						</a>
+					</div>
+				</div>
+				<div class="related-article__media-container">
+					<div class="related-article__media">
+						<a href="https://www.rappler.com/philippines/fight-over-sara-duterte-bank-tax-records-explained/">
+					 		<img decoding="async" width="449" height="299" src="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?fit=449%2C449" class=" wp-image-3201547 wp-post-image" alt="3 obstacles the prosecution must hurdle in Sara Duterte&#8217;s money trail" loading="lazy" srcset="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=2 898w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=1.5 674w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=1 449w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=0.5 225w, https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?fit=449%2C299&amp;zoom=0.25 112w" sizes="auto, (max-width: 449px) 100vw, 449px" />
+					 	</a>
+					</div>
+				</div>
+			</div>
+		</div>]]></content:encoded>
+					
+					<wfw:commentRss>https://www.rappler.com/business/bangko-sentral-official-hits-bank-secrecy-limits-sara-duterte-subpoena/feed/</wfw:commentRss>
+			<slash:comments>6</slash:comments>
+		
+		
+		
+		<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?resize=75%2C75&amp;crop=321px%2C0px%2C1365px%2C1365px" />
+		<media:content url="https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg" medium="image">
+			<media:title type="html">Sara Duterte</media:title>
+			<media:description type="html">VEEP. Vice President Sara Duterte.</media:description>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/741215892_1980538525930704_6292015820363231441_n.jpg?resize=75%2C75&amp;crop=321px%2C0px%2C1365px%2C1365px" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg" medium="image">
+			<media:title type="html">impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026</media:title>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/05/impeachment-hearings-sara-duterte-mans-carpio-wealth-May-5-2026.jpg?resize=75%2C75&amp;crop=293px%2C0px%2C720px%2C720px" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg" medium="image">
+			<media:title type="html">Duterte&#8217;s tax records returned to BIR</media:title>
+			<media:description type="html">SEALED. Following an order by the Senate impeachment court, Senate Secretary Renato Bantug Jr. supervises the return of the sealed box purportedly containing Vice President Sara Duterte&#039;s tax records to the Bureau of Internal Revenue office in Quezon City on July 7, 2026.</media:description>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-tax-records-bir-return-july-7-2026-003-scaled.jpg?resize=75%2C75&amp;crop=586px%2C0px%2C1707px%2C1707px" />
+		</media:content>
+		<media:content url="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg" medium="image">
+			<media:title type="html">Sara Duterte arrives at the Senate to meet with lawyers</media:title>
+			<media:description type="html">MEET. Vice President Sara Duterte arrives at the Senate on July 7, 2026, to meet with her lawyers but  did attend her impeachment trial.</media:description>
+			<media:thumbnail url="https://www.rappler.com/tachyon/2026/07/sara-duterte-impeachment-senate-july-7-2026-003-scaled.jpg?resize=75%2C75&amp;crop=328px%2C0px%2C1702px%2C1702px" />
+		</media:content>
+<image>https://www.rappler.com/tachyon/2026/04/bir-box-sara-duterte-tax-records-april-2026.jpg</image>	</item>
+	</channel>
+</rss>

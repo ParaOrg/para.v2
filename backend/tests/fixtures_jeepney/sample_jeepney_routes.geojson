@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 1,
+        "route_long_name": "UP - IKOT",
+        "Notes": "Weekday Path",
+        "type": "jeep",
+        "mode": "jeep",
+        "bidirectional": true
+      },
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [[[121.0000, 14.6000], [121.0010, 14.6000]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "fid": 2,
+        "route_long_name": "Cubao - Divisoria",
+        "Notes": null,
+        "type": "jeep",
+        "mode": "jeep",
+        "bidirectional": true
+      },
+      "geometry": {
+        "type": "MultiLineString",
+        "coordinates": [[[121.0500, 14.6200], [121.0510, 14.6200]]]
+      }
+    }
+  ]
+}

@@ -4,3 +4,5 @@ networkx==3.6.1
 pydantic==2.13.4
 httpx==0.28.1
 geopy==2.5.0
+pdfplumber==0.11.10
+apscheduler==3.11.0

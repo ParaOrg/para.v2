@@ -3,14 +3,38 @@ import json
 import networkx as nx
 import uuid
 from pathlib import Path
-from fastapi import APIRouter, Request
-from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
+from fastapi import APIRouter, HTTPException, Request
+from models import (
+    RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest,
+    AddStationRequest, SubmitPriceReportRequest, GAS_BRANDS, GAS_FUEL_TYPES,
+)
 from graph_engine import haversine, SPEED_WALK_KMH, calculate_fare, bearing_to_compass, compass_to_bound
 from llm_engine import parse_chat_intent_async, ask_info_llm, geocode_location
+import gas_price_db as gas_db
+from gas_price_sync import blend_gas_prices
 
 router = APIRouter()
 
 DB_PATH = Path(__file__).resolve().parent / "para_ml_data.db"
+JEEPNEY_ROUTES_PATH = Path(__file__).resolve().parent / "data" / "geojson_data" / "routes.geojson"
+
+# ==========================================
+# JEEPNEY ROUTES CATALOG (backs the /routes explorer page)
+# ==========================================
+# NOTE: There is no separate "all franchised routes" dataset -- routes.geojson's
+# 51 GPS-traced features are the only verified jeepney route data that exists in
+# this repo. Both the "Verified" and "All Routes" views below are backed by the
+# same 51 entries; there is no larger unverified catalog to distinguish them yet.
+_jeepney_routes_cache = None
+
+
+def _load_jeepney_routes() -> list:
+    global _jeepney_routes_cache
+    if _jeepney_routes_cache is None:
+        with open(JEEPNEY_ROUTES_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        _jeepney_routes_cache = data.get("features", [])
+    return _jeepney_routes_cache
 
 # ==========================================
 # HELPER: Optimized Virtual Node Connection
@@ -329,3 +353,97 @@ async def submit_feedback(feedback: FeedbackRequest):
     db.commit()
     db.close()
     return {"status": "success"}
+
+
+@router.get("/api/v1/jeepney-routes")
+async def list_jeepney_routes():
+    return [
+        {
+            "Route_No": f["properties"]["fid"],
+            "Route_Name": f["properties"].get("route_long_name"),
+        }
+        for f in _load_jeepney_routes()
+    ]
+
+
+@router.get("/api/v1/jeepney-routes/manifest")
+async def jeepney_routes_manifest():
+    features = _load_jeepney_routes()
+    verified = [
+        {
+            "key": str(f["properties"]["fid"]),
+            "name": f["properties"].get("route_long_name"),
+            "notes": f["properties"].get("Notes") or "",
+        }
+        for f in features
+    ]
+    by_route_no = {f["properties"]["fid"]: str(f["properties"]["fid"]) for f in features}
+    return {"verified": verified, "byRouteNo": by_route_no}
+
+
+@router.get("/api/v1/jeepney-routes/{key}/geometry")
+async def jeepney_route_geometry(key: str):
+    for f in _load_jeepney_routes():
+        if str(f["properties"]["fid"]) == key:
+            return f
+    raise HTTPException(status_code=404, detail="Route not found")
+
+
+# ==========================================
+# GAS PRICES
+# ==========================================
+
+@router.get("/api/v1/gas-prices/blended")
+async def gas_prices_blended():
+    conn = gas_db.get_connection()
+    try:
+        return blend_gas_prices(conn)
+    finally:
+        conn.close()
+
+
+@router.get("/api/v1/gas-prices/stations")
+async def gas_price_stations():
+    conn = gas_db.get_connection()
+    try:
+        stations = gas_db.get_stations(conn)
+        community = gas_db.get_community_prices_by_station(conn)
+        for s in stations:
+            s["community_prices"] = community.get(s["id"], {})
+        return stations
+    finally:
+        conn.close()
+
+
+@router.post("/api/v1/gas-prices/stations")
+async def add_gas_station(req: AddStationRequest):
+    if req.brand not in GAS_BRANDS:
+        raise HTTPException(status_code=400, detail={"error": f"Unknown brand '{req.brand}'"})
+    if not req.name.strip():
+        raise HTTPException(status_code=400, detail={"error": "Station name is required"})
+
+    conn = gas_db.get_connection()
+    try:
+        station_id = gas_db.insert_station(conn, req.brand, req.name.strip(), req.address.strip(), req.lat, req.lng)
+        return {
+            "id": station_id, "brand": req.brand, "name": req.name.strip(),
+            "address": req.address.strip(), "lat": req.lat, "lng": req.lng,
+            "source": "user_added", "community_prices": {},
+        }
+    finally:
+        conn.close()
+
+
+@router.post("/api/v1/gas-prices/stations/{station_id}/submit")
+async def submit_gas_price(station_id: int, req: SubmitPriceReportRequest):
+    if req.fuel_type not in GAS_FUEL_TYPES:
+        raise HTTPException(status_code=400, detail={"error": f"Unknown fuel type '{req.fuel_type}'"})
+
+    conn = gas_db.get_connection()
+    try:
+        if not gas_db.station_exists(conn, station_id):
+            raise HTTPException(status_code=404, detail={"error": "Station not found"})
+        gas_db.insert_price_report(conn, station_id, req.fuel_type, req.price)
+        return {"message": "Thanks for reporting! Your price helps other commuters."}
+    finally:
+        conn.close()

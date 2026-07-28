@@ -52,6 +52,26 @@ class FeedbackRequest(BaseModel):
     total_fare: float = 0.0        # NEW: For ML learning
     total_time: float = 0.0        # NEW: For ML learning
 
+
+# ==========================================
+# GAS PRICES
+# ==========================================
+GAS_BRANDS = {"shell", "seaoil", "caltex", "ptt", "cleanfuel", "total", "petron"}
+GAS_FUEL_TYPES = {"ron91", "ron95", "ron97", "xcs", "diesel", "diesel_premium", "kerosene"}
+
+
+class AddStationRequest(BaseModel):
+    brand: str
+    name: str
+    address: str = ""
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+
+
+class SubmitPriceReportRequest(BaseModel):
+    fuel_type: str
+    price: float = Field(ge=30, le=200)  # sanity bounds -- matches the frontend's own input min/max
+
 class ChatResponse(BaseModel):
     reply_text: str
     route_data: Optional[RouteResponse] = None

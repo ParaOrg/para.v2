@@ -266,11 +266,11 @@ export default function RoutesExplorer() {
         <div style={{ fontSize: 11, color: "#fce7f3" }}>Metro Manila, Philippines</div>
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <div style={{ flex: 1, background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 10px", textAlign: "center" }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{routes.length || "600"}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{routes.length}</div>
             <div style={{ fontSize: 10, color: "#fce7f3" }}>Total Routes</div>
           </div>
           <div style={{ flex: 1, background: "rgba(255,255,255,0.15)", borderRadius: 8, padding: "5px 10px", textAlign: "center" }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{verifiedList.length || "51"}</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>{verifiedList.length}</div>
             <div style={{ fontSize: 10, color: "#fce7f3" }}>Verified Paths</div>
           </div>
         </div>
@@ -550,7 +550,7 @@ export default function RoutesExplorer() {
               </div>
               <p style={{ fontSize: 13, fontWeight: 700, color: "#111", margin: "0 0 4px" }}>Select a jeepney route</p>
               <p style={{ fontSize: 11, color: "#9ca3af", margin: 0, lineHeight: 1.5 }}>
-                Use the <strong style={{ color: "#15803d" }}>Verified</strong> tab for GPS-traced paths,<br />or browse all 600 routes
+                Use the <strong style={{ color: "#15803d" }}>Verified</strong> tab for GPS-traced paths,<br />or browse all routes
               </p>
             </div>
           </div>

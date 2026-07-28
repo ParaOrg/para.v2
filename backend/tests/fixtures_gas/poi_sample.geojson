@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Shell",
+        "Category": "fuel",
+        "Latitude": 14.645381,
+        "Longitude": 120.963226,
+        "Source": "OpenStreetMap",
+        "Raw_Tags": {"amenity": "fuel", "brand": "Shell", "addr:city": "Navotas", "addr:street": "North Bay Blvd"}
+      },
+      "geometry": {"type": "Point", "coordinates": [120.963226, 14.645381]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Shell",
+        "Category": "fuel",
+        "Latitude": 14.645381,
+        "Longitude": 120.963226,
+        "Source": "OpenStreetMap",
+        "Raw_Tags": {"amenity": "fuel", "brand": "Shell", "addr:city": "Navotas"}
+      },
+      "geometry": {"type": "Point", "coordinates": [120.963226, 14.645381]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Petron",
+        "Category": "fuel",
+        "Latitude": 14.68125,
+        "Longitude": 120.93814,
+        "Source": "OpenStreetMap",
+        "Raw_Tags": {"amenity": "fuel", "brand": "Petron", "addr:province": "Metro Manila"}
+      },
+      "geometry": {"type": "Point", "coordinates": [120.93814, 14.68125]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Flying V",
+        "Category": "fuel",
+        "Latitude": 14.5, "Longitude": 121.0,
+        "Source": "OpenStreetMap",
+        "Raw_Tags": {"amenity": "fuel", "brand": "Flying V"}
+      },
+      "geometry": {"type": "Point", "coordinates": [121.0, 14.5]}
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Chowking",
+        "Category": "fast_food",
+        "Latitude": 14.5349744, "Longitude": 120.993489,
+        "Source": "OpenStreetMap",
+        "Raw_Tags": {"amenity": "fast_food", "brand": "Chowking"}
+      },
+      "geometry": {"type": "Point", "coordinates": [120.993489, 14.5349744]}
+    }
+  ]
+}
