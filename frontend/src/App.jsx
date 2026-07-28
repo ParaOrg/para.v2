@@ -11,7 +11,8 @@ import Login from './pages/Login';
 import PrivacyPolicy from './pages/privacy_policy';
 import RouteOptionsPage from './pages/RouteOptionsPage';
 import RoutesExplorer from './pages/RoutesExplorer';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import AdminDashboard from './pages/AdminDashboard';
+import { useAuth } from './context/AuthContext';
 
 class RoutesBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -37,7 +38,9 @@ function AppRoutes() {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  const showNavbar = location.pathname !== '/map' && location.pathname !== '/routes';
+  // Hide navbar on full-screen pages
+  const hideNavbarPaths = ['/map'];
+  const showNavbar = !hideNavbarPaths.includes(location.pathname);
 
   if (loading) {
     return (
@@ -63,6 +66,7 @@ function AppRoutes() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/route-options" element={<RouteOptionsPage />} />
           <Route path="/routes" element={<RoutesBoundary><RoutesExplorer /></RoutesBoundary>} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -73,9 +77,5 @@ function AppRoutes() {
 }
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  );
+  return <AppRoutes />;
 }

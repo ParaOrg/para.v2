@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from graph_engine import build_transit_graph
 from api_routes import router  # Imports the router we fixed earlier
+from admin_routes import admin_router
 import gas_price_db
 from gas_price_sync import run_gas_price_sync
 
@@ -169,6 +170,7 @@ app.add_middleware(
 
 # CRITICAL FIX: Tell FastAPI to actually use our API endpoints!
 app.include_router(router)
+app.include_router(admin_router, prefix="/admin")
 
 @app.get("/")
 async def serve_frontend():

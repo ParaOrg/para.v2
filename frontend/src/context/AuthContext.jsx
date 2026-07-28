@@ -14,40 +14,79 @@ const AuthContext = createContext(null);
 
 const googleProvider = new GoogleAuthProvider();
 
+// Mimics the Firebase User shape so UI components don't need a separate
+// "no user yet" branch -- used both when Firebase isn't configured and
+// when no one is signed in.
+const GUEST_USER = {
+  uid: 'guest_mode_active',
+  displayName: 'Guest Commuter',
+  email: 'guest@paraph.local',
+  isAnonymous: true,
+  isGuest: true,
+  photoURL: null,
+};
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // firebase.js sets auth to null when VITE_FIREBASE_* isn't configured.
+    if (!auth) {
+      setUser(GUEST_USER);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+      setUser(firebaseUser ? { ...firebaseUser, isGuest: false } : GUEST_USER);
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
-  const login = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
+  const requireAuth = () => {
+    if (!auth) throw new Error('Authentication is currently disabled in this environment.');
+  };
 
-  const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+  const login = (email, password) => {
+    requireAuth();
+    return signInWithEmailAndPassword(auth, email, password);
+  };
 
-  const requestPasswordReset = (email) =>
-    sendPasswordResetEmail(auth, email);
+  const loginWithGoogle = () => {
+    requireAuth();
+    return signInWithPopup(auth, googleProvider);
+  };
+
+  const requestPasswordReset = (email) => {
+    requireAuth();
+    return sendPasswordResetEmail(auth, email);
+  };
 
   // Used after OTP verification — backend returns a custom token
-  const loginWithCustomToken = (token) =>
-    signInWithCustomToken(auth, token);
+  const loginWithCustomToken = (token) => {
+    requireAuth();
+    return signInWithCustomToken(auth, token);
+  };
 
-  const logout = () => signOut(auth);
+  const logout = () => {
+    if (!auth) {
+      setUser(GUEST_USER);
+      return Promise.resolve();
+    }
+    return signOut(auth);
+  };
 
   // Get fresh ID token for API calls
-  const getIdToken = () => user?.getIdToken();
+  const getIdToken = () => (user && !user.isGuest ? user.getIdToken() : null);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         loading,
+        isGuest: user?.isGuest ?? true,
         login,
         loginWithGoogle,
         requestPasswordReset,
@@ -56,7 +95,7 @@ export function AuthProvider({ children }) {
         getIdToken,
       }}
     >
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

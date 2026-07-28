@@ -1,12 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { APIProvider } from '@vis.gl/react-google-maps';
 import { useGasPrices } from '../components/GasPrice/useGasPrices';
 import ReportModal from '../components/GasPrice/ReportModal';
-import { getGoogleMapsApiKey } from '../config/googleMaps';
 
 const GasStationMap = lazy(() => import('../components/GasPrice/GasStationMap'));
-
-const MAPS_API_KEY = getGoogleMapsApiKey();
 
 const FUEL_ROWS = [
   { id: 'ron91',          label: 'Gasoline RON 91', badge: 'RON 91'  },
@@ -182,7 +178,7 @@ export default function GasPricePage() {
   const isCommunityBlended = data.source?.includes('Community');
 
   return (
-    <APIProvider apiKey={MAPS_API_KEY}>
+    <>
       <div className="min-h-screen bg-gray-50">
 
         {/* Near-station CTA */}
@@ -346,12 +342,11 @@ export default function GasPricePage() {
         </div>
       </div>
 
-      {/* Report modal — rendered inside APIProvider so useMapsLibrary works */}
       <ReportModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         coords={userCoords}
       />
-    </APIProvider>
+    </>
   );
 }

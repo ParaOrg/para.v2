@@ -17,33 +17,27 @@ const looksLikeFirebasePlaceholder =
   /^<.*>$/.test(apiKey);
 
 if (import.meta.env.DEV && looksLikeFirebasePlaceholder) {
-  console.error(
-    '[Firebase] VITE_FIREBASE_* is missing or still a template value. ' +
-      'This app expects src/frontend/.env.frontend.dev (run `npm run dev`, which uses Vite mode frontend.dev). ' +
-      'Or copy that file to .env.development. ' +
-      'Get keys from Firebase Console → Project settings → Your apps → Web app config.'
+  console.warn(
+    '[Firebase] VITE_FIREBASE_* is missing. Auth features disabled. ' +
+      'Set up Firebase keys to enable login.'
   );
 }
 
-let app;
-try {
-  app = initializeApp(firebaseConfig);
-} catch (e) {
-  console.error('[Firebase] initializeApp failed:', e);
-  throw e;
-}
+let app = null;
+let auth = null;
 
-let auth;
-try {
-  auth = getAuth(app);
-  useDeviceLanguage(auth);
-} catch (e) {
-  console.error(
-    '[Firebase] getAuth failed (often invalid-api-key when env vars did not load). ' +
-      'Fix: use `npm run dev` from src/frontend so --mode frontend.dev loads .env.frontend.dev.',
-    e
-  );
-  throw e;
+if (!looksLikeFirebasePlaceholder) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    useDeviceLanguage(auth);
+  } catch (e) {
+    console.warn('[Firebase] Auth initialization skipped — running without Firebase.');
+    app = null;
+    auth = null;
+  }
+} else {
+  console.warn('[Firebase] Skipping — no valid API key found.');
 }
 
 export { auth };

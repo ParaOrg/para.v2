@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { useGasStations } from './useGasStations';
 import { usePriceSubmit } from './usePriceSubmit';
 import { getApiBaseUrl } from '../../config/api';
@@ -117,42 +116,78 @@ function StationSelectStep({ stations, coords, onSelect, onAdd }) {
   );
 }
 
-// ── Places autocomplete (must be inside APIProvider context) ─────────────────
+// ── Place search (OpenStreetMap Nominatim, debounced) ────────────────────────
 
 function PlacesSearch({ onPlaceSelect }) {
-  const inputRef = useRef(null);
-  const places = useMapsLibrary('places');
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [chosenName, setChosenName] = useState(null);
 
   useEffect(() => {
-    if (!places || !inputRef.current) return;
-    const ac = new places.Autocomplete(inputRef.current, {
-      componentRestrictions: { country: 'ph' },
-      fields: ['name', 'formatted_address', 'geometry'],
-    });
-    const listener = ac.addListener('place_changed', () => {
-      const place = ac.getPlace();
-      if (place.geometry?.location) {
-        onPlaceSelect({
-          name: place.name ?? '',
-          address: place.formatted_address ?? '',
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
+    if (chosenName !== null || query.trim().length < 3) {
+      setResults([]);
+      return;
+    }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({
+          q: query, format: 'json', countrycodes: 'ph', limit: '6',
         });
-        // Show chosen name in the input
-        if (inputRef.current) inputRef.current.value = place.name ?? '';
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+        const data = await res.json();
+        setResults(data);
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
       }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [query, chosenName]);
+
+  const handleSelect = (place) => {
+    const name = place.display_name.split(',')[0];
+    setChosenName(name);
+    setQuery(name);
+    setResults([]);
+    onPlaceSelect({
+      name,
+      address: place.display_name,
+      lat: parseFloat(place.lat),
+      lng: parseFloat(place.lon),
     });
-    return () => window.google?.maps?.event?.removeListener(listener);
-  }, [places]); // eslint-disable-line react-hooks/exhaustive-deps
+  };
 
   return (
-    <input
-      ref={inputRef}
-      type="text"
-      placeholder={places ? 'Search for the station…' : 'Loading Maps…'}
-      disabled={!places}
-      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-pink-300 disabled:bg-gray-50 disabled:text-gray-400"
-    />
+    <div className="relative">
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => { setChosenName(null); setQuery(e.target.value); }}
+        placeholder="Search for the station…"
+        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-pink-300"
+      />
+      {searching && (
+        <p className="text-xs text-gray-400 mt-1 px-1">Searching…</p>
+      )}
+      {results.length > 0 && (
+        <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+          {results.map((r) => (
+            <li key={r.place_id}>
+              <button
+                type="button"
+                onClick={() => handleSelect(r)}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 truncate"
+              >
+                {r.display_name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

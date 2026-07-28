@@ -1,12 +1,10 @@
-import { useState } from 'react';
-import { Map } from '@vis.gl/react-google-maps';
+import { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import GasStationMarker from './GasStationMarker';
 import { useGasStations } from './useGasStations';
-import { getGoogleMapsApiKey } from '../../config/googleMaps';
 
-const API_KEY = getGoogleMapsApiKey();
-
-const METRO_MANILA = { lat: 14.5995, lng: 120.9842 };
+const METRO_MANILA = [14.5995, 120.9842];
 
 const BRANDS = {
   shell:     { name: 'Shell',         color: '#E8C200' },
@@ -22,6 +20,18 @@ export default function GasStationMap() {
   const { stations, loading, error } = useGasStations();
   const [selectedStation, setSelectedStation] = useState(null);
   const [activeBrands, setActiveBrands] = useState(new Set(Object.keys(BRANDS)));
+  const [map, setMap] = useState(null);
+  const mapRef = useRef(null);
+  const mapInstance = useRef(null);
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstance.current) return;
+    const m = L.map(mapRef.current, { zoomControl: true }).setView(METRO_MANILA, 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(m);
+    mapInstance.current = m;
+    setMap(m);
+    return () => { m.remove(); mapInstance.current = null; };
+  }, []);
 
   const toggleBrand = (brand) => {
     setActiveBrands(prev => {
@@ -59,43 +69,23 @@ export default function GasStationMap() {
       </div>
 
       {/* Map area */}
-      {!API_KEY ? (
-        <div className="h-96 flex flex-col items-center justify-center bg-gray-50 gap-2">
-          <span className="text-3xl">🗺️</span>
-          <p className="text-gray-400 text-sm text-center px-6">
-            Google Maps API key not configured.<br />
-            Set <code className="bg-gray-100 px-1 rounded text-xs">VITE_GOOGLE_MAPS_API_KEY</code> in your <code className="bg-gray-100 px-1 rounded text-xs">.env.frontend.dev</code> file.
-          </p>
-        </div>
-      ) : (
-        <div style={{ height: 'clamp(420px, 58vw, 620px)', position: 'relative' }}>
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
-              <div className="w-7 h-7 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-          <Map
-            defaultCenter={METRO_MANILA}
-            defaultZoom={12}
-            mapId="paraph-gas-stations"
-            gestureHandling="greedy"
-            clickableIcons={false}
-            mapTypeControl={false}
-            fullscreenControl={false}
-            streetViewControl={false}
-            style={{ width: '100%', height: '100%' }}
-          >
-            {visibleStations.map(station => (
-              <GasStationMarker
-                key={station.id}
-                station={station}
-                isSelected={selectedStation?.id === station.id}
-                onSelect={setSelectedStation}
-              />
-            ))}
-          </Map>
-        </div>
-      )}
+      <div style={{ height: 'clamp(420px, 58vw, 620px)', position: 'relative' }}>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
+            <div className="w-7 h-7 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+        {map && visibleStations.map(station => (
+          <GasStationMarker
+            key={station.id}
+            map={map}
+            station={station}
+            isSelected={selectedStation?.id === station.id}
+            onSelect={setSelectedStation}
+          />
+        ))}
+      </div>
 
       {error && (
         <p className="text-center text-red-400 text-xs py-2 border-t border-gray-100">

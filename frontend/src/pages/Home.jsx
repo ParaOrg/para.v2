@@ -1,45 +1,56 @@
-import { Link } from "react-router-dom";
-import { Countdown } from "../components/landing_page/components";
-import { CONFIG } from "../components/landing_page/data";
-import WaitListBubble from "../components/waitList_bubble.jsx";
-import LandingPageFooter from "../components/landingpage-footer.component.jsx";
+import { useState, useEffect } from "react";
+import ChatPanel from "../components/ChatPanel";
 import loopGif from "../assets/images/loop.gif";
+import paralogo from "../assets/images/Para1P.png";
 
 export default function Home() {
-  const { colors, ticketStyle } = CONFIG;
+  const [booted, setBooted] = useState(false);
 
-  return (
-    <div className="flex min-h-full flex-col">
-      <div
-        className="relative min-h-[85vh] w-full shrink-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${loopGif})` }}
-      >
-        <div className="relative z-10 flex min-h-[85vh] flex-col items-center justify-center px-4 py-10 sm:py-12">
-          <Countdown
-            targetDate={CONFIG.targetDate}
-            dateLabel={CONFIG.dateLabel}
-            backgroundColor={colors.ticketBackground}
-            scallopsColor={colors.background}
-            ticketStyle={ticketStyle}
+  useEffect(() => {
+    const timer = setTimeout(() => setBooted(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!booted) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${loopGif})` }}>
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-black/30" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center gap-6">
+          {/* Logo */}
+          <img
+            src={paralogo}
+            alt="Para PH"
+            className="w-24 h-24 object-contain animate-pulse"
           />
-          <WaitListBubble />
 
-          {/* Quick-access to routes explorer */}
-          <Link
-            to="/routes"
-            className="mt-6 inline-flex items-center gap-2.5 bg-white/90 backdrop-blur-sm text-pink-600 px-6 py-3 rounded-full font-semibold shadow-lg hover:bg-white hover:shadow-xl transition-all text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-            </svg>
-            View All Jeepney Routes
-            <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+          {/* Title */}
+          <div className="text-center">
+            <h1 className="text-4xl font-extrabold text-white tracking-tight drop-shadow-lg">
+              Para PH
+            </h1>
+            <p className="text-white/70 text-sm mt-1 font-medium">
+              Your Multimodal Transit Companion
+            </p>
+          </div>
+
+          {/* Loading indicator */}
+          <div className="flex items-center gap-2 mt-4">
+            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0s" }} />
+            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
+            <div className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
+          </div>
+
+          <p className="text-white/50 text-xs mt-2">
+            Loading Metro Manila transit data…
+          </p>
         </div>
       </div>
-      <LandingPageFooter className="shrink-0" />
-    </div>
-  );
+    );
+  }
+
+  return <ChatPanel embedded={false} />;
 }

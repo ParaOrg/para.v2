@@ -1,3 +1,4 @@
+import csv
 import sqlite3
 import json
 import networkx as nx
@@ -17,15 +18,17 @@ router = APIRouter()
 
 DB_PATH = Path(__file__).resolve().parent / "para_ml_data.db"
 JEEPNEY_ROUTES_PATH = Path(__file__).resolve().parent / "data" / "geojson_data" / "routes.geojson"
+ALL_ROUTES_CSV_PATH = Path(__file__).resolve().parent / "data" / "geojson_data" / "full_jeepney_routes.csv"
 
 # ==========================================
 # JEEPNEY ROUTES CATALOG (backs the /routes explorer page)
 # ==========================================
-# NOTE: There is no separate "all franchised routes" dataset -- routes.geojson's
-# 51 GPS-traced features are the only verified jeepney route data that exists in
-# this repo. Both the "Verified" and "All Routes" views below are backed by the
-# same 51 entries; there is no larger unverified catalog to distinguish them yet.
+# Two distinct datasets, not the same 51 entries twice:
+#  - routes.geojson: 51 GPS-traced features with real path geometry ("Verified" tab).
+#  - full_jeepney_routes.csv: the larger franchised-route catalog (name/agency/type
+#    only, no GPS geometry) ("All Routes" tab). See docs/RAIL_BUS_DATA_SOURCES.md.
 _jeepney_routes_cache = None
+_all_routes_csv_cache = None
 
 
 def _load_jeepney_routes() -> list:
@@ -36,6 +39,27 @@ def _load_jeepney_routes() -> list:
         _jeepney_routes_cache = data.get("features", [])
     return _jeepney_routes_cache
 
+
+def _load_all_routes_csv() -> list:
+    global _all_routes_csv_cache
+    if _all_routes_csv_cache is None:
+        seen = set()
+        routes = []
+        with open(ALL_ROUTES_CSV_PATH, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                name = (row.get("route_long_name") or "").strip()
+                if name and name.lower() not in seen:
+                    seen.add(name.lower())
+                    routes.append({
+                        "route_id": (row.get("route_id") or "").strip(),
+                        "route_name": name,
+                        "agency": (row.get("agency_id") or "").strip(),
+                        "route_type": (row.get("route_type") or "").strip(),
+                        "description": (row.get("route_desc") or "").strip(),
+                    })
+        _all_routes_csv_cache = routes
+    return _all_routes_csv_cache
+
 # ==========================================
 # HELPER: Optimized Virtual Node Connection
 # ==========================================
@@ -45,7 +69,6 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
     gx, gy = int(lat / grid_size), int(lng / grid_size)
     
     candidate_nodes = []
-    # Expand search to 5x5 grid to cover a wider area
     for dx in [-2, -1, 0, 1, 2]:
         for dy in [-2, -1, 0, 1, 2]:
             candidate_nodes.extend(spatial_grid.get((gx + dx, gy + dy), []))
@@ -55,11 +78,10 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
         node_attrs = G.nodes[node]
         dist = haversine(lat, lng, node_attrs['lat'], node_attrs['lng'])
         
-        if dist < 2500:  # 2.5km max walk for large campuses/malls
+        if dist < 2500:
             w_time = (dist / 1000) / SPEED_WALK_KMH * 60
             candidates.append((node, dist, w_time))
             
-    # FALLBACK: If absolutely no nodes are found within 2.5km, find the single closest node in the entire graph
     if not candidates:
         print(f"⚠️ No nodes within 2.5km. Finding absolute closest node in graph...")
         min_dist = float('inf')
@@ -71,7 +93,7 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
             if dist < min_dist:
                 min_dist = dist
                 closest_node = node
-                if dist < 500: break # Early exit if we find something reasonably close
+                if dist < 500: break
                 
         if closest_node:
             w_time = (min_dist / 1000) / SPEED_WALK_KMH * 60
@@ -93,7 +115,7 @@ def _connect_virtual_node(G, v_node, lat, lng, is_source):
             G.add_edge(node, v_node, distance=dist, time_min=w_time, routing_weight=routing_weight, route="WALK_FROM_TRANSIT", type="walk", direction=direction)
 
 # ==========================================
-# HELPER: Segment Builder (Fixes the "Expensive Fare" bug)
+# HELPER: Segment Builder
 # ==========================================
 def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
     segments = []
@@ -109,8 +131,6 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
         v_type = edge.get('type', 'walk')
         r_name = edge.get('route', 'Unknown')
 
-        # FIX: Only start a new segment if the VEHICLE TYPE changes (e.g., jeep -> walk -> jeep).
-        # Consecutive 'jeep' edges are grouped together to prevent charging the base fare multiple times!
         if not current_segment or current_segment['type'] != v_type:
             if current_segment: 
                 segments.append(current_segment)
@@ -178,11 +198,18 @@ def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
     )
     
 # ==========================================
-# CORE ROUTING: Edge Penalty Method (Fast & Guaranteed Alternatives)
+# CORE ROUTING: Traffic-Aware Edge Penalty Method
 # ==========================================
-def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
-    # FIX: Generate a unique ID for every single request to prevent race conditions
-    unique_id = str(uuid.uuid4())[:8] 
+def find_routes_with_alternatives(G_global: nx.DiGraph, req: RouteRequest) -> tuple:
+    """
+    Find primary + alternative routes.
+    Uses graph COPY to prevent race conditions between concurrent requests.
+    """
+    # STEP 0: Deep copy for thread safety (CRITICAL)
+    G = G_global.copy()
+
+    # STEP 1: Unique virtual node IDs
+    unique_id = str(uuid.uuid4())[:8]
     src_id = f"VIRTUAL_SRC_{unique_id}"
     tgt_id = f"VIRTUAL_TGT_{unique_id}"
     
@@ -193,43 +220,63 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
         _connect_virtual_node(G, src_id, req.origin_lat, req.origin_lng, is_source=True)
         _connect_virtual_node(G, tgt_id, req.dest_lat, req.dest_lng, is_source=False)
         
-        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0: return None, []
+        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0:
+            print(f"❌ [ROUTING] Virtual node has no connections")
+            return None, []
 
-        # 1. Find Primary Route
+        # STEP 2: Find Primary Route
         try:
             path_1 = nx.shortest_path(G, source=src_id, target=tgt_id, weight='routing_weight')
         except nx.NetworkXNoPath:
+            print("❌ [ROUTING] No path found")
             return None, []
             
         route_1 = _calculate_route_from_path(G, path_1)
-        if not route_1: return None, []
+        if not route_1 or not route_1.steps:
+            return None, []
+        
+        print(f"✅ [ROUTING] Primary: {route_1.total_duration_min:.0f} min, ₱{route_1.total_fare:.0f}")
 
-        # 2. Find Alternative Route using EDGE PENALTY
+        # STEP 3: Find Alternative Route (Edge Penalty)
         penalized_edges = []
         for i in range(len(path_1) - 1):
             u, v = path_1[i], path_1[i+1]
-            original_weight = G.edges[u, v].get('routing_weight', G.edges[u, v].get('time_min', 1.0))
-            penalized_edges.append((u, v, original_weight))
-            G.edges[u, v]['routing_weight'] = original_weight * 3.0
+            if G.has_edge(u, v):
+                original_weight = G.edges[u, v].get('routing_weight', G.edges[u, v].get('time_min', 1.0))
+                penalized_edges.append((u, v, original_weight))
+                G.edges[u, v]['routing_weight'] = original_weight * 3.0
 
+        route_2 = None
         try:
             path_2 = nx.shortest_path(G, source=src_id, target=tgt_id, weight='routing_weight')
-            route_2 = _calculate_route_from_path(G, path_2)
+            
+            # Only accept if meaningfully different
+            if path_2 != path_1:
+                route_2 = _calculate_route_from_path(G, path_2)
+                if route_2 and route_2.steps:
+                    same_dist = abs(route_2.total_distance_m - route_1.total_distance_m) < 10
+                    same_steps = len(route_2.steps) == len(route_1.steps)
+                    if same_dist and same_steps:
+                        print("⚠️ [ROUTING] Alternative too similar — discarding")
+                        route_2 = None
+                    else:
+                        print(f"✅ [ROUTING] Alternative: {route_2.total_duration_min:.0f} min, ₱{route_2.total_fare:.0f}")
         except nx.NetworkXNoPath:
-            route_2 = None
+            print("⚠️ [ROUTING] No alternative found after penalty")
         finally:
+            # ALWAYS restore original weights
             for u, v, orig_weight in penalized_edges:
-                G.edges[u, v]['routing_weight'] = orig_weight
+                if G.has_edge(u, v):
+                    G.edges[u, v]['routing_weight'] = orig_weight
 
         all_routes = [route_1]
         if route_2 and route_2.steps:
-            if route_2.total_distance_m != route_1.total_distance_m or len(route_2.steps) != len(route_1.steps):
-                all_routes.append(route_2)
+            all_routes.append(route_2)
 
         return all_routes[0], all_routes[1:]
 
     finally:
-        # FIX: Safely remove only THIS request's unique nodes
+        # ALWAYS clean up virtual nodes
         if G.has_node(src_id): G.remove_node(src_id)
         if G.has_node(tgt_id): G.remove_node(tgt_id)
 
@@ -240,6 +287,7 @@ def find_routes_with_alternatives(G: nx.DiGraph, req: RouteRequest) -> tuple:
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(msg: ChatMessage, request: Request):
     G = request.app.state.G
+
     intent_data = await parse_chat_intent_async(msg.message)
     
     # PATH A: CUSTOMER SERVICE / INFO
@@ -257,7 +305,6 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
     o_coords = await geocode_location(origin_name)
     d_coords = await geocode_location(dest_name)
     
-    # DIAGNOSTIC: See the exact coordinates
     print(f"📍 GEOCODED: Start={o_coords}, End={d_coords}")
 
     if not o_coords or not d_coords:
@@ -293,7 +340,7 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
                 origin=origin_name, destination=dest_name
             )
 
-    # FALLBACK: Run the Math (Edge Penalty Method)
+    # FALLBACK: Run the routing algorithm
     print("🗺️ Calculating Primary + Alternative routes...")
     req = RouteRequest(origin_lat=o_coords[0], origin_lng=o_coords[1], dest_lat=d_coords[0], dest_lng=d_coords[1])
     primary_route, alt_routes = find_routes_with_alternatives(G, req)
@@ -310,7 +357,6 @@ async def chat_endpoint(msg: ChatMessage, request: Request):
         print(f"   📊 Total Steps: {len(primary_route.steps)}")
         print(f"   📏 First step geometry points: {len(primary_route.steps[0].geometry)}")
         
-    # HERE IS THE RETURN CHATRESPONSE:
     return ChatResponse(
         reply_text=reply, 
         route_data=primary_route, 
@@ -349,7 +395,7 @@ async def submit_feedback(feedback: FeedbackRequest):
             print(f"💾 [LEARNED] Saved approved route: {feedback.origin_name} -> {feedback.destination_name}")
         except Exception as e:
             print(f"⚠️ Error saving approved route: {e}")
-            
+    
     db.commit()
     db.close()
     return {"status": "success"}
@@ -387,6 +433,13 @@ async def jeepney_route_geometry(key: str):
         if str(f["properties"]["fid"]) == key:
             return f
     raise HTTPException(status_code=404, detail="Route not found")
+
+
+@router.get("/api/v1/jeepney-routes/all")
+async def list_all_jeepney_routes():
+    """The larger franchised-route catalog (name/agency/type, no GPS geometry)."""
+    routes = _load_all_routes_csv()
+    return {"routes": routes, "count": len(routes)}
 
 
 # ==========================================
