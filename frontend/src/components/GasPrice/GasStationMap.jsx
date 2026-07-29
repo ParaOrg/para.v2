@@ -71,7 +71,7 @@ export default function GasStationMap() {
         <div style={{ height: 'clamp(420px, 58vw, 620px)', position: 'relative' }}>
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
-              <div className="w-7 h-7 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-7 h-7 border-4 border-purple-800 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
           <Map

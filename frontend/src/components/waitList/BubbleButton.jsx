@@ -6,7 +6,7 @@ export function BubbleButton({ onClick, isOpen }) {
         className={`mx-auto inline-flex min-w-[11.5rem] h-12 px-5 sm:min-w-[12.5rem] sm:h-14 sm:px-6 rounded-full shadow-lg items-center justify-center text-center transition-all duration-300 hover:scale-105 ${
           isOpen
             ? 'bg-gray-600 hover:bg-gray-700'
-            : 'bg-pink-600 hover:bg-pink-700'
+            : 'bg-purple-900 hover:bg-pink-700'
         }`}
       >
         {isOpen ? (

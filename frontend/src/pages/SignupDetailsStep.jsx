@@ -76,7 +76,7 @@ const ROLE_OPTIONS = [
 
 const inputClass = `w-full px-5 py-4 rounded-xl text-gray-900 text-lg placeholder-gray-400
   bg-gray-50 border-2 border-gray-200
-  focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all`;
+  focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all`;
 
 // Components
 export default function SignupDetailsStep({ onSuccess }) {
@@ -189,7 +189,7 @@ export default function SignupDetailsStep({ onSuccess }) {
               inputMode="numeric"
               className={`flex-1 px-5 py-4 rounded-xl text-gray-900 text-lg placeholder-gray-400
                 bg-gray-50 border-2 border-gray-200
-                focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all`}
+                focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all`}
             />
           </div>
           <p className="mt-2 text-sm text-gray-500">Enter 10 digits starting with 9 (e.g. 9171234567)</p>
@@ -247,7 +247,7 @@ export default function SignupDetailsStep({ onSuccess }) {
               autoComplete="new-password"
               placeholder="••••••••"
               required
-              className="w-full px-5 py-4 pr-12 rounded-xl text-lg placeholder-gray-400 bg-gray-50 border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all"
+              className="w-full px-5 py-4 pr-12 rounded-xl text-lg placeholder-gray-400 bg-gray-50 border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all"
               style={{ color: confirmPassword ? (confirmPassword === password ? '#16a34a' : '#dc2626') : '#111827' }}
             />
             <button type="button" onClick={() => setShowConfirm((v) => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -270,14 +270,14 @@ export default function SignupDetailsStep({ onSuccess }) {
                   className="flex flex-col items-center gap-4 p-7 md:p-8 rounded-2xl border-2 text-center transition-all duration-200 transform hover:scale-105"
                   style={{
                     background:  active ? 'rgba(236,72,153,0.08)' : 'white',
-                    borderColor: active ? '#ec4899' : '#e5e7eb',
+                    borderColor: active ? '#310775' : '#e5e7eb',
                     boxShadow:   active ? '0 4px 12px rgba(236,72,153,0.2)' : 'none',
                   }}
                 >
-                  <span style={{ color: active ? '#ec4899' : '#9ca3af' }}>{icon}</span>
+                  <span style={{ color: active ? '#310775' : '#9ca3af' }}>{icon}</span>
                   <div>
                     <span className={`font-black text-lg md:text-xl block mb-1 ${active ? 'text-gray-900' : 'text-gray-400'}`}>{label}</span>
-                    <span className={`text-sm ${active ? 'text-pink-600' : 'text-gray-500'}`}>{desc}</span>
+                    <span className={`text-sm ${active ? 'text-purple-900' : 'text-gray-500'}`}>{desc}</span>
                   </div>
                 </button>
               );
@@ -289,7 +289,7 @@ export default function SignupDetailsStep({ onSuccess }) {
           type="submit"
           disabled={loading}
           className="w-full mt-6 py-5 rounded-full font-black text-lg md:text-xl text-white
-                     bg-pink-600 hover:bg-pink-700
+                     bg-purple-900 hover:bg-pink-700
                      disabled:opacity-50 disabled:cursor-not-allowed
                      transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200
                      shadow-lg shadow-purple-500/20"
@@ -301,7 +301,7 @@ export default function SignupDetailsStep({ onSuccess }) {
       <div className="mt-8 text-center space-y-3">
         <p className="text-base md:text-lg text-gray-600">
           Already part of Para?{' '}
-          <Link to="/login" className="text-pink-500 hover:text-pink-600 font-bold transition-colors">
+          <Link to="/login" className="text-purple-800 hover:text-purple-900 font-bold transition-colors">
             Sign in here
           </Link>
         </p>

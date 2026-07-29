@@ -38,7 +38,7 @@ const BRAND_FUELS = {
 };
 
 const REPORT_PRIMARY_BTN =
-  'w-full py-3.5 rounded-xl font-semibold text-sm text-white bg-pink-600 hover:bg-pink-700 disabled:bg-pink-300 disabled:cursor-not-allowed transition-colors';
+  'w-full py-3.5 rounded-xl font-semibold text-sm text-white bg-purple-900 hover:bg-pink-700 disabled:bg-purple-400 disabled:cursor-not-allowed transition-colors';
 
 function getDistanceM(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -84,7 +84,7 @@ function StationSelectStep({ stations, coords, onSelect, onAdd }) {
             <button
               key={s.id}
               onClick={() => onSelect(s)}
-              className="w-full text-left flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-pink-200 hover:bg-pink-50/50 transition-colors cursor-pointer bg-white"
+              className="w-full text-left flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-purple-300 hover:bg-purple-50/50 transition-colors cursor-pointer bg-white"
             >
               <div
                 className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
@@ -106,7 +106,7 @@ function StationSelectStep({ stations, coords, onSelect, onAdd }) {
 
       <button
         onClick={onAdd}
-        className="w-full mt-3 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-pink-300 hover:text-pink-600 transition-colors cursor-pointer bg-transparent"
+        className="w-full mt-3 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-purple-400 hover:text-purple-900 transition-colors cursor-pointer bg-transparent"
       >
         <span className="font-bold text-lg leading-none">+</span>
         <span className="text-center leading-snug">
@@ -151,7 +151,7 @@ function PlacesSearch({ onPlaceSelect }) {
       type="text"
       placeholder={places ? 'Search for the station…' : 'Loading Maps…'}
       disabled={!places}
-      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-pink-300 disabled:bg-gray-50 disabled:text-gray-400"
+      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-400 disabled:bg-gray-50 disabled:text-gray-400"
     />
   );
 }
@@ -265,7 +265,7 @@ function PriceReportStep({ station, onClose, onBack }) {
   const fuels = BRAND_FUELS[station.brand] ?? Object.keys(FUEL_LABELS);
   const [fuel, setFuel] = useState(fuels[0]);
   const [price, setPrice] = useState('');
-  const brandColor = BRANDS[station.brand]?.color ?? '#ec4899';
+  const brandColor = BRANDS[station.brand]?.color ?? '#310775';
 
   useEffect(() => {
     setFuel(fuels[0]);
@@ -334,7 +334,7 @@ function PriceReportStep({ station, onClose, onBack }) {
             <select
               value={fuel}
               onChange={e => setFuel(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white outline-none focus:ring-2 focus:ring-pink-300"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-white outline-none focus:ring-2 focus:ring-purple-400"
             >
               {fuels.map(k => (
                 <option key={k} value={k}>{FUEL_LABELS[k]}</option>
@@ -359,7 +359,7 @@ function PriceReportStep({ station, onClose, onBack }) {
                 value={price}
                 onChange={e => setPrice(e.target.value)}
                 required
-                className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-pink-300"
+                className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
@@ -464,7 +464,7 @@ export default function ReportModal({ isOpen, onClose, coords }) {
         <div className="overflow-y-auto overscroll-contain px-5 py-4 flex-1">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="w-7 h-7 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-7 h-7 border-4 border-purple-800 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : step === 'selecting' ? (
             <StationSelectStep

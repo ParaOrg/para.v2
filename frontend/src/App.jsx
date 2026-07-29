@@ -65,7 +65,7 @@ function AppRoutes() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/route-options" element={<RouteOptionsPage />} />
-          <Route path="/routes" element={<RoutesBoundary><RoutesExplorer /></RoutesBoundary>} />
+          <Route path="/explore" element={<RoutesBoundary><RoutesExplorer /></RoutesBoundary>} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />

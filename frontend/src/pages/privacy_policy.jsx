@@ -112,11 +112,11 @@ const SECTIONS = [
     body: (
       <p className="text-gray-600 leading-relaxed">
         For questions, concerns, or to exercise your privacy rights, contact our Data Protection Officer at{' '}
-        <a href="mailto:para.ph.info@gmail.com" className="font-semibold text-pink-600 hover:text-pink-700 underline-offset-2 hover:underline">
+        <a href="mailto:para.ph.info@gmail.com" className="font-semibold text-purple-900 hover:text-pink-700 underline-offset-2 hover:underline">
           para.ph.info@gmail.com
         </a>
         . You may also reach us through our{' '}
-        <Link to="/contact" className="font-semibold text-pink-600 hover:text-pink-700 underline-offset-2 hover:underline">
+        <Link to="/contact" className="font-semibold text-purple-900 hover:text-pink-700 underline-offset-2 hover:underline">
           contact page
         </Link>
         .
@@ -144,7 +144,7 @@ export default function PrivacyPolicy() {
 
         <nav aria-label="On this page" className="mt-10 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wider text-gray-900">On this page</p>
-          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-pink-600">
+          <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-purple-900">
             {SECTIONS.map((s) => (
               <li key={s.id}>
                 <a href={`#${s.id}`} className="underline-offset-2 hover:underline">
@@ -173,7 +173,7 @@ export default function PrivacyPolicy() {
         <p className="mt-8">
           <Link
             to="/"
-            className="text-sm font-semibold text-pink-600 hover:text-pink-700"
+            className="text-sm font-semibold text-purple-900 hover:text-pink-700"
           >
             &larr; Back to home
           </Link>

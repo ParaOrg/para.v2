@@ -39,7 +39,7 @@ export default function LandingPageFooter({ className = '' }) {
               <span className="font-semibold text-gray-800">Data protection:</span>{' '}
               <a
                 href={`mailto:${DPO_EMAIL}`}
-                className="text-pink-600 underline decoration-pink-600/30 underline-offset-2 hover:text-pink-700"
+                className="text-purple-900 underline decoration-purple-900/30 underline-offset-2 hover:text-pink-700"
               >
                 {DPO_EMAIL}
               </a>
@@ -55,7 +55,7 @@ export default function LandingPageFooter({ className = '' }) {
                 <li key={to}>
                   <Link
                     to={to}
-                    className="text-sm font-medium text-gray-700 hover:text-pink-600 focus:outline-none focus-visible:text-pink-600 focus-visible:underline rounded-sm"
+                    className="text-sm font-medium text-gray-700 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
                   >
                     {label}
                   </Link>
@@ -73,7 +73,7 @@ export default function LandingPageFooter({ className = '' }) {
                 <li key={to}>
                   <Link
                     to={to}
-                    className="text-sm font-medium text-gray-700 hover:text-pink-600 focus:outline-none focus-visible:text-pink-600 focus-visible:underline rounded-sm"
+                    className="text-sm font-medium text-gray-700 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
                   >
                     {label}
                   </Link>
@@ -89,7 +89,7 @@ export default function LandingPageFooter({ className = '' }) {
           </p>
           <p className="max-w-prose leading-relaxed">
             We process personal data in line with the Data Privacy Act of 2012 (Republic Act No. 10173). See our{' '}
-            <Link to="/privacy-policy" className="font-medium text-pink-600 hover:text-pink-700 underline-offset-2 hover:underline">
+            <Link to="/privacy-policy" className="font-medium text-purple-900 hover:text-pink-700 underline-offset-2 hover:underline">
               privacy policy
             </Link>
             {' '}for details.

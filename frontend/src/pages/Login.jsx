@@ -150,7 +150,7 @@ export default function Login() {
             required
             className="w-full px-5 py-4 rounded-xl text-gray-900 text-lg placeholder-gray-400
                        bg-gray-50 border-2 border-gray-200
-                       focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all"
+                       focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all"
           />
         </div>
 
@@ -169,7 +169,7 @@ export default function Login() {
               required
               className="w-full px-5 py-4 pr-12 rounded-xl text-gray-900 text-lg placeholder-gray-400
                          bg-gray-50 border-2 border-gray-200
-                         focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all"
+                         focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all"
             />
             <button
               type="button"
@@ -187,7 +187,7 @@ export default function Login() {
             type="button"
             onClick={handleResetPassword}
             disabled={loading}
-            className="text-sm font-semibold text-pink-600 hover:text-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-sm font-semibold text-purple-900 hover:text-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Forgot password?
           </button>
@@ -197,7 +197,7 @@ export default function Login() {
           type="submit"
           disabled={loading}
           className="w-full mt-6 py-5 rounded-full font-black text-lg md:text-xl text-white
-                     bg-pink-600 hover:bg-pink-700
+                     bg-purple-900 hover:bg-pink-700
                      disabled:opacity-50 disabled:cursor-not-allowed
                      transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200
                      shadow-lg shadow-purple-500/20"
@@ -238,7 +238,7 @@ export default function Login() {
           New to Para?{' '}
           <Link
             to="/signup"
-            className="text-pink-500 hover:text-pink-600 font-bold transition-colors"
+            className="text-purple-800 hover:text-purple-900 font-bold transition-colors"
           >
             Join the community
           </Link>

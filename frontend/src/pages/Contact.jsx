@@ -37,7 +37,7 @@ export default function Contact() {
             Para <span className="text-[#4f00cd]">Po!</span>
           </h1>
           <p className="text-base sm:text-lg md:text-[1.65rem] text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            Got a <span className="text-[#4f00cd] font-medium">route suggestion</span>, a <span className="text-[#ec4899] font-medium">bug to report</span>, or just want to vent about today's traffic? Tap into the network. Shoot us a message and let's make Metro Manila commutes a little smoother together.
+            Got a <span className="text-[#4f00cd] font-medium">route suggestion</span>, a <span className="text-[#310775] font-medium">bug to report</span>, or just want to vent about today's traffic? Tap into the network. Shoot us a message and let's make Metro Manila commutes a little smoother together.
           </p>
         </div>
 
@@ -79,21 +79,21 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-gray-900 font-bold text-lg mb-2">Email Us</h3>
-                    <a href="mailto:para.ph.info@gmail.com" className="text-pink-500 hover:text-pink-600 transition-colors text-base">
+                    <a href="mailto:para.ph.info@gmail.com" className="text-purple-800 hover:text-purple-900 transition-colors text-base">
                       para.ph.info@gmail.com
                     </a>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 bg-pink-50 rounded-xl flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5 text-pink-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                  <div className="w-11 h-11 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-purple-800" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
                       <path d="M22 12a10 10 0 10-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.77-3.89 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0022 12" />
                     </svg>
                   </div>
                   <div>
                     <h3 className="text-gray-900 font-bold text-lg mb-2">Facebook</h3>
-                    <a href="https://www.facebook.com/para.commute" target="_blank" rel="noreferrer" className="text-pink-500 hover:text-pink-600 transition-colors text-base break-all">
+                    <a href="https://www.facebook.com/para.commute" target="_blank" rel="noreferrer" className="text-purple-800 hover:text-purple-900 transition-colors text-base break-all">
                       facebook.com/para.commute
                     </a>
                   </div>
@@ -107,7 +107,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="text-gray-900 font-bold text-lg mb-2">Instagram</h3>
-                    <a href="https://www.instagram.com/para.commute/?hl=en" target="_blank" rel="noreferrer" className="text-pink-500 hover:text-pink-600 transition-colors text-base break-all">
+                    <a href="https://www.instagram.com/para.commute/?hl=en" target="_blank" rel="noreferrer" className="text-purple-800 hover:text-purple-900 transition-colors text-base break-all">
                       instagram.com/para.commute
                     </a>
                   </div>

@@ -117,7 +117,7 @@ export default function SearchInput({
         onChange={handleInputChange}
         onFocus={handleFocus}
         placeholder="Where do you want to go?"
-        className="w-full pl-12 pr-12 py-3 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-gray-800"
+        className="w-full pl-12 pr-12 py-3 bg-gray-50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800"
         autoComplete="off"
       />
       <button

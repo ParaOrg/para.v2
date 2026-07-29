@@ -19,8 +19,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -133,8 +132,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -315,8 +313,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -481,8 +478,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -743,8 +739,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -937,8 +932,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -1155,8 +1149,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -1769,8 +1762,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -1899,8 +1891,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -4111,8 +4102,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -5889,8 +5879,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -7418,8 +7407,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -8336,8 +8324,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -9382,8 +9369,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -10568,8 +10554,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -12555,8 +12540,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -13913,8 +13897,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -14919,8 +14902,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -15361,8 +15343,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -15935,8 +15916,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -16293,8 +16273,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -17883,8 +17862,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -19509,8 +19487,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -20583,8 +20560,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -21701,8 +21677,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -22635,8 +22610,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -24389,8 +24363,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -25839,8 +25812,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -27125,8 +27097,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -28771,8 +28742,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -30165,8 +30135,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -31831,8 +31800,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -32645,8 +32613,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -33559,8 +33526,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -36786,8 +36752,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -37548,8 +37513,7 @@
         "last_updated": "2026-03-22",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -38110,8 +38074,7 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -38488,8 +38451,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -39702,8 +39664,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",
@@ -40672,8 +40633,7 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": false,
-        "loop": true
+        "bidirectional": true
       },
       "geometry": {
         "type": "MultiLineString",

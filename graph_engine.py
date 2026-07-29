@@ -29,7 +29,7 @@ def build_transit_graph(data_dir: str) -> nx.DiGraph:
     GRID_SIZE = 0.0005  # ~50 meters
 
     ignore_dirs = {"Archive", "archive", ".git", "node_modules"}
-    ignore_files = {"stops.geojson", "package.json", "config.json", ".DS_Store"}
+    ignore_files = {"stops.geojson", "package.json", "config.json", ".DS_Store", "walk_paths.geojson"}
 
     for root, dirs, files in os.walk(data_dir):
         dirs[:] = [d for d in dirs if d not in ignore_dirs]
@@ -67,37 +67,39 @@ def build_transit_graph(data_dir: str) -> nx.DiGraph:
 
 def _process_line(G, spatial_grid, line_coords, route_name, vehicle_type, is_bidirectional, grid_size):
     prev_node = None
-    for coord in line_coords:
+    first_node = None
+    
+    for i, coord in enumerate(line_coords):
         lng, lat = coord[0], coord[1]
         node_id = f"{snap_coordinate(lat, lng)}"
         
         if not G.has_node(node_id):
             G.add_node(node_id, lat=lat, lng=lng)
-            # Add to spatial grid for transfer logic
             gx, gy = int(lat / grid_size), int(lng / grid_size)
             spatial_grid[(gx, gy)].append(node_id)
+        
+        if i == 0:
+            first_node = node_id
 
         if prev_node and prev_node != node_id:
             u_attrs = G.nodes[prev_node]
             v_attrs = G.nodes[node_id]
             dist = haversine(u_attrs['lat'], u_attrs['lng'], v_attrs['lat'], v_attrs['lng'])
             
-            # STRICT RULE: No Teleportation. Prevent GPS gaps from creating straight lines.
-            if dist < 500: 
+            if dist < 500:
                 time_min = (dist / 1000) / SPEED_JEEP_KMH * 60
-                routing_weight = time_min + (dist / 1000) * 0.5 
+                routing_weight = time_min + (dist / 1000) * 0.5
                 
-                # 1. Add the forward edge
+                # Forward edge
                 if not G.has_edge(prev_node, node_id):
                     G.add_edge(prev_node, node_id, distance=dist, time_min=time_min, routing_weight=routing_weight, route=route_name, type=vehicle_type)
                 
-                # 2. THE FIX: Force the reverse edge for ALL transit (Jeepneys always have a return trip!)
-                if not G.has_edge(node_id, prev_node):
+                # Reverse edge — ONLY if not a loop route
+                if is_bidirectional and not G.has_edge(node_id, prev_node):
                     G.add_edge(node_id, prev_node, distance=dist, time_min=time_min, routing_weight=routing_weight, route=route_name, type=vehicle_type)
         prev_node = node_id
 
 def _inject_transfer_edges(G, spatial_grid):
-    # Check adjacent grid cells for nodes from different routes to create walking transfers
     for (gx, gy), nodes in spatial_grid.items():
         neighbors = [(gx-1, gy-1), (gx-1, gy), (gx-1, gy+1), (gx, gy-1), (gx, gy+1), (gx+1, gy-1), (gx+1, gy), (gx+1, gy+1)]
         neighbor_nodes = []
@@ -111,12 +113,11 @@ def _inject_transfer_edges(G, spatial_grid):
                     b_attrs = G.nodes[node_b]
                     dist = haversine(a_attrs['lat'], a_attrs['lng'], b_attrs['lat'], b_attrs['lng'])
                     
-                    # If physically close but different nodes, and not already connected
                     if 0 < dist < 1000 and not G.has_edge(node_a, node_b):
-                        # THE FIX: Add the massive 30-minute penalty to the time
-                        time_min = ((dist / 100) / SPEED_WALK_KMH * 60) + TRANSFER_PENALTY_MIN
+                        # CORRECT FORMULA: dist/1000 for km, then / SPEED_WALK_KMH (4 km/h)
+                        time_min = ((dist / 1000) / SPEED_WALK_KMH * 60) + TRANSFER_PENALTY_MIN
                         
-                        # THE FIX: Transfer edges use the penalized time as their weight
-                        routing_weight = time_min 
+                        # Make walking expensive: 5x multiplier so jeep is always preferred
+                        routing_weight = time_min * 5
                         
                         G.add_edge(node_a, node_b, distance=dist, time_min=time_min, routing_weight=routing_weight, route="WALK_TRANSFER", type="walk")

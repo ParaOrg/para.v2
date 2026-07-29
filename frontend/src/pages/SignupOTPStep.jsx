@@ -125,7 +125,7 @@ export default function SignupOTPStep({ uid, email, onBack }) {
           type="submit"
           disabled={loading || otp.replace(/\s/g, '').length < 6}
           className="w-full py-5 rounded-full font-bold text-lg md:text-xl text-white
-                     bg-pink-600 hover:bg-pink-700
+                     bg-purple-900 hover:bg-pink-700
                      disabled:opacity-50 disabled:cursor-not-allowed
                      transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200
                      shadow-lg shadow-purple-500/20"
@@ -144,7 +144,7 @@ export default function SignupOTPStep({ uid, email, onBack }) {
           <button
             type="button"
             onClick={handleResend}
-            className="text-base text-pink-500 hover:text-pink-600 font-bold transition-colors"
+            className="text-base text-purple-800 hover:text-purple-900 font-bold transition-colors"
           >
             Didn't receive it? Resend code
           </button>

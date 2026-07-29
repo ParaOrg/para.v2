@@ -5,7 +5,7 @@ function BrandPanel() {
     <div className="hidden lg:flex lg:w-5/12 flex-col min-h-svh p-12 bg-[#5b21b6] relative overflow-hidden shrink-0">
       {/* Decorative blobs */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 w-[480px] h-[480px] rounded-full bg-pink-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 w-[480px] h-[480px] rounded-full bg-purple-600/10 blur-3xl" />
 
       {/* Centered community block (no logo) */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-10 py-8">

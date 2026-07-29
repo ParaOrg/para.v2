@@ -147,7 +147,7 @@ function RouteCard({ route, isLiked, onToggleLike }) {
         <div className="flex items-center justify-between gap-2">
           {route.segments.map((segment, idx) => (
             <div key={idx} className="flex-1 text-center">
-              <div className="w-8 h-6 mx-auto text-pink-600 mb-1">
+              <div className="w-8 h-6 mx-auto text-purple-900 mb-1">
                 <TransportIcon mode={segment.mode} />
               </div>
               <p className="text-xs text-gray-600">{segment.duration}</p>

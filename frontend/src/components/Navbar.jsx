@@ -7,8 +7,8 @@ import { useAuth } from '../context/AuthContext'; // <-- Added Auth Context
 
 // Updated to include your core app routes
 const NAV_LINKS = [
-  { to: '/', label: 'Find Route' },
-  { to: '/routes', label: 'Routes' },
+  { to: '/', label: 'Commute' },
+  { to: '/explore', label: 'Explore' },
   { to: '/gas-prices', label: 'Gas Prices'}, 
   { to: '/admin', label: 'Admin' },
   { to: '/about', label: 'About' },

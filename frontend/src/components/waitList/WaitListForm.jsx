@@ -86,7 +86,7 @@ export function WaitListForm({ isOpen, onClose }) {
       {/* Modal content */}
       <div className="relative w-full sm:w-[90vw] max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in zoom-in-95 duration-300 mb-16 sm:mb-0">
       {/* Header */}
-      <div className="bg-pink-600 px-4 py-3 flex items-center justify-between">
+      <div className="bg-purple-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -120,7 +120,7 @@ export function WaitListForm({ isOpen, onClose }) {
             value={formData.name}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-800 focus:border-purple-800 outline-none transition-all"
             placeholder="Enter your name"
           />
         </div>
@@ -136,7 +136,7 @@ export function WaitListForm({ isOpen, onClose }) {
             value={formData.email}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-800 focus:border-purple-800 outline-none transition-all"
             placeholder="Enter your email"
           />
         </div>
@@ -154,7 +154,7 @@ export function WaitListForm({ isOpen, onClose }) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-2.5 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-2.5 bg-purple-900 text-white font-medium rounded-lg hover:bg-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>

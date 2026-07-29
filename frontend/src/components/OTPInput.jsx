@@ -61,7 +61,7 @@ export default function OTPInput({ value = '', onChange, disabled = false }) {
           disabled={disabled}
           className="w-12 sm:w-14 h-12 sm:h-14 text-center text-xl sm:text-2xl font-bold text-gray-900 rounded-xl
                      bg-gray-50 border-2 border-gray-200
-                     focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400
+                     focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-purple-600
                      disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         />
       ))}

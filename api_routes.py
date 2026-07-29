@@ -1,440 +1,207 @@
-import sqlite3
-import json
-import networkx as nx
-import uuid
+"""
+Core API — Chat, Routing, Feedback, Telemetry
+"""
+
+import sqlite3, json, uuid, networkx as nx
 from fastapi import APIRouter, Request
-from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest
-from models import TelemetryPing, TelemetryBatch, SimulateRequest  # NEW: Add missing imports
+from models import RouteRequest, RouteResponse, RouteStep, ChatMessage, ChatResponse, FeedbackRequest, TelemetryPing, TelemetryBatch, SimulateRequest
 from graph_engine import haversine, SPEED_WALK_KMH
 from llm_engine import parse_chat_intent_async, ask_info_llm, geocode_location
 
 router = APIRouter()
 
-# ==========================================
-# HELPER: Optimized Virtual Node Connection
-# ==========================================
-def _connect_virtual_node(G, v_node, lat, lng, is_source):
-    spatial_grid = G.graph.get('spatial_grid', {})
-    grid_size = G.graph.get('grid_size', 0.0005)
-    gx, gy = int(lat / grid_size), int(lng / grid_size)
-    
-    candidate_nodes = []
-    for dx in [-2, -1, 0, 1, 2]:
-        for dy in [-2, -1, 0, 1, 2]:
-            candidate_nodes.extend(spatial_grid.get((gx + dx, gy + dy), []))
-            
-    candidates = []
-    for node in candidate_nodes:
-        node_attrs = G.nodes[node]
-        dist = haversine(lat, lng, node_attrs['lat'], node_attrs['lng'])
+# ═══════════════════════════════════════════════════════
+# HELPERS
+# ═══════════════════════════════════════════════════════
+def _connect_virtual(G, vid, lat, lng, is_source):
+    grid = G.graph.get('spatial_grid',{})
+    gs = G.graph.get('grid_size',0.0005)
+    gx, gy = int(lat/gs), int(lng/gs)
+    cands = []
+    # EXPANDED: search 8 cells in each direction
+    for dx in range(-8, 9):
+        for dy in range(-8, 9):
+            for n in grid.get((gx+dx,gy+dy),[]):
+                d = haversine(lat,lng,G.nodes[n]['lat'],G.nodes[n]['lng'])
+                if d < 5000:  # up to 5km walk
+                    cands.append((n,d,(d/1000)/SPEED_WALK_KMH*60))
+    if not cands:
+        best, bd = None, float('inf')
+        for n,nd in G.nodes(data=True):
+            if n.startswith("VIRTUAL"): continue
+            d = haversine(lat,lng,nd['lat'],nd['lng'])
+            if d<bd: bd=d; best=n
+        if best: cands.append((best,bd,(bd/1000)/SPEED_WALK_KMH*60))
+    cands.sort(key=lambda x:x[2])
+    for n,d,t in cands[:5]:
+        if is_source: G.add_edge(vid,n,distance=d,time_min=t,routing_weight=t,route="WALK_TO_TRANSIT",type="walk")
+        else: G.add_edge(n,vid,distance=d,time_min=t,routing_weight=t,route="WALK_FROM_TRANSIT",type="walk")
         
-        if dist < 2500:
-            w_time = (dist / 1000) / SPEED_WALK_KMH * 60
-            candidates.append((node, dist, w_time))
-            
-    if not candidates:
-        print(f"⚠️ No nodes within 2.5km. Finding absolute closest node in graph...")
-        min_dist = float('inf')
-        closest_node = None
-        
-        for node, node_attrs in G.nodes(data=True):
-            if node.startswith("VIRTUAL"): continue
-            dist = haversine(lat, lng, node_attrs['lat'], node_attrs['lng'])
-            if dist < min_dist:
-                min_dist = dist
-                closest_node = node
-                if dist < 500: break
-                
-        if closest_node:
-            w_time = (min_dist / 1000) / SPEED_WALK_KMH * 60
-            candidates.append((closest_node, min_dist, w_time))
-            print(f"🔗 Fallback connected to {closest_node} at {min_dist:.0f}m")
-            
-    candidates.sort(key=lambda x: x[2])
+def _calc_route(G, path):
+    segs, cur = [], None
+    skip_routes = {'WALK_TRANSFER','WALK_TO_TRANSIT','WALK_FROM_TRANSIT'}
+    for i in range(len(path)-1):
+        u,v = path[i],path[i+1]
+        if not G.has_edge(u,v): continue
+        e = G.edges[u,v]
+        d = e.get('distance',0)
+        t = e.get('time_min',0)
+        vt = e.get('type','walk')
+        rn = e.get('route','?')
+        # Skip walk transfer edges
+        if rn in skip_routes or vt == 'walk':
+            vt = 'walk'
+            rn = 'Walk'
+        if not cur or cur['type']!=vt:
+            if cur: segs.append(cur)
+            cur = {'type':vt,'route':rn,'dist':0,'time':0,'geom':[[G.nodes[u].get('lng',121),G.nodes[u].get('lat',14.5)]]}
+        cur['dist']+=d; cur['time']+=t
+        cur['geom'].append([G.nodes[v].get('lng',121),G.nodes[v].get('lat',14.5)])
+    if cur: segs.append(cur)
     
-    # Connect to the top 5 closest nodes (FIXED: removed duplicate loop)
-    for node, dist, w_time in candidates[:5]:
-        if is_source:
-            G.add_edge(v_node, node, distance=dist, time_min=w_time, routing_weight=w_time, route="WALK_TO_TRANSIT", type="walk")
+    steps, td, tf, tt = [], 0, 0, 0
+    for s in segs:
+        td += s['dist']; tt += s['time']
+        # Fare: only for actual transit, not walk
+        if s['type'] == 'walk':
+            fare = 0
+        elif s['type'] in ('jeep','jeepney'):
+            fare = 13 + max(0,(s['dist']/1000-4))*2.5
+        elif s['type'] in ('bus',):
+            fare = 15 + max(0,(s['dist']/1000-5))*2.5
+        elif s['type'] in ('lrt','mrt','train'):
+            fare = 15  # base LRT/MRT
         else:
-            G.add_edge(node, v_node, distance=dist, time_min=w_time, routing_weight=w_time, route="WALK_FROM_TRANSIT", type="walk")
-
-# ==========================================
-# HELPER: Segment Builder
-# ==========================================
-def _calculate_route_from_path(G: nx.DiGraph, path: list) -> RouteResponse:
-    segments = []
-    current_segment = None
-
-    for j in range(len(path) - 1):
-        u, v = path[j], path[j+1]
-        if not G.has_edge(u, v): continue
-        
-        edge = G.edges[u, v]
-        dist = edge.get('distance', 0.0)
-        time_min = edge.get('time_min', 0.0)
-        v_type = edge.get('type', 'walk')
-        r_name = edge.get('route', 'Unknown')
-
-        if not current_segment or current_segment['type'] != v_type:
-            if current_segment: 
-                segments.append(current_segment)
-            
-            u_lng = G.nodes[u].get('lng', 121.0)
-            u_lat = G.nodes[u].get('lat', 14.5)
-            
-            current_segment = {
-                'type': v_type, 
-                'route': r_name, 
-                'distance': 0.0, 
-                'time': 0.0,
-                'geometry': [[u_lng, u_lat]]
-            }
-        
-        current_segment['distance'] += dist
-        current_segment['time'] += time_min
-        
-        v_lng = G.nodes[v].get('lng', 121.0)
-        v_lat = G.nodes[v].get('lat', 14.5)
-        current_segment['geometry'].append([v_lng, v_lat])
-
-    if current_segment: 
-        segments.append(current_segment)
-
-    steps = []
-    total_dist = total_fare = total_time = 0.0
+            fare = 13  # default
+        tf += fare
+        act = "walk" if s['type']=='walk' else ("board" if not steps or steps[-1].action=="walk" else "transfer")
+        steps.append(RouteStep(action=act,vehicle_type=s['type'],route_name=s['route'],from_node="?",to_node="?",distance_m=s['dist'],duration_min=s['time'],fare=fare,geometry=s['geom']))
     
-    for seg in segments:
-        total_dist += seg['distance']
-        total_time += seg['time']
-        
-        fare = 13.0 + max(0, (seg['distance'] / 1000 - 4)) * 2.5 if seg['type'] == 'jeep' else 0.0
-        total_fare += fare
-        
-        action = "walk" if seg['type'] == 'walk' else ("board" if len(steps) == 0 or steps[-1].action == "walk" else "transfer")
-        
-        steps.append(RouteStep(
-            action=action, vehicle_type=seg['type'], route_name=seg['route'],
-            from_node="start", to_node="end", distance_m=seg['distance'],
-            duration_min=seg['time'], fare=fare, geometry=seg['geometry']
-        ))
-        
-    return RouteResponse(
-        success=True, total_distance_m=total_dist, total_duration_min=total_time, 
-        total_fare=total_fare, steps=steps, path_nodes=path,
-        message=f"{total_time:.0f} mins, ₱{total_fare:.0f}."
-    )
-    
-# ==========================================
-# CORE ROUTING: Traffic-Aware Edge Penalty Method
-# ==========================================
-def find_routes_with_alternatives(G_global: nx.DiGraph, req: RouteRequest, db_path: str = "para_ml_data.db") -> tuple:
-    """
-    Find primary + alternative routes with traffic-aware weights.
-    Uses graph COPY to prevent race conditions between concurrent requests.
-    """
+    return RouteResponse(success=True,total_distance_m=td,total_duration_min=tt,total_fare=tf,steps=steps,path_nodes=path,message=f"{tt:.0f} mins, ₱{tf:.0f}.")
+
+def find_routes(G_global, req, db_path="para_ml_data.db"):
     from telemetry_engine import apply_traffic_to_graph
-    
-    # STEP 0: Deep copy for thread safety (CRITICAL)
     G = G_global.copy()
-    
-    # STEP 1: Apply real-time traffic congestion
+    try: G = apply_traffic_to_graph(G, db_path)
+    except: pass
+    uid = str(uuid.uuid4())[:8]
+    src, tgt = f"V_SRC_{uid}", f"V_TGT_{uid}"
+    G.add_node(src,lat=req.origin_lat,lng=req.origin_lng)
+    G.add_node(tgt,lat=req.dest_lat,lng=req.dest_lng)
     try:
-        G = apply_traffic_to_graph(G, db_path)
-    except Exception as e:
-        print(f"⚠️ [TRAFFIC] Could not apply traffic data: {e}")
-    
-    # STEP 2: Unique virtual node IDs
-    unique_id = str(uuid.uuid4())[:8]
-    src_id = f"VIRTUAL_SRC_{unique_id}"
-    tgt_id = f"VIRTUAL_TGT_{unique_id}"
-    
-    G.add_node(src_id, lat=req.origin_lat, lng=req.origin_lng)
-    G.add_node(tgt_id, lat=req.dest_lat, lng=req.dest_lng)
-    
-    try:
-        _connect_virtual_node(G, src_id, req.origin_lat, req.origin_lng, is_source=True)
-        _connect_virtual_node(G, tgt_id, req.dest_lat, req.dest_lng, is_source=False)
-        
-        if G.degree(src_id) == 0 or G.degree(tgt_id) == 0:
-            print(f"❌ [ROUTING] Virtual node has no connections")
-            return None, []
-
-        # STEP 3: Find Primary Route
+        _connect_virtual(G,src,req.origin_lat,req.origin_lng,True)
+        _connect_virtual(G,tgt,req.dest_lat,req.dest_lng,False)
+        if G.degree(src)==0 or G.degree(tgt)==0: return None,[]
+        try: p1 = nx.shortest_path(G,src,tgt,weight='routing_weight')
+        except: return None,[]
+        r1 = _calc_route(G,p1)
+        if not r1 or not r1.steps: return None,[]
+        penalized = []
+        for i in range(len(p1)-1):
+            u,v = p1[i],p1[i+1]
+            if G.has_edge(u,v):
+                ow = G.edges[u,v].get('routing_weight',1)
+                penalized.append((u,v,ow))
+                G.edges[u,v]['routing_weight']=ow*3
+        r2 = None
         try:
-            path_1 = nx.shortest_path(G, source=src_id, target=tgt_id, weight='routing_weight')
-        except nx.NetworkXNoPath:
-            print("❌ [ROUTING] No path found")
-            return None, []
-            
-        route_1 = _calculate_route_from_path(G, path_1)
-        if not route_1 or not route_1.steps:
-            return None, []
-        
-        print(f"✅ [ROUTING] Primary: {route_1.total_duration_min:.0f} min, ₱{route_1.total_fare:.0f}")
-
-        # STEP 4: Find Alternative Route (Edge Penalty)
-        penalized_edges = []
-        for i in range(len(path_1) - 1):
-            u, v = path_1[i], path_1[i+1]
-            if G.has_edge(u, v):
-                original_weight = G.edges[u, v].get('routing_weight', G.edges[u, v].get('time_min', 1.0))
-                penalized_edges.append((u, v, original_weight))
-                G.edges[u, v]['routing_weight'] = original_weight * 3.0
-
-        route_2 = None
-        try:
-            path_2 = nx.shortest_path(G, source=src_id, target=tgt_id, weight='routing_weight')
-            
-            # Only accept if meaningfully different
-            if path_2 != path_1:
-                route_2 = _calculate_route_from_path(G, path_2)
-                if route_2 and route_2.steps:
-                    same_dist = abs(route_2.total_distance_m - route_1.total_distance_m) < 10
-                    same_steps = len(route_2.steps) == len(route_1.steps)
-                    if same_dist and same_steps:
-                        print("⚠️ [ROUTING] Alternative too similar — discarding")
-                        route_2 = None
-                    else:
-                        print(f"✅ [ROUTING] Alternative: {route_2.total_duration_min:.0f} min, ₱{route_2.total_fare:.0f}")
-        except nx.NetworkXNoPath:
-            print("⚠️ [ROUTING] No alternative found after penalty")
+            p2 = nx.shortest_path(G,src,tgt,weight='routing_weight')
+            if p2!=p1:
+                r2 = _calc_route(G,p2)
+                if r2 and r2.steps:
+                    if abs(r2.total_distance_m-r1.total_distance_m)<10 and len(r2.steps)==len(r1.steps): r2=None
+        except: pass
         finally:
-            # ALWAYS restore original weights
-            for u, v, orig_weight in penalized_edges:
-                if G.has_edge(u, v):
-                    G.edges[u, v]['routing_weight'] = orig_weight
-
-        # STEP 5: Add congestion warnings
-        all_routes = [route_1]
-        if route_2 and route_2.steps:
-            all_routes.append(route_2)
-        
-        for route in all_routes:
-            congested = 0
-            total_segs = 0
-            for i in range(len(route.path_nodes) - 1):
-                u, v = route.path_nodes[i], route.path_nodes[i+1]
-                if G.has_edge(u, v):
-                    cf = G.edges[u, v].get('congestion_factor', 1.0)
-                    total_segs += 1
-                    if cf > 1.3:
-                        congested += 1
-            if total_segs > 0 and congested / total_segs > 0.5:
-                route.message += " 🚦 Heavy traffic detected!"
-            elif total_segs > 0 and congested / total_segs > 0.2:
-                route.message += " 🟡 Moderate traffic on some segments."
-
-        return all_routes[0], all_routes[1:]
-
+            for u,v,ow in penalized:
+                if G.has_edge(u,v): G.edges[u,v]['routing_weight']=ow
+        alts = [r2] if r2 else []
+        return r1, alts
     finally:
-        # ALWAYS clean up virtual nodes
-        if G.has_node(src_id): G.remove_node(src_id)
-        if G.has_node(tgt_id): G.remove_node(tgt_id)
+        if G.has_node(src): G.remove_node(src)
+        if G.has_node(tgt): G.remove_node(tgt)
 
-# ==========================================
-# API ENDPOINTS
-# ==========================================
-
+# ═══════════════════════════════════════════════════════
+# CHAT
+# ═══════════════════════════════════════════════════════
 @router.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(msg: ChatMessage, request: Request):
-    G = request.app.state.G
-    db_path = request.app.state.db_path  # NEW: Get db_path from app state
-    
-    intent_data = await parse_chat_intent_async(msg.message)
-    
-    # PATH A: CUSTOMER SERVICE / INFO
-    if intent_data.get('intent') == 'INFO':
-        ai_answer = await ask_info_llm(intent_data.get('question', msg.message))
-        return ChatResponse(reply_text=ai_answer, route_data=None, origin="", destination="")
-
-    # PATH B: ROUTING
-    origin_name = intent_data.get('origin', "")
-    dest_name = intent_data.get('destination', "")
-    
-    if not origin_name or not dest_name:
-        return ChatResponse(reply_text="Saan ka pupunta?", route_data=None, origin="", destination="")
-
-    o_coords = await geocode_location(origin_name)
-    d_coords = await geocode_location(dest_name)
-    
-    print(f"📍 GEOCODED: Start={o_coords}, End={d_coords}")
-
-    if not o_coords or not d_coords:
-        return ChatResponse(reply_text="Hindi ko mahanap ang isa sa mga lokasyon sa mapa.", route_data=None, origin=origin_name, destination=dest_name)
-
-    # CROWDSOURCED CHECK
-    db = sqlite3.connect("para_ml_data.db")
-    cursor = db.cursor()
-    cursor.execute("""
-        SELECT path_nodes, total_fare, total_time, rating_sum, trip_count 
-        FROM approved_routes 
-        WHERE origin = ? AND destination = ?
-        ORDER BY (rating_sum * 1.0 / trip_count) DESC, trip_count DESC
-        LIMIT 1
-    """, (origin_name.lower(), dest_name.lower()))
-    
-    approved = cursor.fetchone()
+async def chat(msg: ChatMessage, req: Request):
+    G = req.app.state.G
+    db_path = req.app.state.db_path
+    intent = await parse_chat_intent_async(msg.message)
+    if intent.get('intent')=='INFO':
+        ans = await ask_info_llm(intent.get('question',msg.message))
+        return ChatResponse(reply_text=ans)
+    o_name, d_name = intent.get('origin',''), intent.get('destination','')
+    if not o_name or not d_name:
+        return ChatResponse(reply_text="Saan ka pupunta?")
+    o_ll = await geocode_location(o_name)
+    d_ll = await geocode_location(d_name)
+    if not o_ll or not d_ll:
+        return ChatResponse(reply_text="Hindi ko mahanap ang lokasyon.",origin=o_name,destination=d_name)
+    # Crowdsourced check
+    db = sqlite3.connect(db_path)
+    cur = db.cursor()
+    cur.execute("SELECT path_nodes,total_fare,total_time,rating_sum,trip_count FROM approved_routes WHERE origin=? AND destination=? ORDER BY (rating_sum*1.0/trip_count) DESC LIMIT 1",(o_name.lower(),d_name.lower()))
+    row = cur.fetchone()
     db.close()
-    
-    if approved:
-        path_nodes_json, fare, time, rating_sum, trip_count = approved
-        avg_rating = rating_sum / trip_count
-        
-        if avg_rating >= 5.0:
-            print(f"🌟 [COMMUNITY APPROVED] Using memorized route for {origin_name} -> {dest_name}")
-            path_list = json.loads(path_nodes_json)
-            primary_route = _calculate_route_from_path(G, path_list)
-            primary_route.message = f"🌟 Commuter Favorite ({trip_count} trips): {time:.0f} mins, ₱{fare:.0f}."
-            
-            return ChatResponse(
-                reply_text=f"📍 {origin_name} ➡️ {dest_name}\n{primary_route.message}", 
-                route_data=primary_route, alternatives=[],
-                origin=origin_name, destination=dest_name
-            )
+    if row:
+        nodes_json, fare, time, rsum, trips = row
+        if rsum/trips >= 5:
+            path = json.loads(nodes_json)
+            r = _calc_route(G, path)
+            r.message = f"🌟 Commuter Favorite ({trips} trips): {time:.0f} mins, ₱{fare:.0f}."
+            return ChatResponse(reply_text=f"📍 {o_name} ➡️ {d_name}\n{r.message}",route_data=r,origin=o_name,destination=d_name)
+    # Route calculation
+    rr = RouteRequest(origin_lat=o_ll[0],origin_lng=o_ll[1],dest_lat=d_ll[0],dest_lng=d_ll[1])
+    primary, alts = find_routes(G, rr, db_path)
+    if not primary:
+        return ChatResponse(reply_text="Walang nakitang ruta.",origin=o_name,destination=d_name)
+    reply = f"📍 {o_name} ➡️ {d_name}\n✅ {primary.message}"
+    if alts: reply += f"\n🔄 {len(alts)} alternatibo."
+    return ChatResponse(reply_text=reply,route_data=primary,alternatives=alts,origin=o_name,destination=d_name)
 
-    # FALLBACK: Run routing algorithm WITH traffic data
-    print("🗺️ Calculating Primary + Alternative routes...")
-    req = RouteRequest(origin_lat=o_coords[0], origin_lng=o_coords[1], dest_lat=d_coords[0], dest_lng=d_coords[1])
-    primary_route, alt_routes = find_routes_with_alternatives(G, req, db_path)  # UPDATED: pass db_path
-    
-    if not primary_route:
-        return ChatResponse(reply_text="Walang nakitang ruta.", route_data=None, origin=origin_name, destination=dest_name)
-
-    reply = f"📍 {origin_name} ➡️ {dest_name}\n✅ {primary_route.message}"
-    if alt_routes:
-        reply += f"\n🔄 May {len(alt_routes)} pang alternatibong ruta (tingnan sa baba)."
-    
-    print(f"📦 SENDING TO FRONTEND: route_data is {'NULL' if not primary_route else 'VALID'}")
-    if primary_route and primary_route.steps:
-        print(f"   📊 Total Steps: {len(primary_route.steps)}")
-        print(f"   📏 First step geometry points: {len(primary_route.steps[0].geometry)}")
-        
-    return ChatResponse(
-        reply_text=reply, 
-        route_data=primary_route, 
-        alternatives=alt_routes,
-        origin=origin_name,
-        destination=dest_name
-    )
-
+# ═══════════════════════════════════════════════════════
+# FEEDBACK
+# ═══════════════════════════════════════════════════════
 @router.post("/feedback")
-async def submit_feedback(feedback: FeedbackRequest):
-    db = sqlite3.connect("para_ml_data.db")
-    cursor = db.cursor()
-    
-    cursor.execute("""
-        INSERT INTO route_feedback (user_id, route_id, rating, comment, timestamp)
-        VALUES (?, ?, ?, ?, datetime('now'))
-    """, (feedback.user_id, feedback.route_id, feedback.rating, feedback.comment))
-    
-    if feedback.rating >= 6 and feedback.route_nodes and len(feedback.route_nodes) > 0:
+async def feedback(fb: FeedbackRequest):
+    db = sqlite3.connect("para_ml_data.db"); cur = db.cursor()
+    cur.execute("INSERT INTO route_feedback(user_id,route_id,rating,comment,timestamp) VALUES(?,?,?,?,datetime('now'))",(fb.user_id,fb.route_id,fb.rating,fb.comment))
+    if fb.rating>=6 and fb.route_nodes:
         try:
-            cursor.execute("""
-                INSERT INTO approved_routes (origin, destination, path_nodes, total_fare, total_time, rating_sum, trip_count)
-                VALUES (?, ?, ?, ?, ?, ?, 1)
-                ON CONFLICT(origin, destination, path_nodes) 
-                DO UPDATE SET 
-                    rating_sum = rating_sum + excluded.rating_sum,
-                    trip_count = trip_count + 1
-            """, (
-                feedback.origin_name.lower(), 
-                feedback.destination_name.lower(), 
-                json.dumps(feedback.route_nodes), 
-                feedback.total_fare, 
-                feedback.total_time,
-                feedback.rating
-            ))
-            print(f"💾 [LEARNED] Saved approved route: {feedback.origin_name} -> {feedback.destination_name}")
-        except Exception as e:
-            print(f"⚠️ Error saving approved route: {e}")
-    
-    db.commit()
-    db.close()
-    return {"status": "success"}
+            cur.execute("INSERT INTO approved_routes(origin,destination,path_nodes,total_fare,total_time,rating_sum,trip_count) VALUES(?,?,?,?,?,?,1) ON CONFLICT(origin,destination,path_nodes) DO UPDATE SET rating_sum=rating_sum+excluded.rating_sum,trip_count=trip_count+1",
+                (fb.origin_name.lower(),fb.destination_name.lower(),json.dumps(fb.route_nodes),fb.total_fare,fb.total_time,fb.rating))
+        except: pass
+    db.commit(); db.close()
+    return {"status":"success"}
 
-# ==========================================
-# TELEMETRY ENDPOINTS
-# ==========================================
-
+# ═══════════════════════════════════════════════════════
+# TELEMETRY
+# ═══════════════════════════════════════════════════════
 @router.post("/telemetry/ping")
-async def receive_ping(ping: TelemetryPing, request: Request):
-    """Receive a single GPS ping from a device."""
+async def ping(p: TelemetryPing, req: Request):
     from telemetry_engine import ingest_ping
-    
-    db_path = request.app.state.db_path
-    ping_id = ingest_ping(
-        db_path=db_path,
-        device_id=ping.device_id,
-        lat=ping.lat,
-        lng=ping.lng,
-        speed_kmh=ping.speed_kmh,
-        heading=ping.heading,
-        trip_id=ping.trip_id
-    )
-    
-    return {"status": "ok", "ping_id": ping_id}
-
+    pid = ingest_ping(req.app.state.db_path,p.device_id,p.lat,p.lng,p.speed_kmh,p.heading,p.trip_id)
+    return {"status":"ok","ping_id":pid}
 
 @router.post("/telemetry/batch")
-async def receive_batch(batch: TelemetryBatch, request: Request):
-    """Receive multiple GPS pings at once (e.g., from a phone's buffered log)."""
+async def batch(b: TelemetryBatch, req: Request):
     from telemetry_engine import ingest_ping
-    
-    db_path = request.app.state.db_path
-    accepted = 0
-    rejected = 0
-    
-    for ping in batch.pings:
-        ping_id = ingest_ping(
-            db_path=db_path,
-            device_id=ping.device_id,
-            lat=ping.lat,
-            lng=ping.lng,
-            speed_kmh=ping.speed_kmh,
-            heading=ping.heading,
-            trip_id=ping.trip_id
-        )
-        if ping_id > 0:
-            accepted += 1
-        else:
-            rejected += 1
-    
-    return {"status": "ok", "accepted": accepted, "rejected": rejected}
-
-
-@router.get("/traffic/geojson")
-async def get_traffic_geojson(request: Request):
-    """Return GeoJSON of current traffic conditions for map overlay."""
-    from telemetry_engine import get_traffic_geojson
-    
-    db_path = request.app.state.db_path
-    return get_traffic_geojson(db_path)
-
+    ok = sum(1 for p in b.pings if ingest_ping(req.app.state.db_path,p.device_id,p.lat,p.lng,p.speed_kmh,p.heading,p.trip_id)>0)
+    return {"status":"ok","accepted":ok}
 
 @router.post("/telemetry/simulate")
-async def simulate_pings(sim: SimulateRequest, request: Request):
-    """FOR TESTING: Generate simulated GPS pings along routes."""
+async def simulate(s: SimulateRequest, req: Request):
     from telemetry_engine import simulate_telemetry_ping
-    
-    G = request.app.state.G
-    db_path = request.app.state.db_path
-    
-    results = []
-    for _ in range(sim.count):
-        result = simulate_telemetry_ping(db_path, G, sim.route_name)
-        results.append(result)
-    
-    return {"status": "ok", "simulated": len(results), "results": results}
-
+    results = [simulate_telemetry_ping(req.app.state.db_path,req.app.state.G,s.route_name) for _ in range(s.count)]
+    return {"status":"ok","results":results}
 
 @router.post("/traffic/analyze")
-async def trigger_congestion_analysis(request: Request):
-    """Manually trigger congestion analysis (normally runs every 5 min)."""
+async def analyze(req: Request):
     from telemetry_engine import update_congestion
-    
-    G = request.app.state.G
-    db_path = request.app.state.db_path
-    
-    summary = update_congestion(db_path, G)
-    return {"status": "ok", "summary": summary}
+    return {"status":"ok","summary":update_congestion(req.app.state.db_path,req.app.state.G)}
+
+@router.get("/traffic/geojson")
+async def traffic_geo(req: Request):
+    from telemetry_engine import get_traffic_geojson
+    return get_traffic_geojson(req.app.state.db_path)

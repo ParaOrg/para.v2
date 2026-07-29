@@ -317,7 +317,7 @@ export default function About() {
         {/* Mission Section
         <div className="relative bg-[#4f00cd] rounded-3xl p-12 md:p-20 mb-24 md:mb-28 overflow-hidden">
           <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-pink-400/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-purple-600/10 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 text-center mb-14">
             <h2 className="text-4xl md:text-6xl font-black text-white mb-8">Our Mission</h2>
@@ -350,9 +350,9 @@ export default function About() {
             {VALUES.map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="bg-white rounded-3xl p-10 md:p-12 border border-gray-100 shadow-sm hover:shadow-lg hover:border-pink-200 transition-all duration-300 group"
+                className="bg-white rounded-3xl p-10 md:p-12 border border-gray-100 shadow-sm hover:shadow-lg hover:border-purple-300 transition-all duration-300 group"
               >
-                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-7 text-pink-500 group-hover:bg-pink-50 transition-colors duration-300 [&_svg]:w-10 [&_svg]:h-10">
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-7 text-purple-800 group-hover:bg-purple-50 transition-colors duration-300 [&_svg]:w-10 [&_svg]:h-10">
                   {icon}
                 </div>
                 <h3 className="text-2xl md:text-[1.65rem] font-bold text-gray-900 mb-4">{title}</h3>
@@ -366,7 +366,7 @@ export default function About() {
         <div className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white px-8 py-12 shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_80px_rgba(79,0,205,0.14)] hover:border-[#dcd0f7] md:px-16 md:py-16">
           <div className="absolute inset-x-0 top-0 h-1 bg-[#4f00cd]" />
           <div className="pointer-events-none absolute -left-16 -top-12 h-44 w-44 rounded-full bg-[#8b5cf6]/10 blur-3xl" />
-          <div className="pointer-events-none absolute -right-16 -bottom-14 h-52 w-52 rounded-full bg-[#ec4899]/10 blur-3xl" />
+          <div className="pointer-events-none absolute -right-16 -bottom-14 h-52 w-52 rounded-full bg-[#310775]/10 blur-3xl" />
           <div className="relative text-center">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[1.15rem] bg-[#4f00cd] text-white shadow-[0_18px_30px_rgba(79,0,205,0.24)] transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:scale-105">
               <BellIcon />
