@@ -1,14 +1,11 @@
-const DEV_DEFAULT_API_BASE = 'http://localhost:8000';
-
+// Auto-detect API URL based on environment
 export function getApiBaseUrl() {
-  const fromEnv = (import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? '').trim();
-  if (fromEnv) {
-    return fromEnv;
+  // Production: use the deployed Render URL
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_API_URL || 'https://para-ph-api.onrender.com';
   }
-
-  if (import.meta.env.DEV) {
-    return DEV_DEFAULT_API_BASE;
-  }
-
+  // Development: use localhost
   return '';
 }
+
+export const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || '';
