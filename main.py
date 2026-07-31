@@ -9,7 +9,10 @@ import logging
 import os
 
 # Use redis.asyncio
-import redis.asyncio as redis
+try:
+    import redis.asyncio as redis
+except ImportError:
+    redis = None
 
 from api_routes import router as api_router
 from admin_routes import router as admin_router
