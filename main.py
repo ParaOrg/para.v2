@@ -10,7 +10,10 @@ import os
 
 # Use redis.asyncio
 try:
+    try:
     import redis.asyncio as redis
+except ImportError:
+    redis = None
 except ImportError:
     redis = None
 
