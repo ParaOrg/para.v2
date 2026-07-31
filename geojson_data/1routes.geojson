@@ -19,7 +19,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP - IKOT",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -132,7 +138,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP - Philcoa",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -313,7 +325,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP - Katipunan",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -478,7 +496,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP Loob - Katipunan",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -739,7 +763,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP - Philcoa",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -932,7 +962,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP Loob - Katipunan",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -1149,7 +1185,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP-SM North EDSA",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -1762,7 +1804,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP Ikot",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -1891,7 +1939,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cogeo - Cubao via Marcos Hi-way",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -2684,7 +2738,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Lagro-Blumentritt",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -3473,7 +3533,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Malinta - Novaliches (TP)",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -4102,7 +4168,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "MONUMENTO-MUNOZ via BALINTAWAK",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -4551,7 +4623,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "MCU - Sangandaan",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -4764,7 +4842,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Malabon - Monumento via Letre",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -5249,7 +5333,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Sangandaan-Divisoria",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -5742,7 +5832,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Sangandaan-Divisoria Papunta",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -5879,7 +5975,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Balintawak-Monumento",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -6132,7 +6234,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Monumento-Meycauayan",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -6965,7 +7073,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "San Juan-Rosario",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -7358,7 +7472,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "A. Bonifacio - A. Mabini via 10th Avenue",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -7407,7 +7527,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cubao - Divisoria",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -8324,7 +8450,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Commonwealth Market - Quiapo",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -9369,7 +9501,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Philcoa - Pier",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -10554,7 +10692,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "MCU - Pasay Rotonda",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -12011,7 +12155,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Karuhatan - Sta. Cruz",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -12540,7 +12690,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Malanday - Sta. Cruz",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -13897,7 +14053,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Malinta - Sta. Cruz",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -14902,7 +15064,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cubao - Roces",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -15343,7 +15511,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cubao - Proj. 4",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -15916,7 +16090,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "UP - TOKI",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -16273,7 +16453,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "LAGRO-ANONAS",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -17862,7 +18048,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cubao - Lagro via East Ave",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -19487,7 +19679,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Philcoa - Quiapo",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -20560,7 +20758,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Blumentritt - Sta. Quiteria",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -21677,7 +21881,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Proj. 6 - T.M. Kalaw via Quezon Ave.",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -22610,7 +22820,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "BLUMENTRITT - NOVALICHES",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -24363,7 +24579,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "CUBAO KALAYAAN - SM LAGRO",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -25812,7 +26034,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "PROJECT 2 and 3 - QUIAPO",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -27097,7 +27325,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "PIER SOUTH-FAIRVIEW DAHLIA-PHILCOA",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -28742,7 +28976,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Fairview Dahlia - Quiapo",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -30135,7 +30375,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Commonwealth Market - Pier South",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -31800,7 +32046,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Proj 2 3 Welcome Rtda",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -32613,7 +32865,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "DIVISORIA - SAN JUAN via CM RECTO",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -33526,7 +33784,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Pasig-Quiapo via Sta Mesa",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -35739,7 +36003,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": true,
+        "loop": false,
+        "oneway": false,
+        "route_name": "Divisoria - Punta via Sta. Mesa",
+        "operator": "",
+        "notes": "[auto: set bidirectional]",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -36752,7 +37022,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Punta - Quiapo (Barbosa) via Sta. Mesa",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -37513,7 +37789,13 @@
         "last_updated": "2026-03-22",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "QUIAPO - BACOOD",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -38074,7 +38356,13 @@
         "last_updated": null,
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cubao - Stop n Shop",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -38451,7 +38739,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Proj. 8 - T.M. Kalaw via Quezon Ave.",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -39664,7 +39958,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Cubao - Remedios via Quiapo, L. Guinto",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -40633,7 +40933,13 @@
         "last_updated": "2026-03-15",
         "type": "jeep",
         "mode": "jeep",
-        "bidirectional": true
+        "bidirectional": false,
+        "loop": true,
+        "oneway": true,
+        "route_name": "Marikina - Pasig",
+        "operator": "",
+        "notes": "",
+        "speed_kmh": 25.0
       },
       "geometry": {
         "type": "MultiLineString",
@@ -42407,5 +42713,23 @@
         ]
       }
     }
-  ]
+  ],
+  "metadata": {
+    "standardized": "2026-07-30T15:44:52.477472",
+    "processor": "prepare_geojson.py v2.0",
+    "stats": {
+      "total": 51,
+      "jeep": 51,
+      "bus": 0,
+      "train": 0,
+      "lrt": 0,
+      "mrt": 0,
+      "uv_express": 0,
+      "ferry": 0,
+      "other": 0,
+      "loops": 40,
+      "bidirectional": 0,
+      "oneway": 51
+    }
+  }
 }

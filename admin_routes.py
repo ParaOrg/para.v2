@@ -1,363 +1,749 @@
 """
-Admin Dashboard API Routes
-- Traffic heatmap, Route inspector, GIS tools, Telemetry
+admin_routes.py - Admin endpoints for route management
 """
 
-import sqlite3
+from fastapi import APIRouter, HTTPException, Response, Query
 import json
 import os
+import glob
 import csv
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
-from typing import Optional
+import io
+import time
+from pathlib import Path
+from typing import List, Dict, Any, Optional
 
-admin_router = APIRouter()
-_csv_cache = None
+router = APIRouter(prefix="/admin", tags=["admin"])
 
-# ── helpers ──────────────────────────────────────────────
-def _get_db(request):
-    return sqlite3.connect(request.app.state.db_path)
+# Resolve the data directory relative to this file's location
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "geojson_data"
 
-# ==========================================================
-# TRAFFIC
-# ==========================================================
-@admin_router.get("/traffic/summary")
-async def traffic_summary(request: Request):
-    db = _get_db(request)
-    cur = db.cursor()
-    cur.execute("SELECT COUNT(*) FROM telemetry_pings WHERE date(timestamp)=date('now')")
-    pings_today = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(DISTINCT device_id) FROM telemetry_pings WHERE timestamp>=datetime('now','-1 hour')")
-    active = cur.fetchone()[0]
-    cur.execute("SELECT AVG(congestion_factor),COUNT(*) FROM traffic_segments WHERE last_updated>=datetime('now','-30 minutes')")
-    avg_c, segs = cur.fetchone()
-    cur.execute("""
-        SELECT SUM(CASE WHEN congestion_factor<1.2 THEN 1 ELSE 0 END),
-               SUM(CASE WHEN congestion_factor>=1.2 AND congestion_factor<2.0 THEN 1 ELSE 0 END),
-               SUM(CASE WHEN congestion_factor>=2.0 AND congestion_factor<3.0 THEN 1 ELSE 0 END),
-               SUM(CASE WHEN congestion_factor>=3.0 THEN 1 ELSE 0 END)
-        FROM traffic_segments WHERE last_updated>=datetime('now','-30 minutes')
-    """)
-    sev = cur.fetchone()
-    db.close()
-    return {"pings_today":pings_today,"active_devices":active,"avg_congestion":round(avg_c or 1,2),
-            "congested_segments":segs,"severity_breakdown":{"free_flow":sev[0]or 0,"moderate":sev[1]or 0,"heavy":sev[2]or 0,"severe":sev[3]or 0}}
+# Cache for route data
+_route_cache = None
+_route_cache_time = 0
+CACHE_TTL = 30  # seconds
 
-@admin_router.get("/traffic/segments")
-async def list_segments(request: Request, route: Optional[str]=None, limit: int=100):
-    db = _get_db(request)
-    cur = db.cursor()
-    if route:
-        cur.execute("SELECT route_name,from_node,to_node,observed_speed_kmh,observation_count,congestion_factor,last_updated FROM traffic_segments WHERE route_name=? AND last_updated>=datetime('now','-1 hour') ORDER BY congestion_factor DESC LIMIT ?",(route,limit))
-    else:
-        cur.execute("SELECT route_name,from_node,to_node,observed_speed_kmh,observation_count,congestion_factor,last_updated FROM traffic_segments WHERE last_updated>=datetime('now','-1 hour') ORDER BY congestion_factor DESC LIMIT ?",(limit,))
-    rows = cur.fetchall()
-    db.close()
-    return {"segments":[{"route_name":r[0],"from_node":r[1],"to_node":r[2],"observed_speed_kmh":round(r[3],1)if r[3]else None,"observation_count":r[4],"congestion_factor":round(r[5],2),"last_updated":r[6]}for r in rows],"count":len(rows)}
 
-# ==========================================================
-# ROUTE LISTS
-# ==========================================================
-@admin_router.get("/routes/csv")
-async def get_csv_routes():
-    global _csv_cache
-    if _csv_cache:
-        return _csv_cache
-    paths = [os.path.join(os.path.dirname(os.path.abspath(__file__)),"geojson_data","full_jeepney_routes.csv"),
-             os.path.join("geojson_data","full_jeepney_routes.csv")]
-    fp = next((p for p in paths if os.path.exists(p)), None)
-    if not fp:
-        return {"routes":[],"count":0,"error":"CSV not found"}
-    seen, routes = set(), []
-    with open(fp, encoding='utf-8') as f:
-        for row in csv.DictReader(f):
-            name = row.get("route_long_name","").strip()
-            if name and name.lower() not in seen:
-                seen.add(name.lower())
-                routes.append({"route_id":row.get("route_id","").strip(),"route_name":name,"agency":row.get("agency_id","").strip()})
-    _csv_cache = {"routes":routes,"count":len(routes)}
-    return _csv_cache
+def get_data_dir() -> Path:
+    """Get the geojson data directory, creating if needed"""
+    if not DATA_DIR.exists():
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    return DATA_DIR
 
-@admin_router.post("/routes/reload")
-async def reload_csv():
-    global _csv_cache
-    _csv_cache = None
-    return {"status":"ok"}
 
-@admin_router.get("/routes/verified")
-async def get_verified_routes(request: Request):
-    """Return routes from graph that match GeoJSON feature names (auto-detected, no walk paths)."""
-    G = request.app.state.G
+def get_all_routes(refresh: bool = False) -> List[Dict[str, Any]]:
+    """Get all routes from GeoJSON files with caching"""
+    global _route_cache, _route_cache_time
     
-    # Collect verified route names from all GeoJSON files
-    verified_names = set()
-    skip_types = {'walk', 'WALK_TRANSFER', 'WALK_TO_TRANSIT', 'WALK_FROM_TRANSIT'}
-    geojson_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "geojson_data")
-    if os.path.exists(geojson_dir):
-        for fname in os.listdir(geojson_dir):
-            if fname.endswith(".geojson"):
-                try:
-                    with open(os.path.join(geojson_dir, fname), encoding='utf-8') as f:
-                        data = json.load(f)
-                    for feat in data.get("features", []):
-                        props = feat.get("properties", {})
-                        name = props.get("route_long_name") or props.get("name", "")
-                        ftype = props.get("type", "")
-                        if name.strip() and ftype not in skip_types:
-                            verified_names.add(name.strip())
-                except:
-                    pass
+    if not refresh and _route_cache is not None and (time.time() - _route_cache_time) < CACHE_TTL:
+        return _route_cache
     
-    routes = {}
-    for u,v,d in G.edges(data=True):
-        r = d.get('route','')
-        t = d.get('type','')
-        if r not in verified_names or t in skip_types:
-            continue
-        if r not in routes:
-            routes[r] = []
-        ul, vl = G.nodes[u], G.nodes[v]
-        routes[r].append([[ul.get('lng'),ul.get('lat')],[vl.get('lng'),vl.get('lat')]])
+    data_dir = get_data_dir()
+    routes = []
+    geojson_files = sorted(data_dir.glob("*.geojson"))
     
-    out = [{"key":k,"name":k,"edge_count":len(v)} for k,v in sorted(routes.items())]
-    return {"routes":out,"count":len(out)}
-
-@admin_router.get("/routes/geojson")
-async def get_raw_geojson():
-    """Serve routes.geojson directly — like opening in QGIS."""
-    fp = os.path.join(os.path.dirname(os.path.abspath(__file__)),"geojson_data","routes.geojson")
-    if not os.path.exists(fp):
-        return JSONResponse(status_code=404, content={"error":"routes.geojson not found"})
-    with open(fp, encoding='utf-8') as f:
-        return json.load(f)
-
-@admin_router.get("/routes/geometry/{route_name:path}")
-async def get_route_geometry(request: Request, route_name: str):
-    G = request.app.state.G
+    # Filter out backup files
+    geojson_files = [f for f in geojson_files if ".bak" not in f.name]
     
-    # Collect all edges for this route
-    edges = []
-    for u,v,d in G.edges(data=True):
-        if d.get('route','') == route_name:
-            ul, vl = G.nodes[u], G.nodes[v]
-            edges.append({
-                "from": [ul.get('lng'), ul.get('lat')],
-                "to": [vl.get('lng'), vl.get('lat')]
-            })
+    if not geojson_files:
+        print(f"⚠️ No GeoJSON files found in {data_dir}")
+        return routes
     
-    if not edges:
-        return JSONResponse(status_code=404, content={"error": "Route not found"})
+    print(f"📂 Loading {len(geojson_files)} GeoJSON files from {data_dir}")
     
-    # Sort edges to follow the path: each edge's "from" should connect to previous "to"
-    if len(edges) > 1:
-        sorted_edges = [edges[0]]
-        remaining = edges[1:]
-        while remaining:
-            last = sorted_edges[-1]["to"]
-            # Find edge that starts where last one ended
-            best_idx = 0
-            best_dist = float('inf')
-            for i, e in enumerate(remaining):
-                d = ((e["from"][0]-last[0])**2 + (e["from"][1]-last[1])**2)**0.5
-                if d < best_dist:
-                    best_dist = d
-                    best_idx = i
-            sorted_edges.append(remaining.pop(best_idx))
-        edges = sorted_edges
-    
-    all_coords = [edges[0]["from"]]
-    for e in edges:
-        all_coords.append(e["to"])
-    
-    return {
-        "type": "Feature",
-        "geometry": {"type": "LineString", "coordinates": all_coords},
-        "properties": {"route_name": route_name, "edge_count": len(edges)}
-    }
-# ==========================================================
-# GIS TOOLS
-# ==========================================================
-@admin_router.get("/routes")
-async def list_routes(request: Request):
-    G = request.app.state.G
-    skip = {'WALK_TRANSFER','WALK_TO_TRANSIT','WALK_FROM_TRANSIT'}
-    names = {d.get('route','') for _,_,d in G.edges(data=True) if d.get('route','') not in skip}
-    return {"routes":sorted(names),"count":len(names)}
-
-@admin_router.get("/routes/{route_name}/edges")
-async def get_route_edges(request: Request, route_name: str):
-    G = request.app.state.G
-    edges = []
-    for u,v,d in G.edges(data=True):
-        if d.get('route','').lower() == route_name.lower():
-            ul, vl = G.nodes[u], G.nodes[v]
-            edges.append({"from_node":u,"to_node":v,"from_coords":[ul['lat'],ul['lng']],"to_coords":[vl['lat'],vl['lng']],"distance_m":round(d.get('distance',0),1),"time_min":round(d.get('time_min',0),1),"type":d.get('type','jeep'),"routing_weight":round(d.get('routing_weight',0),2)})
-    return {"route_name":route_name,"edges":edges,"count":len(edges)}
-
-@admin_router.post("/routes/flip")
-async def flip_edge(request: Request):
-    body = await request.json()
-    u, v = body.get('from_node'), body.get('to_node')
-    if not u or not v:
-        return JSONResponse(400,{"error":"from_node and to_node required"})
-    G = request.app.state.G
-    if not G.has_edge(u,v):
-        return JSONResponse(404,{"error":"Edge not found"})
-    data = dict(G.edges[u,v])
-    G.remove_edge(u,v)
-    G.add_edge(v,u,**data)
-    return {"status":"flipped","new_from":v,"new_to":u,"route":data.get('route','')}
-
-@admin_router.post("/routes/rename")
-async def rename_route(request: Request):
-    body = await request.json()
-    old, new = body.get('old_name'), body.get('new_name')
-    if not old or not new:
-        return JSONResponse(400,{"error":"old_name and new_name required"})
-    G = request.app.state.G
-    n = 0
-    for u,v,d in G.edges(data=True):
-        if d.get('route','') == old:
-            G.edges[u,v]['route'] = new
-            n += 1
-    return {"status":"renamed","old_name":old,"new_name":new,"edges_renamed":n}
-
-# ==========================================================
-# TELEMETRY & GRAPH STATS
-# ==========================================================
-@admin_router.get("/telemetry/recent")
-async def recent_pings(request: Request, limit: int=50):
-    db = _get_db(request)
-    cur = db.cursor()
-    cur.execute("SELECT device_id,lat,lng,speed_kmh,heading,timestamp,trip_id FROM telemetry_pings ORDER BY timestamp DESC LIMIT ?",(limit,))
-    rows = cur.fetchall()
-    db.close()
-    return {"pings":[{"device_id":r[0],"lat":r[1],"lng":r[2],"speed_kmh":r[3],"heading":r[4],"timestamp":r[5],"trip_id":r[6]}for r in rows],"count":len(rows)}
-
-@admin_router.get("/graph/stats")
-async def graph_stats(request: Request):
-    G = request.app.state.G
-    vc = {}
-    for _,_,d in G.edges(data=True):
-        t = d.get('type','unknown')
-        vc[t] = vc.get(t,0) + 1
-    return {"nodes":G.number_of_nodes(),"edges":G.number_of_edges(),"vehicle_types":vc,"is_directed":G.is_directed()}
-@admin_router.post("/routes/custom")
-async def save_custom_route(request: Request):
-    body = await request.json()
-    name = body.get("name", "Custom Route")
-    stops = json.dumps(body.get("stops", []))
-    path_nodes = json.dumps(body.get("path_nodes", []))
-    total_fare = body.get("total_fare", 0)
-    total_time = body.get("total_time", 0)
-    created_by = body.get("created_by", "anonymous")
-    
-    db = sqlite3.connect(request.app.state.db_path)
-    db.execute("INSERT INTO custom_routes(name, stops, path_nodes, total_fare, total_time, created_by, created_at) VALUES(?,?,?,?,?,?,datetime('now'))",
-               (name, stops, path_nodes, total_fare, total_time, created_by))
-    db.commit()
-    route_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
-    db.close()
-    return {"status": "ok", "id": route_id}
-
-@admin_router.get("/routes/custom")
-async def list_custom_routes(request: Request):
-    db = sqlite3.connect(request.app.state.db_path)
-    rows = db.execute("SELECT id, name, stops, total_fare, total_time, created_by, created_at FROM custom_routes ORDER BY created_at DESC").fetchall()
-    db.close()
-    return {"routes": [{"id": r[0], "name": r[1], "stops": json.loads(r[2]), "total_fare": r[3], "total_time": r[4], "created_by": r[5], "created_at": r[6]} for r in rows]}
-
-@admin_router.post("/routes/chain")
-async def chain_routes(request: Request):
-    """Chain multiple verified routes together and return combined result."""
-    body = await request.json()
-    route_names = body.get("routes", [])
-    if len(route_names) < 2:
-        return JSONResponse(400, {"error": "Need at least 2 routes to chain"})
-    
-    G = request.app.state.G
-    
-    all_coords = []
-    total_dist = 0
-    total_time = 0
-    total_fare = 0
-    segments = []
-    
-    for name in route_names:
-        # Collect edges for this route
-        edges = []
-        for u, v, d in G.edges(data=True):
-            if d.get('route', '') == name:
-                ul, vl = G.nodes[u], G.nodes[v]
-                edges.append({
-                    "from": [ul.get('lng'), ul.get('lat')],
-                    "to": [vl.get('lng'), vl.get('lat')],
-                    "dist": d.get('distance', 0),
-                    "time": d.get('time_min', 0)
+    for filepath in geojson_files:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            for idx, feature in enumerate(data.get("features", [])):
+                props = feature.get("properties", {})
+                geom = feature.get("geometry", {})
+                
+                # Extract coordinates
+                coords = []
+                if geom.get("type") == "MultiLineString":
+                    coords = geom.get("coordinates", [])
+                elif geom.get("type") == "LineString":
+                    coords = [geom.get("coordinates", [])]
+                
+                # Get route name
+                route_name = (
+                    props.get("route_long_name") or 
+                    props.get("route_name") or 
+                    props.get("name") or 
+                    f"Route {idx}"
+                )
+                
+                # Determine vehicle type
+                vehicle_type = props.get("type") or props.get("mode") or "jeep"
+                
+                routes.append({
+                    "file": filepath.name,
+                    "index": idx,
+                    "name": route_name,
+                    "mode": vehicle_type,
+                    "oneway": props.get("oneway", False),
+                    "bidirectional": props.get("bidirectional", False),
+                    "loop": props.get("loop", False),
+                    "coordinates": coords,
+                    "properties": props,
+                    "key": route_name,
                 })
-        
-        if not edges:
-            continue
-        
-        # Sort edges end-to-end
-        if len(edges) > 1:
-            sorted_edges = [edges[0]]
-            remaining = edges[1:]
-            while remaining:
-                last = sorted_edges[-1]["to"]
-                best_idx = 0
-                best_dist = float('inf')
-                for i, e in enumerate(remaining):
-                    d = ((e["from"][0]-last[0])**2 + (e["from"][1]-last[1])**2)**0.5
-                    if d < best_dist:
-                        best_dist = d
-                        best_idx = i
-                sorted_edges.append(remaining.pop(best_idx))
-            edges = sorted_edges
-        
-        # Build coordinates
-        route_coords = [edges[0]["from"]]
-        route_dist = 0
-        route_time = 0
-        for e in edges:
-            route_coords.append(e["to"])
-            route_dist += e["dist"]
-            route_time += e["time"]
-        
-        all_coords.extend(route_coords)
-        total_dist += route_dist
-        total_time += route_time
-        total_fare += 13  # base jeepney fare per route
-        segments.append({
-            "name": name,
-            "distance_km": round(route_dist/1000, 2),
-            "time_min": round(route_time, 1)
+        except Exception as e:
+            print(f"⚠️ Error reading {filepath}: {e}")
+    
+    _route_cache = routes
+    _route_cache_time = time.time()
+    
+    print(f"✅ Loaded {len(routes)} routes from {len(geojson_files)} files")
+    return routes
+
+
+def _find_route_file(filename: str) -> Path:
+    """Find a GeoJSON file by name"""
+    data_dir = get_data_dir()
+    filepath = data_dir / filename
+    
+    if not filepath.exists():
+        # Try without .geojson extension
+        if not filename.endswith(".geojson"):
+            filepath = data_dir / f"{filename}.geojson"
+    
+    if not filepath.exists():
+        raise HTTPException(404, f"File not found: {filename}")
+    
+    return filepath
+
+
+# ============ GET ENDPOINTS ============
+
+@router.get("/routes/list")
+def list_routes(refresh: bool = Query(False, description="Force refresh cache")):
+    """List all available routes with metadata"""
+    routes = get_all_routes(refresh=refresh)
+    
+    simplified = []
+    for route in routes:
+        simplified.append({
+            "file": route.get("file", ""),
+            "index": route.get("index", 0),
+            "name": route.get("name", ""),
+            "mode": route.get("mode", ""),
+            "oneway": route.get("oneway", False),
+            "bidirectional": route.get("bidirectional", False),
+            "loop": route.get("loop", False),
         })
     
-    if not all_coords:
-        return JSONResponse(404, {"error": "No geometry found for these routes"})
+    return {"routes": simplified, "total": len(simplified)}
+
+
+@router.get("/routes/geojson")
+def get_routes_geojson(refresh: bool = Query(False)):
+    """Get all routes as a single GeoJSON FeatureCollection"""
+    routes = get_all_routes(refresh=refresh)
     
-    # Remove duplicate consecutive coordinates
-    uniq = [all_coords[0]]
-    for c in all_coords[1:]:
-        if c != uniq[-1]:
-            uniq.append(c)
+    features = []
+    for route in routes:
+        coords = route.get("coordinates", [])
+        if not coords:
+            continue
+        
+        # Use MultiLineString if multiple segments, LineString otherwise
+        if len(coords) > 1:
+            geometry = {"type": "MultiLineString", "coordinates": coords}
+        else:
+            geometry = {"type": "LineString", "coordinates": coords[0]}
+        
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "route_long_name": route.get("name", ""),
+                "name": route.get("name", ""),
+                "mode": route.get("mode", ""),
+                "oneway": route.get("oneway", False),
+                "bidirectional": route.get("bidirectional", False),
+                "loop": route.get("loop", False),
+                "file": route.get("file", ""),
+            },
+            "geometry": geometry,
+        })
     
     return {
-        "success": True,
-        "total_distance_km": round(total_dist/1000, 2),
-        "total_time_min": round(total_time, 1),
-        "total_fare": round(total_fare, 0),
-        "segments": segments,
-        "geometry": {
-            "type": "LineString",
-            "coordinates": uniq
-        }
+        "type": "FeatureCollection",
+        "features": features,
+        "total": len(features),
     }
 
-@admin_router.get("/debug/paths")
-async def debug_paths():
-    base = os.path.dirname(os.path.abspath(__file__))
-    gd = os.path.join(base,"geojson_data")
-    files = os.listdir(gd) if os.path.exists(gd) else []
-    return {"base":base,"geojson_dir":gd,"exists":os.path.exists(gd),"files":files,"csv_exists":os.path.exists(os.path.join(gd,"full_jeepney_routes.csv"))}
+
+@router.get("/routes/verified")
+def get_verified_routes():
+    """Get routes that have been manually verified (have 'verified' flag in properties)"""
+    all_routes = get_all_routes()
+    verified = []
+    
+    for r in all_routes:
+        props = r.get("properties", {})
+        # A route is "verified" if it has the verified flag or was manually edited
+        if props.get("verified") or props.get("last_updated"):
+            verified.append({
+                "name": r.get("name", ""),
+                "key": r.get("name", ""),
+                "mode": r.get("mode", "jeep"),
+                "file": r.get("file", ""),
+                "oneway": r.get("oneway", False),
+                "bidirectional": r.get("bidirectional", False),
+                "last_updated": props.get("last_updated", ""),
+            })
+    
+    return {"routes": verified, "total": len(verified)}
+
+
+@router.get("/routes/csv")
+def get_routes_csv():
+    """Export all routes as CSV file"""
+    routes = get_all_routes()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow([
+        "route_id", "name", "mode", "oneway", "bidirectional", 
+        "loop", "file", "index"
+    ])
+    
+    for i, route in enumerate(routes):
+        writer.writerow([
+            f"ROUTE_{i + 1}",
+            route.get("name", ""),
+            route.get("mode", ""),
+            route.get("oneway", False),
+            route.get("bidirectional", False),
+            route.get("loop", False),
+            route.get("file", ""),
+            route.get("index", 0),
+        ])
+    
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=routes_export.csv"}
+    )
+
+
+@router.get("/routes/stats")
+def get_route_stats():
+    """Get statistics about all routes"""
+    routes = get_all_routes()
+    
+    total_files = len(set(r.get("file") for r in routes))
+    total_routes = len(routes)
+    
+    route_types = {}
+    oneway_count = 0
+    bidirectional_count = 0
+    loop_count = 0
+    verified_count = 0
+    
+    for route in routes:
+        mode = route.get("mode", "unknown")
+        route_types[mode] = route_types.get(mode, 0) + 1
+        
+        if route.get("oneway", False):
+            oneway_count += 1
+        if route.get("bidirectional", False):
+            bidirectional_count += 1
+        if route.get("loop", False):
+            loop_count += 1
+        if route.get("properties", {}).get("verified"):
+            verified_count += 1
+    
+    return {
+        "total_files": total_files,
+        "total_routes": total_routes,
+        "route_types": route_types,
+        "oneway_count": oneway_count,
+        "bidirectional_count": bidirectional_count,
+        "loop_count": loop_count,
+        "verified_count": verified_count,
+    }
+
+# Add these endpoints to admin_routes.py (before the POST endpoints section)
+
+@router.get("/routes")
+def get_routes_root():
+    """Redirect alias - same as /admin/routes/list"""
+    return list_routes()
+
+
+@router.get("/graph/stats")
+def get_graph_stats():
+    """Get graph statistics from the running graph instance"""
+    # Try to import the graph from main module
+    try:
+        import sys
+        if "main" in sys.modules:
+            main_module = sys.modules["main"]
+            if hasattr(main_module, "G") and main_module.G is not None:
+                G = main_module.G
+                graph_stats = G.graph.get("stats", {})
+                return {
+                    "status": "ok",
+                    "nodes": G.number_of_nodes(),
+                    "edges": G.number_of_edges(),
+                    "routes": len(G.graph.get("route_nodes", {})),
+                    "build_time": graph_stats.get("build_time", 0),
+                    "transfers": graph_stats.get("transfers", 0),
+                }
+    except Exception as e:
+        print(f"⚠️ Could not get graph stats: {e}")
+    
+    # Fallback: return what we know from routes
+    routes = get_all_routes()
+    return {
+        "status": "fallback",
+        "routes_loaded": len(routes),
+        "files_loaded": len(set(r.get("file") for r in routes)),
+        "note": "Graph stats only available when server is running with graph loaded"
+    }
+# ============ ADDITIONAL MISSING ENDPOINTS ============
+
+@router.get("/routes/geometry/{name:path}")
+def get_route_geometry(name: str):
+    """Get geometry for a specific route by name"""
+    routes = get_all_routes()
+    
+    for route in routes:
+        if route.get("name", "").lower() == name.lower():
+            return {
+                "name": route["name"],
+                "geometry": route.get("coordinates", []),
+                "mode": route.get("mode", ""),
+            }
+    
+    raise HTTPException(404, f"Route not found: {name}")
+
+
+@router.post("/routes/rename")
+def rename_route(file: str = Query(...), index: int = Query(...), new_name: str = Query(...)):
+    """Rename a route"""
+    filepath = _find_route_file(file)
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        if index >= len(data["features"]):
+            raise HTTPException(404, f"Feature index {index} not found")
+        
+        old_name = data["features"][index]["properties"].get("route_long_name", "")
+        data["features"][index]["properties"]["route_long_name"] = new_name
+        data["features"][index]["properties"]["route_name"] = new_name
+        data["features"][index]["properties"]["name"] = new_name
+        data["features"][index]["properties"]["last_updated"] = time.strftime("%Y-%m-%d")
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        global _route_cache
+        _route_cache = None
+        
+        return {
+            "status": "success",
+            "message": f"Renamed: '{old_name}' → '{new_name}'",
+            "old_name": old_name,
+            "new_name": new_name,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Error renaming: {e}")
+
+
+@router.post("/routes/reload")
+def reload_routes():
+    """Reload all routes from disk (clears cache)"""
+    global _route_cache, _route_cache_time
+    _route_cache = None
+    _route_cache_time = 0
+    routes = get_all_routes(refresh=True)
+    return {
+        "status": "success",
+        "message": f"Reloaded {len(routes)} routes from disk",
+        "total": len(routes),
+    }
+
+
+@router.get("/telemetry/recent")
+def get_recent_telemetry(limit: int = Query(20, ge=1, le=100)):
+    """Get recent telemetry/route search data"""
+    # Placeholder - connect to your telemetry database
+    return {
+        "searches": [],
+        "total": 0,
+        "note": "Telemetry database not yet connected"
+    }
+
+
+@router.post("/routes/chain")
+def chain_routes(routes: str = Query(...)):
+    """Chain multiple routes together into a single path"""
+    # Parse the routes parameter (comma-separated or repeated)
+    route_names = [r.strip() for r in routes.split(",")]
+    
+    all_routes = get_all_routes()
+    found_routes = []
+    
+    for name in route_names:
+        for r in all_routes:
+            if r.get("name", "").lower() == name.lower():
+                found_routes.append(r)
+                break
+    
+    if not found_routes:
+        raise HTTPException(404, "No matching routes found")
+    
+    combined_geometry = []
+    for r in found_routes:
+        coords = r.get("coordinates", [])
+        if coords:
+            combined_geometry.extend(coords)
+    
+    return {
+        "routes": [r["name"] for r in found_routes],
+        "combined_geometry": combined_geometry,
+        "total_routes": len(found_routes),
+    }
+
+
+@router.post("/routes/custom")
+def create_custom_route(data: Dict[str, Any]):
+    """Create a custom route from provided data"""
+    # Placeholder for custom route creation
+    return {
+        "status": "received",
+        "message": "Custom route creation not yet implemented",
+        "data_keys": list(data.keys()),
+    }
+
+# ============ POST ENDPOINTS ============
+
+@router.post("/routes/flip")
+def flip_route(file: str = Query(...), index: int = Query(...)):
+    """Flip a route's direction (reverse the geometry)"""
+    filepath = _find_route_file(file)
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        if index >= len(data["features"]):
+            raise HTTPException(404, f"Feature index {index} not found (max: {len(data['features']) - 1})")
+        
+        feature = data["features"][index]
+        geom = feature["geometry"]
+        
+        if geom["type"] == "LineString":
+            geom["coordinates"] = geom["coordinates"][::-1]
+        elif geom["type"] == "MultiLineString":
+            geom["coordinates"] = [line[::-1] for line in geom["coordinates"]]
+        else:
+            raise HTTPException(400, f"Unsupported geometry type: {geom['type']}")
+        
+        # Update properties
+        feature["properties"]["oneway"] = True
+        feature["properties"]["bidirectional"] = False
+        feature["properties"]["last_updated"] = time.strftime("%Y-%m-%d")
+        feature["properties"]["verified"] = True
+        
+        # Create backup before saving
+        backup_path = filepath.with_suffix(f".geojson.bak.{time.strftime('%Y%m%d_%H%M%S')}")
+        with open(backup_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        # Invalidate cache
+        global _route_cache
+        _route_cache = None
+        
+        route_name = feature["properties"].get("route_long_name") or feature["properties"].get("name", "Route")
+        
+        return {
+            "status": "success",
+            "message": f"🔄 Flipped: {route_name}",
+            "file": file,
+            "index": index,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Error flipping route: {e}")
+
+
+@router.post("/routes/toggle-oneway")
+def toggle_oneway(file: str = Query(...), index: int = Query(...)):
+    """Toggle one-way/bidirectional status of a route"""
+    filepath = _find_route_file(file)
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        if index >= len(data["features"]):
+            raise HTTPException(404, f"Feature index {index} not found")
+        
+        feature = data["features"][index]
+        props = feature["properties"]
+        
+        current_oneway = props.get("oneway", False)
+        props["oneway"] = not current_oneway
+        props["bidirectional"] = current_oneway  # Flip bidirectional too
+        props["last_updated"] = time.strftime("%Y-%m-%d")
+        props["verified"] = True
+        
+        # Create backup
+        backup_path = filepath.with_suffix(f".geojson.bak.{time.strftime('%Y%m%d_%H%M%S')}")
+        with open(backup_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        
+        global _route_cache
+        _route_cache = None
+        
+        route_name = props.get("route_long_name") or props.get("name", "Route")
+        new_status = "one-way" if not current_oneway else "bidirectional"
+        
+        return {
+            "status": "success",
+            "message": f"🔀 {route_name}: now {new_status}",
+            "file": file,
+            "index": index,
+            "oneway": not current_oneway,
+            "bidirectional": current_oneway,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Error toggling: {e}")
+
+
+@router.post("/routes/refresh")
+def refresh_routes():
+    """Force refresh the route cache"""
+    global _route_cache, _route_cache_time
+    _route_cache = None
+    _route_cache_time = 0
+    routes = get_all_routes(refresh=True)
+    return {
+        "status": "success",
+        "message": f"Cache refreshed: {len(routes)} routes loaded",
+        "total": len(routes),
+    }
+@router.post("/routes/save")
+def save_route(data: Dict[str, Any]):
+    """Save a crowdsourced route to geojson_data/"""
+    import time
+    features = data.get("features", [])
+    if not features:
+        raise HTTPException(400, "No features in GeoJSON")
+    
+    route_name = features[0]["properties"].get("route_long_name", "unknown_route")
+    safe_name = route_name.replace(" ", "_").replace("/", "-")[:50]
+    filename = f"community_{safe_name}_{int(time.time())}.geojson"
+    pending_dir = DATA_DIR.parent / "pending_routes"
+    pending_dir.mkdir(exist_ok=True)
+    filepath = pending_dir / filename
+    
+    # Add metadata
+    data["metadata"] = {
+        "source": "community",
+        "saved_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "status": "pending_review",
+    "approved": false
+    }
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    # Invalidate cache
+    global _route_cache
+    _route_cache = None
+    
+    return {
+        "status": "success",
+        "message": f"Route saved: {filename}",
+        "file": filename,
+        "route_name": route_name
+    }
+@router.get("/pending/list")
+def list_pending_routes():
+    """List all pending community-submitted routes awaiting approval"""
+    pending_dir = DATA_DIR.parent / "pending_routes"
+    pending_dir.mkdir(exist_ok=True)
+    
+    routes = []
+    for fp in sorted(pending_dir.glob("*.geojson"), reverse=True):
+        try:
+            with open(fp) as f:
+                data = json.load(f)
+            feat = data.get("features", [{}])[0]
+            props = feat.get("properties", {})
+            routes.append({
+                "file": fp.name,
+                "name": props.get("route_long_name", "Unknown"),
+                "type": props.get("type", "jeep"),
+                "bidirectional": props.get("bidirectional", False),
+                "loop": props.get("loop", False),
+                "status": data.get("metadata", {}).get("status", "pending"),
+                "saved_at": data.get("metadata", {}).get("saved_at", ""),
+                "coords_count": len(feat.get("geometry", {}).get("coordinates", [])),
+            })
+        except:
+            pass
+    
+    return {"routes": routes, "total": len(routes)}
+
+@router.get("/pending/geojson/{filename}")
+def get_pending_geojson(filename: str):
+    """Get a specific pending route's GeoJSON for review"""
+    pending_dir = DATA_DIR.parent / "pending_routes"
+    filepath = pending_dir / filename
+    if not filepath.exists():
+        raise HTTPException(404, "File not found")
+    with open(filepath) as f:
+        return json.load(f)
+
+@router.post("/pending/approve")
+def approve_route(filename: str = Query(...)):
+    """Approve a pending route - moves it to geojson_data/"""
+    pending_dir = DATA_DIR.parent / "pending_routes"
+    filepath = pending_dir / filename
+    if not filepath.exists():
+        raise HTTPException(404, "File not found")
+    
+    # Read and update metadata
+    with open(filepath) as f:
+        data = json.load(f)
+    
+    data["metadata"]["status"] = "approved"
+    data["metadata"]["approved_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    data["metadata"]["verified"] = True
+    
+    # Mark features as verified
+    for feat in data.get("features", []):
+        feat["properties"]["verified"] = True
+        feat["properties"]["source"] = "community_approved"
+    
+    # Move to geojson_data/
+    dest = DATA_DIR / filename
+    with open(dest, 'w') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    # Remove from pending
+    filepath.unlink()
+    
+    global _route_cache
+    _route_cache = None
+    
+    return {"status": "success", "message": f"Approved: {filename} → geojson_data/"}
+
+@router.post("/pending/reject")
+def reject_route(filename: str = Query(...), reason: str = Query("")):
+    """Reject a pending route"""
+    pending_dir = DATA_DIR.parent / "pending_routes"
+    filepath = pending_dir / filename
+    if not filepath.exists():
+        raise HTTPException(404, "File not found")
+    
+    # Move to rejected folder
+    rejected_dir = DATA_DIR.parent / "rejected_routes"
+    rejected_dir.mkdir(exist_ok=True)
+    
+    with open(filepath) as f:
+        data = json.load(f)
+    data["metadata"]["status"] = "rejected"
+    data["metadata"]["rejected_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    data["metadata"]["rejection_reason"] = reason
+    
+    dest = rejected_dir / filename
+    with open(dest, 'w') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    filepath.unlink()
+    
+    return {"status": "success", "message": f"Rejected: {filename}"}
+
+@router.get("/commute/logs")
+def list_commute_logs():
+    """List all saved commute logs"""
+    log_dir = DATA_DIR.parent / "commute_logs"
+    log_dir.mkdir(exist_ok=True)
+    
+    logs = []
+    for fp in sorted(log_dir.glob("*.json"), reverse=True)[:50]:
+        try:
+            with open(fp) as f:
+                data = json.load(f)
+            logs.append({
+                "file": fp.name,
+                "time": data.get("totalTime", 0),
+                "distance": data.get("distance", 0),
+                "gps_points": len(data.get("gpsTrack", [])),
+                "actions": len(data.get("logs", [])),
+                "route": data.get("routeData", {}).get("message", ""),
+                "saved_at": data.get("saved_at", ""),
+            })
+        except:
+            pass
+    
+    return {"logs": logs, "total": len(logs)}
+@router.post("/commute/save")
+def save_commute_log(data: Dict[str, Any]):
+    """Save a completed commute log with GPS data"""
+    log_dir = DATA_DIR.parent / "commute_logs"
+    log_dir.mkdir(exist_ok=True)
+    
+    filename = f"commute_{int(time.time())}.json"
+    filepath = log_dir / filename
+    
+    data["saved_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    return {
+        "status": "success",
+        "message": f"Commute log saved: {filename}",
+        "gps_points": len(data.get("gpsTrack", [])),
+        "distance_m": data.get("distance", 0),
+        "total_time_s": data.get("totalTime", 0)
+    }
+
+@router.get("/commute/logs")
+def list_commute_logs():
+    """List all saved commute logs"""
+    log_dir = DATA_DIR.parent / "commute_logs"
+    log_dir.mkdir(exist_ok=True)
+    
+    logs = []
+    for fp in sorted(log_dir.glob("*.json"), reverse=True)[:50]:
+        try:
+            with open(fp) as f:
+                d = json.load(f)
+            logs.append({
+                "file": fp.name,
+                "time": d.get("totalTime", 0),
+                "distance": d.get("distance", 0),
+                "gps_points": len(d.get("gpsTrack", [])),
+                "actions": len(d.get("logs", [])),
+                "route": d.get("routeData", {}).get("message", ""),
+                "saved_at": d.get("saved_at", ""),
+            })
+        except: pass
+    
+    return {"logs": logs, "total": len(logs)}
+
