@@ -10,13 +10,10 @@ import os
 
 # Use redis.asyncio
 try:
-    try:
+try:
     import redis.asyncio as redis
 except ImportError:
     redis = None
-except ImportError:
-    redis = None
-
 from api_routes import router as api_router
 from admin_routes import router as admin_router
 from graph_engine import build_transit_graph
