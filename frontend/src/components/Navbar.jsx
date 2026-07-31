@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { to: '/', label: 'Commute' },
   { to: '/explore', label: 'Explore' },
   { to: '/gas-prices', label: 'Gas Prices'}, 
+  { to: '/upload', label: 'Upload' },
   { to: '/admin', label: 'Admin' },
   { to: '/about', label: 'About' },
 ];

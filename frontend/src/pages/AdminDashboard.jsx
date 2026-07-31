@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
+import AdminApproval from "./AdminApproval";
 import "leaflet/dist/leaflet.css";
-import { getApiBaseUrl } from "../config/api";
-import paralogo from "../assets/images/paralogo.png";
+
+const API = "";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -12,301 +12,358 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-const API = getApiBaseUrl();
-const TABS = [
-  { id: "overview", label: "Overview", icon: "📊" },
-  { id: "routes", label: "Route Inspector", icon: "🗺️" },
-  { id: "traffic", label: "Traffic", icon: "🚦" },
-  { id: "telemetry", label: "Telemetry", icon: "📡" },
-  { id: "gis", label: "GIS Tools", icon: "🛠️" },
-];
+const MANILA_CENTER = [14.5995, 120.9842];
+
+const ARROW_CFG = {
+  jeep: { char: "\u279B", size: 18 },
+  jeepney: { char: "\u279B", size: 18 },
+  bus: { char: "\u279D", size: 20 },
+  train: { char: "\u21D2", size: 22 },
+  lrt: { char: "\u21D2", size: 22 },
+  mrt: { char: "\u21D2", size: 22 },
+  uv: { char: "\u279D", size: 18 },
+  default: { char: "\u279B", size: 18 },
+};
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [stats, setStats] = useState(null);
   const [routes, setRoutes] = useState([]);
+  const [stats, setStats] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
   const [selectedRoute, setSelectedRoute] = useState(null);
-  const [message, setMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const adminMapRef = useRef(null);
 
-  const fetchStats = useCallback(async () => {
+  const mapContainerRef = useRef(null);
+  const mapInstance = useRef(null);
+  const routeLayerGroup = useRef(null);
+  const mapInitDone = useRef(false);
+
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const [graphRes, verifiedRes, csvRes] = await Promise.all([
-        fetch(`${API}/admin/graph/stats`).then(r => r.json()),
-        fetch(`${API}/admin/routes/verified`).then(r => r.json()),
-        fetch(`${API}/admin/routes/csv`).then(r => r.json()),
+      const [routesRes, statsRes] = await Promise.all([
+        fetch(`${API}/admin/routes/list`),
+        fetch(`${API}/admin/routes/stats`),
       ]);
-      setStats({ ...graphRes, verified: verifiedRes.count, csv: csvRes.count });
-    } catch {}
-  }, []);
+      const routesData = await routesRes.json();
+      const statsData = statsRes.ok ? await statsRes.json() : {};
+      setRoutes(routesData.routes || []);
+      setStats(statsData || {});
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const fetchRoutes = useCallback(async () => {
-    try {
-      const res = await fetch(`${API}/admin/routes`);
-      const data = await res.json();
-      setRoutes(data.routes || []);
-    } catch {}
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  useEffect(() => { fetchStats(); }, [fetchStats]);
-  useEffect(() => { if (activeTab === "routes") fetchRoutes(); }, [activeTab, fetchRoutes]);
-
-  // Init admin route map
+  // Initialize map - wait for DOM to be ready
   useEffect(() => {
-    if (activeTab !== "routes") return;
-    setTimeout(() => {
-      const el = document.getElementById("admin-route-map");
-      if (!el || adminMapRef.current) return;
-      const map = L.map(el, { zoomControl: true }).setView([14.5995, 120.9842], 12);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-      adminMapRef.current = map;
-    }, 200);
-  }, [activeTab]);
+    if (mapInitDone.current) return;
 
-  const showRoute = (name) => {
-    setSelectedRoute(name);
-    fetch(`${API}/admin/routes/geometry/${encodeURIComponent(name)}`)
-      .then(r => r.json())
-      .then(data => {
-        const map = adminMapRef.current;
-        if (!map) return;
-        // Clear old layers
-        map.eachLayer(l => { if (l instanceof L.Polyline || l instanceof L.Marker || l instanceof L.CircleMarker) map.removeLayer(l); });
-        
-        const coords = data.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
-        
-        // Draw the route
-        L.polyline(coords, { color: "#310775", weight: 4, opacity: 0.9 }).addTo(map);
-        
-        // Start marker
-        L.circleMarker(coords[0], { radius: 6, fillColor: "#22c55e", color: "#fff", weight: 2, fillOpacity: 1 }).addTo(map).bindTooltip("Start");
-        // End marker
-        L.circleMarker(coords[coords.length-1], { radius: 6, fillColor: "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 }).addTo(map).bindTooltip("End");
-        
-        // Directional arrows every N points
-        const step = Math.max(1, Math.floor(coords.length / 10));
-        for (let i = step; i < coords.length - step; i += step) {
-          const prev = coords[i - step];
-          const curr = coords[i];
-          const angle = Math.atan2(curr[1] - prev[1], curr[0] - prev[0]) * 180 / Math.PI;
-          L.marker(curr, {
+    const initMap = () => {
+      const el = document.getElementById("admin-osm-map");
+      if (!el || el.offsetHeight === 0) {
+        // DOM not ready yet, retry
+        setTimeout(initMap, 200);
+        return;
+      }
+
+      console.log("🗺️ Creating map, container size:", el.offsetWidth, "x", el.offsetHeight);
+
+      const map = L.map(el, {
+        zoomControl: true,
+        attributionControl: true,
+      }).setView(MANILA_CENTER, 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap',
+      }).addTo(map);
+
+      mapInstance.current = map;
+      mapInitDone.current = true;
+      console.log("✅ Admin OSM map ready");
+
+      // Fix tile loading issue
+      setTimeout(() => map.invalidateSize(), 500);
+    };
+
+    const timer = setTimeout(initMap, 300);
+    return () => {
+      clearTimeout(timer);
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+        mapInitDone.current = false;
+      }
+    };
+  }, []);
+
+  const inspectRoute = async (route) => {
+    setSelectedRoute(route);
+
+    try {
+      const res = await fetch(`${API}/admin/routes/geojson`);
+      const data = await res.json();
+
+      const feature = data.features?.find(
+        (f) =>
+          f.properties?.route_long_name === route.name ||
+          f.properties?.name === route.name
+      );
+
+      const map = mapInstance.current;
+      if (!map) {
+        console.error("❌ Map not initialized");
+        return;
+      }
+
+      // Clear previous
+      if (routeLayerGroup.current) {
+        map.removeLayer(routeLayerGroup.current);
+      }
+      routeLayerGroup.current = L.layerGroup().addTo(map);
+
+      if (!feature) {
+        L.marker(MANILA_CENTER)
+          .addTo(routeLayerGroup.current)
+          .bindPopup(`<b>${route.name}</b><br>No geometry found`)
+          .openPopup();
+        return;
+      }
+
+      const mode = (route.mode || "jeep").toLowerCase();
+      const arrowCfg = ARROW_CFG[mode] || ARROW_CFG.default;
+
+      const geom = feature.geometry;
+      let allCoords = geom.type === "MultiLineString"
+        ? geom.coordinates
+        : [geom.coordinates];
+
+      const bounds = L.latLngBounds([]);
+      let totalArrows = 0;
+
+      allCoords.forEach((lineCoords, lineIdx) => {
+        const pts = lineCoords.map(([lng, lat]) => [lat, lng]);
+        if (pts.length < 2) return;
+
+        const color = lineIdx === 0 ? "#310775" : "#7c3aed";
+
+        L.polyline(pts, {
+          color,
+          weight: 5,
+          opacity: 0.85,
+          dashArray: lineIdx > 0 ? "10, 5" : null,
+        })
+          .addTo(routeLayerGroup.current)
+          .bindPopup(
+            `<b>${route.name}</b><br>Mode: ${mode}<br>1-way: ${route.oneway ? "Yes" : "No"} | Loop: ${route.loop ? "Yes" : "No"}`
+          );
+
+        pts.forEach((c) => bounds.extend(c));
+
+        // Hybrid arrows at every segment midpoint
+        for (let i = 0; i < pts.length - 1; i++) {
+          if (pts.length > 30 && i % 2 !== 0) continue;
+
+          const from = pts[i];
+          const to = pts[i + 1];
+          const midLat = (from[0] + to[0]) / 2;
+          const midLng = (from[1] + to[1]) / 2;
+          const dx = to[1] - from[1];
+          const dy = to[0] - from[0];
+          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+          L.marker([midLat, midLng], {
             icon: L.divIcon({
-              className: '',
-              html: `<div style="transform:rotate(${angle}deg);color:#310775;font-size:18px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3));">➤</div>`,
-              iconSize: [20, 20],
-              iconAnchor: [10, 10],
-            })
-          }).addTo(map);
+              className: "route-arrow",
+              html: `<div style="transform:rotate(${angle}deg);color:${color};font-size:${arrowCfg.size}px;line-height:1;font-weight:bold;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));text-shadow:0 0 3px white;">${arrowCfg.char}</div>`,
+              iconSize: [arrowCfg.size + 6, arrowCfg.size + 6],
+              iconAnchor: [Math.floor(arrowCfg.size / 2) + 3, Math.floor(arrowCfg.size / 2) + 3],
+            }),
+            interactive: false,
+          }).addTo(routeLayerGroup.current);
+          totalArrows++;
         }
-        
-        map.fitBounds(L.latLngBounds(coords), { padding: [50, 50] });
-      })
-      .catch(() => setMessage({ type: "error", text: "Could not load route geometry" }));
-  };
-  
-  const flipEdge = () => {
-    const from = prompt("From node (e.g., '(14.599, 120.984)'):");
-    const to = prompt("To node:");
-    if (from && to) {
-      setLoading(true);
-      fetch(`${API}/admin/routes/flip`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ from_node: from, to_node: to })
-      }).then(r => r.json()).then(d => {
-        setMessage({ type: "success", text: `Flipped: ${d.route || "edge"}` });
-        fetchRoutes();
-      }).catch(() => setMessage({ type: "error", text: "Flip failed" })).finally(() => setLoading(false));
+
+        L.circleMarker(pts[0], { radius: 7, fillColor: "#22c55e", color: "#fff", weight: 3, fillOpacity: 1 })
+          .addTo(routeLayerGroup.current)
+          .bindTooltip("START", { permanent: true, direction: "right", offset: [8, 0] });
+
+        L.circleMarker(pts[pts.length - 1], { radius: 7, fillColor: "#ef4444", color: "#fff", weight: 3, fillOpacity: 1 })
+          .addTo(routeLayerGroup.current)
+          .bindTooltip("END", { permanent: true, direction: "right", offset: [8, 0] });
+      });
+
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+      }
+
+      console.log(`✅ ${route.name}: ${totalArrows} arrows`);
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const renameRoute = () => {
-    const oldName = prompt("Old route name:");
-    const newName = prompt("New route name:");
-    if (oldName && newName) {
-      setLoading(true);
-      fetch(`${API}/admin/routes/rename`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ old_name: oldName, new_name: newName })
-      }).then(r => r.json()).then(d => {
-        setMessage({ type: "success", text: `Renamed ${d.edges_renamed} edges` });
-        fetchRoutes();
-      }).catch(() => setMessage({ type: "error", text: "Rename failed" })).finally(() => setLoading(false));
+  const flipRoute = async (file, index) => {
+    try {
+      const res = await fetch(`${API}/admin/routes/flip?file=${encodeURIComponent(file)}&index=${index}`, { method: "POST" });
+      const data = await res.json();
+      alert(data.message || "Done!");
+      fetchData();
+    } catch (e) {
+      alert("Error: " + e.message);
     }
   };
 
-  const reloadCSV = () => {
-    setLoading(true);
-    fetch(`${API}/admin/routes/reload`, { method: "POST" })
-      .then(() => { setMessage({ type: "success", text: "CSV cache cleared" }); fetchStats(); })
-      .finally(() => setLoading(false));
-  };
+  const filtered = search
+    ? routes.filter((r) => (r.name || "").toLowerCase().includes(search.toLowerCase()))
+    : routes;
 
-  const simulatePings = () => {
-    setLoading(true);
-    fetch(`${API}/telemetry/simulate`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ count: 30 })
-    }).then(() => setMessage({ type: "success", text: "30 pings simulated" })).finally(() => setLoading(false));
-  };
+  if (loading) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 40, height: 40, border: "4px solid #7c3aed", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: "#6b7280" }}>Loading routes...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const analyzeTraffic = () => {
-    setLoading(true);
-    fetch(`${API}/traffic/analyze`, { method: "POST" })
-      .then(() => setMessage({ type: "success", text: "Traffic analysis complete" })).finally(() => setLoading(false));
-  };
+  if (error) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ color: "#ef4444", marginBottom: 16 }}>Error: {error}</p>
+          <button onClick={fetchData} style={{ padding: "8px 16px", background: "#7c3aed", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}>Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={paralogo} alt="PARAPH" className="h-8 w-8" />
-            <div><h1 className="text-sm font-bold text-gray-900">Admin Dashboard</h1><p className="text-[10px] text-gray-400">Diagnostics & Management</p></div>
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
+      {/* LEFT PANEL */}
+      <div style={{ width: 380, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "1px solid #e5e7eb", background: "white", overflow: "hidden" }}>
+        <div style={{ padding: 16, borderBottom: "1px solid #e5e7eb", background: "#faf5ff" }}>
+          <h1 style={{ fontSize: 18, fontWeight: "bold", color: "#4c1d95", margin: 0 }}>🛠️ Admin Routes</h1>
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            {[
+              ["Total", stats.total_routes || routes.length],
+              ["1-way", stats.oneway_count || 0],
+              ["Loops", stats.loop_count || 0],
+            ].map(([label, val], i) => (
+              <div key={i} style={{ flex: 1, background: "white", borderRadius: 8, padding: 8, textAlign: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+                <div style={{ fontSize: 14, fontWeight: "bold", color: "#4c1d95" }}>{val}</div>
+                <div style={{ fontSize: 10, color: "#6b7280" }}>{label}</div>
+              </div>
+            ))}
           </div>
-          <Link to="/" className="text-xs text-gray-500 hover:text-purple-800 font-medium">← Back to App</Link>
         </div>
-        <div className="max-w-7xl mx-auto px-4 pb-2 flex gap-2 overflow-x-auto">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
-                activeTab === t.id ? "bg-purple-800 text-white shadow-lg" : "text-gray-500 hover:bg-gray-100"
-              }`}>{t.icon} {t.label}</button>
+
+        <div style={{ padding: 12 }}>
+          <input
+            type="text"
+            placeholder="🔍 Search routes..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: "100%", padding: "8px 12px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box" }}
+          />
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          {filtered.map((r, i) => (
+            <div
+              key={`${r.file}-${r.index || i}`}
+              onClick={() => inspectRoute(r)}
+              style={{
+                padding: "10px 16px",
+                borderBottom: "1px solid #f3f4f6",
+                cursor: "pointer",
+                background: selectedRoute?.name === r.name ? "#f3e8ff" : "white",
+                borderLeft: selectedRoute?.name === r.name ? "4px solid #7c3aed" : "4px solid transparent",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { if (selectedRoute?.name !== r.name) e.currentTarget.style.background = "#faf5ff"; }}
+              onMouseLeave={(e) => { if (selectedRoute?.name !== r.name) e.currentTarget.style.background = "white"; }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 500, fontSize: 14, color: "#1f2937", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
+                  <div style={{ display: "flex", gap: 4, marginTop: 2, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 10, background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, textTransform: "capitalize" }}>{r.mode || "jeep"}</span>
+                    {r.oneway && <span style={{ fontSize: 10, background: "#fef3c7", color: "#92400e", padding: "2px 6px", borderRadius: 4 }}>→ 1-way</span>}
+                    {r.loop && <span style={{ fontSize: 10, background: "#dbeafe", color: "#1e40af", padding: "2px 6px", borderRadius: 4 }}>↻ loop</span>}
+                  </div>
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); flipRoute(r.file, r.index || 0); }}
+                  style={{ fontSize: 10, padding: "2px 6px", background: "#ede9fe", color: "#5b21b6", border: "none", borderRadius: 4, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}
+                  title="Flip direction"
+                >🔄</button>
+              </div>
+            </div>
           ))}
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {message && (
-          <div className={`mb-4 p-4 rounded-xl text-sm font-mono whitespace-pre-wrap ${
-            message.type === "error" ? "bg-red-50 text-red-700 border border-red-200" : "bg-green-50 text-green-700 border border-green-200"
-          }`}>
-            {message.text}
-            <button onClick={() => setMessage(null)} className="float-right text-xs opacity-50 hover:opacity-100">✕</button>
+        <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#f9fafb", display: "flex", gap: 8 }}>
+          <button onClick={fetchData} style={{ flex: 1, padding: "8px 0", background: "#7c3aed", color: "white", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>🔄 Refresh</button>
+          <span style={{ fontSize: 10, color: "#9ca3af", alignSelf: "center" }}>{filtered.length} routes</span>
+        </div>
+      </div>
+
+      {/* RIGHT PANEL - Map */}
+      <div style={{ flex: 1, position: "relative", minHeight: "100vh" }}>
+        <div
+          id="admin-osm-map"
+          style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}
+        />
+
+        {!selectedRoute && (
+          <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "rgba(255,255,255,0.9)", borderRadius: 8, padding: "8px 16px", fontSize: 14, color: "#6b7280", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+            👈 Click a route to inspect on the map
           </div>
         )}
 
-        {/* OVERVIEW */}
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[{ label: "Graph Nodes", value: stats?.nodes, color: "blue" }, { label: "Graph Edges", value: stats?.edges, color: "purple" }, { label: "GPS Verified", value: stats?.verified, color: "green" }, { label: "Total Registered", value: stats?.csv, color: "purple" }].map(s => (
-                <div key={s.label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{s.label}</p>
-                  <p className={`text-3xl font-extrabold text-${s.color}-600`}>{s.value ?? "—"}</p>
-                </div>
-              ))}
-            </div>
-            {stats?.vehicle_types && (
-              <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <h3 className="text-sm font-bold text-gray-900 mb-3">Vehicle Types</h3>
-                <div className="flex gap-4">
-                  {Object.entries(stats.vehicle_types).map(([k, v]) => (
-                    <div key={k} className="text-center"><div className="text-lg font-bold text-gray-800">{v}</div><div className="text-[10px] text-gray-400 capitalize">{k}</div></div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ROUTE INSPECTOR */}
-        {activeTab === "routes" && (
-          <div className="space-y-4">
-            <div className="flex gap-2 flex-wrap">
-              <select onChange={(e) => { if (e.target.value) showRoute(e.target.value); }}
-                className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium">
-                <option value="">Select a route to inspect...</option>
-                {routes.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-              <button onClick={flipEdge} disabled={loading} className="px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-semibold hover:bg-amber-600 disabled:opacity-50">🔀 Flip Edge</button>
-              <button onClick={renameRoute} disabled={loading} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 disabled:opacity-50">✏️ Rename Route</button>
-              <button onClick={fetchRoutes} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-300">🔄 Refresh</button>
-            </div>
-            
-            <div id="admin-route-map" style={{ height: "400px" }} className="rounded-2xl border border-gray-200 overflow-hidden" />
-            
-            {selectedRoute && <p className="text-xs text-gray-500">🔍 Inspecting: <strong>{selectedRoute}</strong> — green = start, red = end</p>}
-            
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-100"><h3 className="text-sm font-bold text-gray-900">All Routes ({routes.length})</h3></div>
-              <div className="max-h-96 overflow-y-auto">
-                {routes.map(r => (
-                  <div key={r} onClick={() => showRoute(r)} className={`px-4 py-2.5 border-t border-gray-50 flex items-center justify-between hover:bg-gray-50 cursor-pointer ${selectedRoute === r ? "bg-purple-50" : ""}`}>
-                    <span className="text-sm font-medium text-gray-900 truncate">{r}</span>
-                    <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(r); }} className="text-[10px] text-gray-400 hover:text-purple-800 shrink-0 ml-2">📋</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TRAFFIC */}
-        {activeTab === "traffic" && (
-          <div className="space-y-4">
-            <div className="flex gap-2 flex-wrap">
-              <button onClick={simulatePings} disabled={loading} className="px-4 py-2 bg-purple-800 text-white rounded-xl text-sm font-semibold hover:bg-purple-900 disabled:opacity-50">🎲 Simulate 30 Pings</button>
-              <button onClick={analyzeTraffic} disabled={loading} className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 disabled:opacity-50">📊 Analyze Traffic</button>
-            </div>
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Traffic API</h3>
-              <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-xs overflow-x-auto">
-{`curl -X POST ${API}/telemetry/ping \\
-  -H "Content-Type: application/json" \\
-  -d '{"device_id":"phone_001","lat":14.5995,"lng":120.9842,"speed_kmh":25}'
-
-curl ${API}/traffic/geojson`}
-              </pre>
-            </div>
-          </div>
-        )}
-
-        {/* TELEMETRY */}
-        {activeTab === "telemetry" && (
-          <div className="space-y-4">
-            <div className="flex gap-2 flex-wrap">
-              <button onClick={simulatePings} disabled={loading} className="px-4 py-2 bg-purple-800 text-white rounded-xl text-sm font-semibold hover:bg-purple-900 disabled:opacity-50">🎲 Simulate Pings</button>
-            </div>
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-3">Manual Telemetry</h3>
-              <pre className="bg-gray-900 text-green-400 p-4 rounded-xl text-xs overflow-x-auto">
-{`POST ${API}/telemetry/ping
-POST ${API}/telemetry/batch
-GET  ${API}/admin/telemetry/recent`}
-              </pre>
-            </div>
-          </div>
-        )}
-
-        {/* GIS TOOLS */}
-        {activeTab === "gis" && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button onClick={reloadCSV} disabled={loading} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all text-left disabled:opacity-50">
-                <span className="text-2xl">🔄</span><h3 className="text-sm font-bold text-gray-900 mt-2">Reload CSV Routes</h3><p className="text-xs text-gray-400 mt-1">Clear cache and re-read full_jeepney_routes.csv</p>
-              </button>
-              <button onClick={flipEdge} disabled={loading} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all text-left disabled:opacity-50">
-                <span className="text-2xl">🔀</span><h3 className="text-sm font-bold text-gray-900 mt-2">Flip Edge Direction</h3><p className="text-xs text-gray-400 mt-1">Reverse a one-way edge by node coordinates</p>
-              </button>
-              <button onClick={renameRoute} disabled={loading} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all text-left disabled:opacity-50">
-                <span className="text-2xl">✏️</span><h3 className="text-sm font-bold text-gray-900 mt-2">Rename Route</h3><p className="text-xs text-gray-400 mt-1">Fix misnamed routes across all edges</p>
-              </button>
-              <button onClick={analyzeTraffic} disabled={loading} className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all text-left disabled:opacity-50">
-                <span className="text-2xl">📊</span><h3 className="text-sm font-bold text-gray-900 mt-2">Run Traffic Analysis</h3><p className="text-xs text-gray-400 mt-1">Process telemetry pings for congestion</p>
-              </button>
-            </div>
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-900 mb-2">Data Folder</h3>
-              <pre className="bg-gray-50 p-4 rounded-xl text-xs text-gray-600">{`geojson_data/
-├── routes.geojson       ← GPS-traced routes
-├── 1routes.geojson      ← Additional routes  
-├── full_jeepney_routes.csv ← Route registry
-└── (drop new files anytime)`}</pre>
-            </div>
+        {selectedRoute && (
+          <div style={{ position: "absolute", top: 16, left: 16, zIndex: 1000, background: "rgba(255,255,255,0.95)", borderRadius: 8, padding: 12, fontSize: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", maxWidth: 280 }}>
+            <div style={{ fontWeight: "bold", color: "#4c1d95", fontSize: 14 }}>{selectedRoute.name}</div>
+            <div style={{ color: "#6b7280", marginTop: 4 }}>{selectedRoute.mode} | {selectedRoute.oneway ? "→ One-way" : "↔ Bidirectional"}{selectedRoute.loop ? " | ↻ Loop" : ""}</div>
+            <div style={{ color: "#9ca3af", fontSize: 10, marginTop: 2 }}>{selectedRoute.file}</div>
           </div>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        .tooltip-start {
+          background: #22c55e !important;
+          color: white !important;
+          border: none !important;
+          font-size: 10px !important;
+          font-weight: bold !important;
+          padding: 2px 6px !important;
+          border-radius: 4px !important;
+        }
+        .tooltip-end {
+          background: #ef4444 !important;
+          color: white !important;
+          border: none !important;
+          font-size: 10px !important;
+          font-weight: bold !important;
+          padding: 2px 6px !important;
+          border-radius: 4px !important;
+        }
+        .leaflet-container {
+          width: 100% !important;
+          height: 100% !important;
+        }
+      `}</style>
     </div>
   );
 }

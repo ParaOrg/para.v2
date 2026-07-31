@@ -23,7 +23,7 @@ export default function RouteLegend({ markers = [], lines = [] }) {
     }
 
     return (
-        <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 z-10 max-w-xs">
+        <div className="absolute top-2 right-2 z-[1000] bg-white/90 backdrop-blur rounded-lg shadow-lg p-3 max-w-xs text-xs">
             <h4 className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wide">
                 Route Legend
             </h4>

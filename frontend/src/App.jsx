@@ -12,6 +12,7 @@ import PrivacyPolicy from './pages/privacy_policy';
 import RouteOptionsPage from './pages/RouteOptionsPage';
 import RoutesExplorer from './pages/RoutesExplorer';
 import AdminDashboard from './pages/AdminDashboard';
+import RouteUploader from './pages/RouteUploader';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 class RoutesBoundary extends Component {
@@ -67,6 +68,7 @@ function AppRoutes() {
           <Route path="/route-options" element={<RouteOptionsPage />} />
           <Route path="/explore" element={<RoutesBoundary><RoutesExplorer /></RoutesBoundary>} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/upload" element={<RouteUploader />} />
           <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/signup" element={user ? <Navigate to="/" replace /> : <Signup />} />
           <Route path="*" element={<Navigate to="/" replace />} />
