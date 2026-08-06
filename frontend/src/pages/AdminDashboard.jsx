@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
@@ -76,9 +77,9 @@ export default function AdminDashboard() {
 
       {/* Tab content */}
       <div className="flex-1">
-        {tab === "doctor" && <RouteDoctorTab />}
-        {tab === "inspector" && <InspectorTab />}
-        {tab === "approvals" && <ApprovalsTab />}
+        {tab === "doctor" && <RouteDoctorTab key="doctor" />}
+        {tab === "inspector" && <InspectorTab key="inspector" />}
+        {tab === "approvals" && <ApprovalsTab key="approvals" />}
       </div>
     </div>
   );
@@ -248,103 +249,204 @@ function RouteDoctorTab() {
 
 function InspectorTab() {
   const [routes, setRoutes] = useState([]);
+  const [selectedRoute, setSelectedRoute] = useState(null);
   const [selectedId, setSelectedId] = useState("");
   const [geoJson, setGeoJson] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState(null);
   const mapRef = useRef(null);
   const mapInst = useRef(null);
   const layerRef = useRef(null);
 
-  // Load route list
-  useEffect(() => {
+  const fetchRoutes = () => {
     fetch(`${API}/admin/routes/list`)
       .then((r) => r.json())
       .then((d) => setRoutes(d.routes || []));
-  }, []);
+  };
+  useEffect(() => { fetchRoutes(); }, []);
 
   // Init map
   useEffect(() => {
-    if (!mapRef.current || mapInst.current) return;
-    const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false }).setView(MANILA_CENTER, 13);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-    layerRef.current = L.layerGroup().addTo(map);
-    mapInst.current = map;
-    return () => map.remove();
+    const timer = setTimeout(() => {
+      const el = mapRef.current;
+      if (!el || mapInst.current) return;
+      const map = L.map(el, { zoomControl: true, attributionControl: false }).setView([14.5995, 120.9842], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+      mapInst.current = map;
+      setMapReady(true);
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+      if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; }
+    };
   }, []);
 
-  // Load geometry
-  useEffect(() => {
-    if (!selectedId) return;
+  // Redraw the map from geoJson state
+  const redraw = (geo) => {
+    const map = mapInst.current;
+    if (!map || !geo) return;
+    layerRef.current?.clearLayers();
+    const group = L.layerGroup().addTo(map);
+    layerRef.current = group;
+    const bounds = L.latLngBounds([]);
+    
+    (geo.features || []).forEach((feature, featIdx) => {
+      const geom = feature.geometry;
+      const allCoords = geom.type === "MultiLineString" ? geom.coordinates : [geom.coordinates];
+      
+      allCoords.forEach((lineCoords, lineIdx) => {
+        const pts = lineCoords.map(([lng, lat]) => [lat, lng]);
+        if (pts.length < 2) return;
+        
+        // Polyline
+        L.polyline(pts, { color: lineIdx === 0 ? "#3e00a6" : "#7c3aed", weight: 5, opacity: 0.85 }).addTo(group);
+        pts.forEach(c => bounds.extend(c));
+        
+        // Arrows
+        for (let i = 0; i < pts.length - 1; i++) {
+          if (pts.length > 30 && i % 3 !== 0) continue;
+          const from = pts[i], to = pts[i + 1];
+          const midLat = (from[0] + to[0]) / 2, midLng = (from[1] + to[1]) / 2;
+          const angle = (Math.atan2(to[0] - from[0], to[1] - from[1]) * 180) / Math.PI;
+          
+          const icon = L.divIcon({ 
+            className: 'route-arrow', 
+            html: `<div style="transform:rotate(${angle}deg);color:#ff6600;font-size:20px;line-height:1;font-weight:bold;filter:drop-shadow(0 1px 3px rgba(0,0,0,0.6));text-shadow:0 0 4px white;cursor:pointer;">➤</div>`, 
+            iconSize: [28, 28], 
+            iconAnchor: [14, 14] 
+          });
+          
+          const marker = L.marker([midLat, midLng], { icon, interactive: true }).addTo(group);
+          
+          // Store flip data directly on the Leaflet marker
+          marker._flip = { featIdx, lineIdx, segIdx: i };
+          
+          marker.on('click', function(e) {
+            L.DomEvent.stopPropagation(e);
+            const d = this._flip;
+            if (!d || !geoJson) return;
+            
+            const newGeo = JSON.parse(JSON.stringify(geoJson));
+            const g = newGeo.features[d.featIdx]?.geometry;
+            if (!g) return;
+            
+            if (g.type === "MultiLineString" && g.coordinates[d.lineIdx]) {
+              const arr = g.coordinates[d.lineIdx];
+              if (arr[d.segIdx] && arr[d.segIdx+1]) {
+                [arr[d.segIdx], arr[d.segIdx+1]] = [arr[d.segIdx+1], arr[d.segIdx]];
+              }
+            } else if (g.type === "LineString") {
+              const arr = g.coordinates;
+              if (arr[d.segIdx] && arr[d.segIdx+1]) {
+                [arr[d.segIdx], arr[d.segIdx+1]] = [arr[d.segIdx+1], arr[d.segIdx]];
+              }
+            }
+            setGeoJson(newGeo);
+            redraw(newGeo);
+            setMsg({ ok: true, text: "✅ Arrow flipped! Save to persist." });
+            setTimeout(() => setMsg(null), 2000);
+          });
+        }
+        
+        // Start/End markers
+        L.circleMarker(pts[0], { radius: 7, fillColor: "#22c55e", color: "#fff", weight: 3, fillOpacity: 1 })
+          .addTo(group).bindTooltip("START", { permanent: true, direction: "right" });
+        L.circleMarker(pts[pts.length - 1], { radius: 7, fillColor: "#ef4444", color: "#fff", weight: 3, fillOpacity: 1 })
+          .addTo(group).bindTooltip("END", { permanent: true, direction: "right" });
+      });
+    });
+    
+    if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+  };
+
+  // Load route
+  const loadRoute = (id) => {
+    setSelectedId(id);
+    const route = routes.find(r => r.route_uuid === id);
+    setSelectedRoute(route);
+    if (!id || !mapInst.current) return;
     setLoading(true);
-    fetch(`${API}/admin/routes/geojson?route_id=${selectedId}`)
-      .then((r) => r.json())
-      .then((data) => {
+    fetch(`${API}/admin/routes/geojson?route_id=${id}`)
+      .then(r => r.ok ? r.json() : Promise.reject("HTTP " + r.status))
+      .then(data => {
         setGeoJson(data);
-        const map = mapInst.current;
-        if (!map) return;
-        layerRef.current?.clearLayers();
-        L.geoJSON(data, {
-          style: { color: "#3e00a6", weight: 5, opacity: 0.9 },
-        }).addTo(layerRef.current);
-        const bounds = L.geoJSON(data).getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+        redraw(data);
       })
-      .catch(console.error)
+      .catch(e => console.error(e))
       .finally(() => setLoading(false));
-  }, [selectedId]);
+  };
+
+  // Save
+  const saveGeo = async () => {
+    if (!selectedId || !geoJson) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/admin/routes/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(geoJson) });
+      if (!res.ok) throw new Error("Save failed");
+      setMsg({ ok: true, text: "✅ Geometry saved!" });
+      fetchRoutes();
+    } catch(e) { setMsg({ ok: false, text: "❌ " + e.message }); }
+    setSaving(false);
+    setTimeout(() => setMsg(null), 3000);
+  };
+
+  const updateFlags = async (field, value) => {
+    if (!selectedId) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/admin/routes/${selectedId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ [field]: value }) });
+      if (!res.ok) throw new Error("Failed");
+      setSelectedRoute(prev => ({ ...prev, [field]: value }));
+      setMsg({ ok: true, text: "✅ Updated" });
+      fetchRoutes();
+    } catch(e) { setMsg({ ok: false, text: "❌ " + e.message }); }
+    setSaving(false);
+    setTimeout(() => setMsg(null), 3000);
+  };
 
   return (
-    <div className="flex h-[calc(100vh-120px)]">
-      {/* Sidebar */}
-      <div className="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0">
+    <div style={{ height: "calc(100vh - 120px)", display: "flex" }}>
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0 overflow-y-auto">
         <div className="p-3 border-b border-gray-100">
-          <select
-            value={selectedId}
-            onChange={(e) => setSelectedId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
+          <select value={selectedId} onChange={(e) => loadRoute(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
             <option value="">Select a route…</option>
             {routes.map((r) => (
-              <option key={r.route_uuid} value={r.route_uuid}>
-                {r.name}
-              </option>
+              <option key={r.route_uuid} value={r.route_uuid}>{r.name} ({r.mode})</option>
             ))}
           </select>
         </div>
-
-        {selectedId && geoJson && (
-          <div className="p-3 text-xs space-y-2 overflow-y-auto">
-            <p className="font-bold text-gray-700">Route Details</p>
-            <p>Features: {geoJson.features?.length || 0}</p>
-            {geoJson.features?.[0]?.geometry && (
-              <>
-                <p>Type: {geoJson.features[0].geometry.type}</p>
-                <p>
-                  Coordinates:{" "}
-                  {geoJson.features[0].geometry.type === "MultiLineString"
-                    ? geoJson.features[0].geometry.coordinates.reduce((sum, c) => sum + c.length, 0)
-                    : geoJson.features[0].geometry.coordinates?.length || 0}
-                </p>
-              </>
-            )}
+        {selectedRoute && (
+          <div className="p-3 space-y-3 text-sm">
+            <div className="bg-purple-50 rounded-lg p-3">
+              <p className="font-bold text-purple-900">{selectedRoute.name}</p>
+              <p className="text-xs text-purple-600 capitalize mt-1">{selectedRoute.mode}</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-gray-500 uppercase">Direction Settings</p>
+              <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={!!selectedRoute.is_loop} onChange={(e) => updateFlags("is_loop", e.target.checked)} disabled={saving} /><span>Loop Route</span></label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={!!selectedRoute.is_bidirectional} onChange={(e) => updateFlags("is_bidirectional", e.target.checked)} disabled={saving || selectedRoute.is_loop} /><span>Bidirectional</span></label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={!!selectedRoute.is_oneway} onChange={(e) => updateFlags("is_oneway", e.target.checked)} disabled={saving || selectedRoute.is_loop || selectedRoute.is_bidirectional} /><span>One-way</span></label>
+            </div>
+            <button onClick={saveGeo} disabled={saving} className="w-full py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 disabled:opacity-50">💾 Save Geometry Changes</button>
+            {msg && <div className={`text-xs p-2 rounded-lg ${msg.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>{msg.text}</div>}
+            <div className="text-[10px] text-gray-400"><p className="font-bold mb-1">How to fix direction:</p><p>Click any orange ➤ arrow to flip that segment. Arrows show current flow direction. Save when done.</p></div>
           </div>
         )}
       </div>
-
-      {/* Map */}
-      <div className="flex-1 relative">
-        <div ref={mapRef} className="absolute inset-0" />
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
-            <div className="w-6 h-6 border-3 border-purple-200 border-t-purple-800 rounded-full animate-spin" />
-          </div>
-        )}
+      <div style={{ flex: 1, position: "relative" }}>
+        <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+        {!mapReady && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "white" }}><div style={{ width: 24, height: 24, border: "3px solid #e9d5ff", borderTopColor: "#3e00a6", borderRadius: "50%", animation: "spin 1s linear infinite" }} /></div>}
+        {loading && <div style={{ position: "absolute", bottom: 20, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "white", borderRadius: 12, padding: "8px 16px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", fontSize: 12, fontWeight: 600 }}>Loading route…</div>}
+        {selectedRoute && !loading && <div style={{ position: "absolute", top: 12, left: 12, zIndex: 1000, background: "rgba(255,255,255,0.95)", borderRadius: 10, padding: 8, fontSize: 11, boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>🟢 Start → 🔴 End &nbsp;|&nbsp; 🟠 Click arrows to flip direction</div>}
       </div>
     </div>
   );
 }
 
-// ── Approvals Tab ──────────────────────────────────────
+// ── Approvals Tab ──// ── Approvals Tab ──// ── Approvals Tab ──────────────────────────────────────
 
 function ApprovalsTab() {
   const [pending, setPending] = useState([]);
@@ -405,7 +507,7 @@ function ApprovalsTab() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-120px)]">
+    <div className="flex" style={{ height: "calc(100vh - 120px)" }}>
       {/* Sidebar */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0">
         <div className="p-3 border-b border-amber-100 bg-amber-50">
@@ -452,7 +554,7 @@ function ApprovalsTab() {
 
       {/* Map */}
       <div className="flex-1 relative">
-        <div ref={mapRef} className="absolute inset-0" />
+        <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
         {!mapReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/50">
             <div className="w-6 h-6 border-3 border-amber-200 border-t-amber-600 rounded-full animate-spin" />

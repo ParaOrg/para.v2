@@ -61,7 +61,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-[120] border-b border-black/5 bg-white/90 px-4 py-1.5 backdrop-blur-xl shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:px-8 lg:px-10">
       <div className="mx-auto flex h-[3.8rem] w-full max-w-[1680px] items-center justify-center lg:justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] relative">
-        <Link to="/" className="flex min-w-0 shrink-0 items-center lg:-ml-22 ">
+        <Link to="/" className="flex min-w-0 shrink-0 items-center">
           <img src={paralogo} alt="PARAPH Logo" className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 hover:scale-[1.02]" />
         </Link>
 
@@ -90,7 +90,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2.5 md:flex lg:justify-self-end -mr-22">
+        <div className="hidden shrink-0 items-center gap-2.5 md:flex lg:justify-self-end">
           <GasPriceWidget compact className="w-[12rem] lg:w-[14rem] xl:w-[16rem]" />
           
           {user && !isGuest ? (

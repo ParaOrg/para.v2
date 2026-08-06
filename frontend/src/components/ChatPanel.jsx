@@ -11,6 +11,7 @@ import { getApiBaseUrl } from "../utils/api";
 import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
+import InlineRecorder from "./InlineRecorder";
 
 const API = getApiBaseUrl();
 
@@ -43,6 +44,7 @@ export default function ChatPanel() {
   const [polylines, setPolylines] = useState([]);
   const [showTracker, setShowTracker] = useState(false);
   const [activeRouteData, setActiveRouteData] = useState(null);
+  const [showRecorder, setShowRecorder] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -109,6 +111,18 @@ export default function ChatPanel() {
     if (!text) return;
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setInput("");
+    
+    // Handle "record route" command
+    if (text.toLowerCase().includes("record route") || text.toLowerCase().includes("record a route")) {
+      setCollapsed(false);
+      setMessages((prev) => [...prev, { 
+        sender: "bot", 
+        text: "📡 Let's record your route!\n\n1. Press Start Recording below\n2. Ride your commute\n3. Press Stop when you arrive\n\nYour GPS trace will be saved automatically.",
+        recordPrompt: true 
+      }]);
+      return;
+    }
+    
     setLoading(true);
     setCollapsed(false);
     setRouteMarkers([]);
@@ -141,7 +155,7 @@ export default function ChatPanel() {
       {/* Chat panel — 55% desktop, 40% mobile */}
       <div
         className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 ${
-          collapsed ? "max-h-12" : "max-h-[55%] md:max-h-[40%]"
+          collapsed ? "max-h-12" : "max-h-[80vh]"
         } md:w-96`}
       >
         {/* Header */}
@@ -180,6 +194,13 @@ export default function ChatPanel() {
                   <div className="whitespace-pre-wrap">{m.text}</div>
                 )}
 
+                {m.recordPrompt && (
+                  <div className="mt-2">
+                    <InlineRecorder onDone={() => {
+                      setMessages((prev) => [...prev, { sender: "bot", text: "✅ Route recorded! Thank you for contributing to Para PH. Your route will help other commuters." }]);
+                    }} />
+                  </div>
+                )}
                 {m.routeData && (
                   <div className="mt-2 space-y-2">
                     <TripSummaryCard routeData={m.routeData} />

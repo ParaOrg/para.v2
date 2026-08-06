@@ -171,6 +171,7 @@ async def verify_route(route_id: str = Query(...)):
     return {"status": "success", "message": "Route verified", "route_uuid": route_id}
 
 
+
 @router.delete("/routes/{route_id}")
 async def delete_route(route_id: str):
     """Delete a route and its shape."""

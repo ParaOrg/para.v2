@@ -31,6 +31,11 @@ export function AuthProvider({ children }) {
     setUser(ADMIN_USER);
   }, []);
 
+  const signup = useCallback(async (_email, _password) => {
+    // In staging, signup always succeeds as admin
+    setUser(ADMIN_USER);
+  }, []);
+
   const logout = useCallback(() => {
     // In staging, logout just resets to admin (no-op for now)
     setUser(ADMIN_USER);
@@ -50,6 +55,7 @@ export function AuthProvider({ children }) {
     isAuthenticated,
     isGuest,
     login,
+    signup,
     logout,
     checkPermission,
   };
