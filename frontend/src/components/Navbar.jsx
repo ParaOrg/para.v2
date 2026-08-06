@@ -3,16 +3,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import paralogo from '../assets/images/Para1P.png';
 import GasPriceWidget from './GasPrice/index.jsx';
-import { useAuth } from '../context/AuthContext'; // <-- Added Auth Context
+import { useAuth } from '../context/AuthContext';
 
-// Updated to include your core app routes
 const NAV_LINKS = [
   { to: '/', label: 'Commute' },
   { to: '/explore', label: 'Explore' },
-  { to: '/gas-prices', label: 'Gas Prices'}, 
-  { to: '/upload', label: 'Upload' },
-  { to: '/admin', label: 'Admin' },
+  { to: '/community', label: 'Community' },
+  { to: '/gas-prices', label: 'Gas Prices' },
   { to: '/about', label: 'About' },
+  { to: '/admin', label: 'Admin' },
 ];
 
 function HamburgerIcon({ open }) {
@@ -30,7 +29,7 @@ function HamburgerIcon({ open }) {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const { user, logout, isGuest } = useAuth(); // <-- Hook into Auth state
+  const { user, logout, isGuest } = useAuth();
 
   const activeIndex = useMemo(() => {
     const idx = NAV_LINKS.findIndex(({ to }) => (to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(`${to}/`)));
@@ -41,15 +40,11 @@ export default function Navbar() {
     return (path) => (path === '/' ? location.pathname === '/' : location.pathname === path || location.pathname.startsWith(`${path}/`));
   }, [location.pathname]);
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [location.pathname]);
+  useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   useEffect(() => {
     if (!mobileOpen) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') setMobileOpen(false);
-    };
+    const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false); };
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -60,20 +55,18 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   const closeMobile = () => setMobileOpen(false);
-
-  // FIX: Dynamic pill width based on the actual number of links
   const pillWidth = `calc((100% - 0.75rem) / ${NAV_LINKS.length})`;
   const pillTransform = `translateX(${activeIndex * 100}%)`;
 
   return (
     <nav className="sticky top-0 z-[120] border-b border-black/5 bg-white/90 px-4 py-1.5 backdrop-blur-xl shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:px-8 lg:px-10">
-      <div className="mx-auto flex h-[3.8rem] w-full max-w-[1680px] items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-        <Link to="/" className="flex min-w-0 shrink-0 items-center lg:justify-self-start">
+      <div className="mx-auto flex h-[3.8rem] w-full max-w-[1680px] items-center justify-center lg:justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] relative">
+        <Link to="/" className="flex min-w-0 shrink-0 items-center lg:-ml-22 ">
           <img src={paralogo} alt="PARAPH Logo" className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 hover:scale-[1.02]" />
         </Link>
 
         <div className="hidden lg:flex items-center justify-center px-2 xl:px-4 lg:justify-self-center">
-          <div className="relative grid h-[2.8rem] w-[36rem] grid-cols-5 items-center rounded-full border border-black/5 bg-gray-100/90 p-1 shadow-[0_10px_30px_rgba(15,23,42,0.05)] ring-1 ring-white/70"
+          <div className="relative grid h-[2.8rem] w-[36rem] items-center rounded-full border border-black/5 bg-gray-100/90 p-1 shadow-[0_10px_30px_rgba(15,23,42,0.05)] ring-1 ring-white/70"
                style={{ gridTemplateColumns: `repeat(${NAV_LINKS.length}, minmax(0, 1fr))` }}>
             <span
               aria-hidden
@@ -97,10 +90,9 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2.5 md:flex lg:justify-self-end">
+        <div className="hidden shrink-0 items-center gap-2.5 md:flex lg:justify-self-end -mr-22">
           <GasPriceWidget compact className="w-[12rem] lg:w-[14rem] xl:w-[16rem]" />
           
-          {/* AUTH INTEGRATION: Show Logout if logged in, otherwise Login/Signup */}
           {user && !isGuest ? (
             <button
               onClick={logout}
@@ -110,25 +102,15 @@ export default function Navbar() {
             </button>
           ) : (
             <>
-              <Link
-                to="/login"
-                className="inline-flex h-10 items-center rounded-full px-5 text-sm font-semibold text-gray-700 hover:text-[#4f00cd] transition-colors whitespace-nowrap"
-              >
-                Login
-              </Link>
-              <Link
-                to="/signup"
-                className="inline-flex h-10 items-center rounded-full bg-[#4f00cd] px-5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(79,0,205,0.2)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#3f00a8] hover:shadow-[0_14px_24px_rgba(79,0,205,0.26)] whitespace-nowrap"
-              >
-                Sign Up
-              </Link>
+              <Link to="/login" className="inline-flex h-10 items-center rounded-full px-5 text-sm font-semibold text-gray-700 hover:text-[#4f00cd] transition-colors whitespace-nowrap">Login</Link>
+              <Link to="/signup" className="inline-flex h-10 items-center rounded-full bg-[#4f00cd] px-5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(79,0,205,0.2)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#3f00a8] hover:shadow-[0_14px_24px_rgba(79,0,205,0.26)] whitespace-nowrap">Sign Up</Link>
             </>
           )}
         </div>
 
         <button
           type="button"
-          className="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/45 transition-colors touch-manipulation"
+          className="md:hidden absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/45 transition-colors touch-manipulation"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav-drawer"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
@@ -141,57 +123,27 @@ export default function Navbar() {
       {mobileOpen && (
         <>
           <div className="md:hidden fixed inset-0 z-[130] bg-black/40" aria-hidden={!mobileOpen} onClick={closeMobile} />
-
-          <div
-            id="mobile-nav-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Navigation menu"
-            aria-hidden={!mobileOpen}
-            className="md:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]"
-          >
+          <div id="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation menu" className="md:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
               <span className="text-sm font-semibold tracking-[0.04em] text-gray-800">Menu</span>
-              <button type="button" className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 -mr-1" aria-label="Close menu" onClick={closeMobile}>
-                <HamburgerIcon open />
-              </button>
+              <button type="button" className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 -mr-1" aria-label="Close menu" onClick={closeMobile}><HamburgerIcon open /></button>
             </div>
-
             <nav className="flex flex-col px-6 pt-6 pb-6 gap-2 flex-1 overflow-y-auto">
               {NAV_LINKS.map(({ to, label }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  onClick={closeMobile}
-                  aria-current={activeLink(to) ? 'page' : undefined}
-                  className={`py-3 px-2 rounded-xl text-[1.95rem] leading-[1.2] font-semibold transition-all duration-200 ${
-                    activeLink(to) ? 'text-[#4f00cd] bg-[#f5f0ff]' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
+                <Link key={to} to={to} onClick={closeMobile} aria-current={activeLink(to) ? 'page' : undefined}
+                  className={`py-3 px-2 rounded-xl text-[1.95rem] leading-[1.2] font-semibold transition-all duration-200 ${activeLink(to) ? 'text-[#4f00cd] bg-[#f5f0ff]' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'}`}>
                   {label}
                 </Link>
               ))}
-
-              {/* Mobile Auth Buttons */}
               {user && !isGuest ? (
-                <button
-                  onClick={() => { logout(); closeMobile(); }}
-                  className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-gray-800 px-5 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(15,23,42,0.15)]"
-                >
-                  Logout
-                </button>
+                <button onClick={() => { logout(); closeMobile(); }} className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-gray-800 px-5 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(15,23,42,0.15)]">Logout</button>
               ) : (
                 <>
-                  <Link to="/login" onClick={closeMobile} className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border-2 border-gray-200 px-5 py-3 text-base font-bold text-gray-800">
-                    Login
-                  </Link>
-                  <Link to="/signup" onClick={closeMobile} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#4f00cd] px-5 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(79,0,205,0.2)]">
-                    Sign Up
-                  </Link>
+                  <Link to="/login" onClick={closeMobile} className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border-2 border-gray-200 px-5 py-3 text-base font-bold text-gray-800">Login</Link>
+                  <Link to="/signup" onClick={closeMobile} className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#4f00cd] px-5 py-3 text-base font-bold text-white shadow-[0_12px_24px_rgba(79,0,205,0.2)]">Sign Up</Link>
                 </>
               )}
             </nav>
-
             <div className="px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-gray-100 pt-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-2">Gas prices</p>
               <div className="[&_a]:w-full [&_a]:justify-center [&_a]:max-w-full [&_a]:overflow-hidden">

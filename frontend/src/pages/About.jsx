@@ -1,3 +1,4 @@
+import Navbar from '../components/Navbar';
 import LandingPageFooter from '../components/landingpage-footer.component.jsx';
 import { Link } from 'react-router-dom';
 import heroBanner from '../assets/images/about-page/image-1.jpeg';
@@ -104,6 +105,7 @@ function AutoScenarioCarousel({ items }) {
           </div>
         ))}
         </div>
+      <LandingPageFooter />
     </div>
   );
 }
@@ -182,7 +184,8 @@ const COMMUTE_SCENARIOS = [
 
 export default function About() {
   return (
-    <div className="relative w-full min-h-full bg-white" style={{ fontFamily: 'Poppins, sans-serif' }}>
+    <div className="relative w-full min-h-screen bg-white overflow-y-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>
+      <Navbar />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-8 py-12 md:py-28">
 
         {/* Hero Section */}
@@ -248,7 +251,7 @@ export default function About() {
 
           <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-20">
           <Link
-            to="/contact"
+            to="/"
             className="group rounded-3xl border border-[#ece6f8] bg-white p-6 sm:p-8 md:p-12 lg:p-14 shadow-[0_12px_40px_rgba(79,0,205,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_60px_rgba(79,0,205,0.14)] hover:border-[#d8c8ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/45"
             aria-label="Built by the Community - open contact page"
           >
@@ -281,7 +284,7 @@ export default function About() {
           </Link>
 
           <Link
-            to="/map"
+            to="/"
             className="group rounded-3xl border border-[#ece6f8] bg-white p-6 sm:p-8 md:p-12 lg:p-14 shadow-[0_12px_40px_rgba(79,0,205,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_60px_rgba(79,0,205,0.14)] hover:border-[#d8c8ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/45"
             aria-label="For the Community - open map page"
           >
@@ -399,6 +402,7 @@ export default function About() {
 
       </div>
 
+      
       <LandingPageFooter />
     </div>
   );

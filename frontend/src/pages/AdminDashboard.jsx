@@ -1,10 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+/**
+ * AdminDashboard.jsx — Admin panel with three tabs:
+ *   Route Doctor — list, inspect, rename, verify, delete routes
+ *   Inspector — view route geometry on map
+ *   Approvals — review pending community submissions
+ */
+
+import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
-import AdminApproval from "./AdminApproval";
 import "leaflet/dist/leaflet.css";
+import { getApiBaseUrl } from "../utils/api";
+import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
-const API = "";
+const API = getApiBaseUrl();
 
+// Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
@@ -14,356 +25,446 @@ L.Icon.Default.mergeOptions({
 
 const MANILA_CENTER = [14.5995, 120.9842];
 
-const ARROW_CFG = {
-  jeep: { char: "\u279B", size: 18 },
-  jeepney: { char: "\u279B", size: 18 },
-  bus: { char: "\u279D", size: 20 },
-  train: { char: "\u21D2", size: 22 },
-  lrt: { char: "\u21D2", size: 22 },
-  mrt: { char: "\u21D2", size: 22 },
-  uv: { char: "\u279D", size: 18 },
-  default: { char: "\u279B", size: 18 },
-};
+// ── Tab definitions ────────────────────────────────────
+const TABS = [
+  { id: "doctor", label: "🩺 Route Doctor" },
+  { id: "inspector", label: "🔍 Inspector" },
+  { id: "approvals", label: "📋 Approvals" },
+];
 
 export default function AdminDashboard() {
+  let auth = { isAuthenticated: false, user: null };
+  try { auth = useAuth(); } catch (_) {}
+
+  if (!auth.isAuthenticated || auth.user?.role !== "admin") {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+          <h1 className="text-3xl font-black text-gray-900 mb-4">🛠️ Admin Dashboard</h1>
+          <p className="text-gray-500 mb-8 text-lg">Admin access required. Sign up or log in with an admin account to manage routes.</p>
+          <Link to="/signup" className="inline-block px-8 py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors">Sign Up</Link>
+          <p className="mt-4 text-sm text-gray-400">Already an admin? <Link to="/login" className="text-purple-700 underline">Log in</Link></p>
+        </div>
+      </div>
+    );
+  }
+
+
+  const [tab, setTab] = useState("doctor");
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+
+      {/* Tab bar */}
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex gap-1 overflow-x-auto">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
+              tab === t.id
+                ? "bg-purple-100 text-purple-800"
+                : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      <div className="flex-1">
+        {tab === "doctor" && <RouteDoctorTab />}
+        {tab === "inspector" && <InspectorTab />}
+        {tab === "approvals" && <ApprovalsTab />}
+      </div>
+    </div>
+  );
+}
+
+// ── Route Doctor Tab ───────────────────────────────────
+
+function RouteDoctorTab() {
   const [routes, setRoutes] = useState([]);
-  const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [selectedRoute, setSelectedRoute] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [actionMsg, setActionMsg] = useState(null);
 
-  const mapContainerRef = useRef(null);
-  const mapInstance = useRef(null);
-  const routeLayerGroup = useRef(null);
-  const mapInitDone = useRef(false);
-
-  const fetchData = async () => {
+  const fetchRoutes = useCallback(async () => {
     setLoading(true);
     try {
-      const [routesRes, statsRes] = await Promise.all([
-        fetch(`${API}/admin/routes/list`),
-        fetch(`${API}/admin/routes/stats`),
-      ]);
-      const routesData = await routesRes.json();
-      const statsData = statsRes.ok ? await statsRes.json() : {};
-      setRoutes(routesData.routes || []);
-      setStats(statsData || {});
+      const res = await fetch(`${API}/admin/routes/list`);
+      const data = await res.json();
+      setRoutes(data.routes || []);
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => { fetchData(); }, []);
-
-  // Initialize map - wait for DOM to be ready
-  useEffect(() => {
-    if (mapInitDone.current) return;
-
-    const initMap = () => {
-      const el = document.getElementById("admin-osm-map");
-      if (!el || el.offsetHeight === 0) {
-        // DOM not ready yet, retry
-        setTimeout(initMap, 200);
-        return;
-      }
-
-      console.log("🗺️ Creating map, container size:", el.offsetWidth, "x", el.offsetHeight);
-
-      const map = L.map(el, {
-        zoomControl: true,
-        attributionControl: true,
-      }).setView(MANILA_CENTER, 13);
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap',
-      }).addTo(map);
-
-      mapInstance.current = map;
-      mapInitDone.current = true;
-      console.log("✅ Admin OSM map ready");
-
-      // Fix tile loading issue
-      setTimeout(() => map.invalidateSize(), 500);
-    };
-
-    const timer = setTimeout(initMap, 300);
-    return () => {
-      clearTimeout(timer);
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
-        mapInitDone.current = false;
-      }
-    };
   }, []);
 
-  const inspectRoute = async (route) => {
-    setSelectedRoute(route);
-
-    try {
-      const res = await fetch(`${API}/admin/routes/geojson`);
-      const data = await res.json();
-
-      const feature = data.features?.find(
-        (f) =>
-          f.properties?.route_long_name === route.name ||
-          f.properties?.name === route.name
-      );
-
-      const map = mapInstance.current;
-      if (!map) {
-        console.error("❌ Map not initialized");
-        return;
-      }
-
-      // Clear previous
-      if (routeLayerGroup.current) {
-        map.removeLayer(routeLayerGroup.current);
-      }
-      routeLayerGroup.current = L.layerGroup().addTo(map);
-
-      if (!feature) {
-        L.marker(MANILA_CENTER)
-          .addTo(routeLayerGroup.current)
-          .bindPopup(`<b>${route.name}</b><br>No geometry found`)
-          .openPopup();
-        return;
-      }
-
-      const mode = (route.mode || "jeep").toLowerCase();
-      const arrowCfg = ARROW_CFG[mode] || ARROW_CFG.default;
-
-      const geom = feature.geometry;
-      let allCoords = geom.type === "MultiLineString"
-        ? geom.coordinates
-        : [geom.coordinates];
-
-      const bounds = L.latLngBounds([]);
-      let totalArrows = 0;
-
-      allCoords.forEach((lineCoords, lineIdx) => {
-        const pts = lineCoords.map(([lng, lat]) => [lat, lng]);
-        if (pts.length < 2) return;
-
-        const color = lineIdx === 0 ? "#310775" : "#7c3aed";
-
-        L.polyline(pts, {
-          color,
-          weight: 5,
-          opacity: 0.85,
-          dashArray: lineIdx > 0 ? "10, 5" : null,
-        })
-          .addTo(routeLayerGroup.current)
-          .bindPopup(
-            `<b>${route.name}</b><br>Mode: ${mode}<br>1-way: ${route.oneway ? "Yes" : "No"} | Loop: ${route.loop ? "Yes" : "No"}`
-          );
-
-        pts.forEach((c) => bounds.extend(c));
-
-        // Hybrid arrows at every segment midpoint
-        for (let i = 0; i < pts.length - 1; i++) {
-          if (pts.length > 30 && i % 2 !== 0) continue;
-
-          const from = pts[i];
-          const to = pts[i + 1];
-          const midLat = (from[0] + to[0]) / 2;
-          const midLng = (from[1] + to[1]) / 2;
-          const dx = to[1] - from[1];
-          const dy = to[0] - from[0];
-          const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-
-          L.marker([midLat, midLng], {
-            icon: L.divIcon({
-              className: "route-arrow",
-              html: `<div style="transform:rotate(${angle}deg);color:${color};font-size:${arrowCfg.size}px;line-height:1;font-weight:bold;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));text-shadow:0 0 3px white;">${arrowCfg.char}</div>`,
-              iconSize: [arrowCfg.size + 6, arrowCfg.size + 6],
-              iconAnchor: [Math.floor(arrowCfg.size / 2) + 3, Math.floor(arrowCfg.size / 2) + 3],
-            }),
-            interactive: false,
-          }).addTo(routeLayerGroup.current);
-          totalArrows++;
-        }
-
-        L.circleMarker(pts[0], { radius: 7, fillColor: "#22c55e", color: "#fff", weight: 3, fillOpacity: 1 })
-          .addTo(routeLayerGroup.current)
-          .bindTooltip("START", { permanent: true, direction: "right", offset: [8, 0] });
-
-        L.circleMarker(pts[pts.length - 1], { radius: 7, fillColor: "#ef4444", color: "#fff", weight: 3, fillOpacity: 1 })
-          .addTo(routeLayerGroup.current)
-          .bindTooltip("END", { permanent: true, direction: "right", offset: [8, 0] });
-      });
-
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
-      }
-
-      console.log(`✅ ${route.name}: ${totalArrows} arrows`);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const flipRoute = async (file, index) => {
-    try {
-      const res = await fetch(`${API}/admin/routes/flip?file=${encodeURIComponent(file)}&index=${index}`, { method: "POST" });
-      const data = await res.json();
-      alert(data.message || "Done!");
-      fetchData();
-    } catch (e) {
-      alert("Error: " + e.message);
-    }
-  };
+  useEffect(() => { fetchRoutes(); }, [fetchRoutes]);
 
   const filtered = search
     ? routes.filter((r) => (r.name || "").toLowerCase().includes(search.toLowerCase()))
     : routes;
 
+  const handleAction = async (routeId, action, extra = {}) => {
+    setActionMsg(null);
+    try {
+      let res;
+      if (action === "rename") {
+        const newName = window.prompt("New route name:", extra.currentName);
+        if (!newName) return;
+        res = await fetch(`${API}/admin/routes/rename?route_id=${routeId}&new_name=${encodeURIComponent(newName)}`, { method: "POST" });
+      } else if (action === "verify") {
+        res = await fetch(`${API}/admin/routes/verify?route_id=${routeId}`, { method: "POST" });
+      } else if (action === "delete") {
+        if (!window.confirm("Delete this route permanently?")) return;
+        res = await fetch(`${API}/admin/routes/${routeId}`, { method: "DELETE" });
+      }
+
+      if (res && res.ok) {
+        const data = await res.json();
+        setActionMsg({ ok: true, text: data.message || `${action} successful` });
+        fetchRoutes();
+        if (selected?.route_uuid === routeId) setSelected(null);
+      } else if (res) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || `HTTP ${res.status}`);
+      }
+    } catch (e) {
+      setActionMsg({ ok: false, text: e.message });
+    }
+  };
+
   if (loading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 40, height: 40, border: "4px solid #7c3aed", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
-          <p style={{ color: "#6b7280" }}>Loading routes...</p>
-        </div>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64 text-gray-400">Loading routes…</div>;
   }
 
   if (error) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ color: "#ef4444", marginBottom: 16 }}>Error: {error}</p>
-          <button onClick={fetchData} style={{ padding: "8px 16px", background: "#7c3aed", color: "white", border: "none", borderRadius: 8, cursor: "pointer" }}>Retry</button>
-        </div>
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <p className="text-red-500">Error: {error}</p>
+        <button onClick={fetchRoutes} className="px-4 py-2 bg-purple-800 text-white rounded-lg text-sm">Retry</button>
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      {/* LEFT PANEL */}
-      <div style={{ width: 380, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "1px solid #e5e7eb", background: "white", overflow: "hidden" }}>
-        <div style={{ padding: 16, borderBottom: "1px solid #e5e7eb", background: "#faf5ff" }}>
-          <h1 style={{ fontSize: 18, fontWeight: "bold", color: "#4c1d95", margin: 0 }}>🛠️ Admin Routes</h1>
-          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-            {[
-              ["Total", stats.total_routes || routes.length],
-              ["1-way", stats.oneway_count || 0],
-              ["Loops", stats.loop_count || 0],
-            ].map(([label, val], i) => (
-              <div key={i} style={{ flex: 1, background: "white", borderRadius: 8, padding: 8, textAlign: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-                <div style={{ fontSize: 14, fontWeight: "bold", color: "#4c1d95" }}>{val}</div>
-                <div style={{ fontSize: 10, color: "#6b7280" }}>{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="max-w-4xl mx-auto p-4 space-y-4">
+      {/* Search + stats */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <input
+          type="text"
+          placeholder="🔍 Search routes…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+        <span className="text-sm text-gray-500">{filtered.length} route{filtered.length !== 1 ? "s" : ""}</span>
+      </div>
 
-        <div style={{ padding: 12 }}>
-          <input
-            type="text"
-            placeholder="🔍 Search routes..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ width: "100%", padding: "8px 12px", border: "1px solid #e5e7eb", borderRadius: 8, fontSize: 14, outline: "none", boxSizing: "border-box" }}
-          />
+      {/* Action message */}
+      {actionMsg && (
+        <div className={`p-3 rounded-lg text-sm font-medium ${
+          actionMsg.ok ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"
+        }`}>
+          {actionMsg.text}
         </div>
+      )}
 
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          {filtered.map((r, i) => (
-            <div
-              key={`${r.file}-${r.index || i}`}
-              onClick={() => inspectRoute(r)}
-              style={{
-                padding: "10px 16px",
-                borderBottom: "1px solid #f3f4f6",
-                cursor: "pointer",
-                background: selectedRoute?.name === r.name ? "#f3e8ff" : "white",
-                borderLeft: selectedRoute?.name === r.name ? "4px solid #7c3aed" : "4px solid transparent",
-                transition: "background 0.15s",
-              }}
-              onMouseEnter={(e) => { if (selectedRoute?.name !== r.name) e.currentTarget.style.background = "#faf5ff"; }}
-              onMouseLeave={(e) => { if (selectedRoute?.name !== r.name) e.currentTarget.style.background = "white"; }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 500, fontSize: 14, color: "#1f2937", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</div>
-                  <div style={{ display: "flex", gap: 4, marginTop: 2, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 10, background: "#f3f4f6", padding: "2px 6px", borderRadius: 4, textTransform: "capitalize" }}>{r.mode || "jeep"}</span>
-                    {r.oneway && <span style={{ fontSize: 10, background: "#fef3c7", color: "#92400e", padding: "2px 6px", borderRadius: 4 }}>→ 1-way</span>}
-                    {r.loop && <span style={{ fontSize: 10, background: "#dbeafe", color: "#1e40af", padding: "2px 6px", borderRadius: 4 }}>↻ loop</span>}
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); flipRoute(r.file, r.index || 0); }}
-                  style={{ fontSize: 10, padding: "2px 6px", background: "#ede9fe", color: "#5b21b6", border: "none", borderRadius: 4, cursor: "pointer", flexShrink: 0, marginLeft: 8 }}
-                  title="Flip direction"
-                >🔄</button>
+      {/* Route list */}
+      <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 overflow-hidden">
+        {filtered.map((route) => (
+          <div
+            key={route.route_uuid}
+            className={`p-4 flex items-center gap-3 transition-colors ${
+              selected?.route_uuid === route.route_uuid ? "bg-purple-50" : "hover:bg-gray-50"
+            }`}
+          >
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900 truncate">{route.name}</p>
+              <div className="flex gap-2 mt-1 flex-wrap">
+                <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full capitalize">{route.mode}</span>
+                {route.is_approved && (
+                  <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">✓ Verified</span>
+                )}
+                {!route.is_approved && (
+                  <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">{route.status}</span>
+                )}
+                {route.length_m && (
+                  <span className="text-[10px] text-gray-400">{(route.length_m / 1000).toFixed(1)}km</span>
+                )}
               </div>
             </div>
+
+            {/* Actions */}
+            <div className="flex gap-1 shrink-0">
+              <button
+                onClick={() => setSelected(selected?.route_uuid === route.route_uuid ? null : route)}
+                className="px-2 py-1 text-[10px] font-semibold rounded bg-gray-100 text-gray-600 hover:bg-gray-200"
+              >
+                {selected?.route_uuid === route.route_uuid ? "Hide" : "Inspect"}
+              </button>
+              <button
+                onClick={() => handleAction(route.route_uuid, "rename", { currentName: route.name })}
+                className="px-2 py-1 text-[10px] font-semibold rounded bg-blue-50 text-blue-700 hover:bg-blue-100"
+              >
+                Rename
+              </button>
+              {!route.is_approved && (
+                <button
+                  onClick={() => handleAction(route.route_uuid, "verify")}
+                  className="px-2 py-1 text-[10px] font-semibold rounded bg-green-50 text-green-700 hover:bg-green-100"
+                >
+                  Verify
+                </button>
+              )}
+              <button
+                onClick={() => handleAction(route.route_uuid, "delete")}
+                className="px-2 py-1 text-[10px] font-semibold rounded bg-red-50 text-red-600 hover:bg-red-100"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {filtered.length === 0 && (
+          <div className="p-8 text-center text-gray-400 text-sm">No routes found</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Inspector Tab ──────────────────────────────────────
+
+function InspectorTab() {
+  const [routes, setRoutes] = useState([]);
+  const [selectedId, setSelectedId] = useState("");
+  const [geoJson, setGeoJson] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const mapRef = useRef(null);
+  const mapInst = useRef(null);
+  const layerRef = useRef(null);
+
+  // Load route list
+  useEffect(() => {
+    fetch(`${API}/admin/routes/list`)
+      .then((r) => r.json())
+      .then((d) => setRoutes(d.routes || []));
+  }, []);
+
+  // Init map
+  useEffect(() => {
+    if (!mapRef.current || mapInst.current) return;
+    const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false }).setView(MANILA_CENTER, 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    layerRef.current = L.layerGroup().addTo(map);
+    mapInst.current = map;
+    return () => map.remove();
+  }, []);
+
+  // Load geometry
+  useEffect(() => {
+    if (!selectedId) return;
+    setLoading(true);
+    fetch(`${API}/admin/routes/geojson?route_id=${selectedId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setGeoJson(data);
+        const map = mapInst.current;
+        if (!map) return;
+        layerRef.current?.clearLayers();
+        L.geoJSON(data, {
+          style: { color: "#3e00a6", weight: 5, opacity: 0.9 },
+        }).addTo(layerRef.current);
+        const bounds = L.geoJSON(data).getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [selectedId]);
+
+  return (
+    <div className="flex h-[calc(100vh-120px)]">
+      {/* Sidebar */}
+      <div className="w-72 bg-white border-r border-gray-200 flex flex-col shrink-0">
+        <div className="p-3 border-b border-gray-100">
+          <select
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">Select a route…</option>
+            {routes.map((r) => (
+              <option key={r.route_uuid} value={r.route_uuid}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedId && geoJson && (
+          <div className="p-3 text-xs space-y-2 overflow-y-auto">
+            <p className="font-bold text-gray-700">Route Details</p>
+            <p>Features: {geoJson.features?.length || 0}</p>
+            {geoJson.features?.[0]?.geometry && (
+              <>
+                <p>Type: {geoJson.features[0].geometry.type}</p>
+                <p>
+                  Coordinates:{" "}
+                  {geoJson.features[0].geometry.type === "MultiLineString"
+                    ? geoJson.features[0].geometry.coordinates.reduce((sum, c) => sum + c.length, 0)
+                    : geoJson.features[0].geometry.coordinates?.length || 0}
+                </p>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Map */}
+      <div className="flex-1 relative">
+        <div ref={mapRef} className="absolute inset-0" />
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+            <div className="w-6 h-6 border-3 border-purple-200 border-t-purple-800 rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Approvals Tab ──────────────────────────────────────
+
+function ApprovalsTab() {
+  const [pending, setPending] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [mapReady, setMapReady] = useState(false);
+  const mapRef = useRef(null);
+  const mapInst = useRef(null);
+  const layerRef = useRef(null);
+
+  useEffect(() => {
+    fetch(`${API}/admin/pending/list`)
+      .then((r) => r.json())
+      .then((d) => setPending(d.routes || []));
+  }, []);
+
+  // Init map
+  useEffect(() => {
+    if (!mapRef.current || mapInst.current) return;
+    const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false }).setView(MANILA_CENTER, 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    layerRef.current = L.layerGroup().addTo(map);
+    mapInst.current = map;
+    setMapReady(true);
+    return () => map.remove();
+  }, []);
+
+  const previewRoute = async (route) => {
+    setSelected(route);
+    try {
+      const res = await fetch(`${API}/admin/pending/geojson/${route.route_uuid}`);
+      const data = await res.json();
+      const map = mapInst.current;
+      if (!map) return;
+      layerRef.current?.clearLayers();
+      L.geoJSON(data, {
+        style: { color: "#f59e0b", weight: 4, opacity: 0.8 },
+      }).addTo(layerRef.current);
+      const bounds = L.geoJSON(data).getBounds();
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40] });
+    } catch (e) {
+      console.error("Preview failed:", e);
+    }
+  };
+
+  const approve = async (routeId) => {
+    await fetch(`${API}/admin/pending/approve?route_id=${routeId}`, { method: "POST" });
+    setPending((prev) => prev.filter((r) => r.route_uuid !== routeId));
+    setSelected(null);
+    layerRef.current?.clearLayers();
+  };
+
+  const reject = async (routeId) => {
+    const reason = window.prompt("Rejection reason (optional):") || "";
+    await fetch(`${API}/admin/pending/reject?route_id=${routeId}&reason=${encodeURIComponent(reason)}`, { method: "POST" });
+    setPending((prev) => prev.filter((r) => r.route_uuid !== routeId));
+    setSelected(null);
+    layerRef.current?.clearLayers();
+  };
+
+  return (
+    <div className="flex h-[calc(100vh-120px)]">
+      {/* Sidebar */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0">
+        <div className="p-3 border-b border-amber-100 bg-amber-50">
+          <h2 className="font-bold text-amber-800 text-sm">🕐 Pending Approval</h2>
+          <p className="text-xs text-amber-600 mt-0.5">{pending.length} route{pending.length !== 1 ? "s" : ""} awaiting review</p>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {pending.map((route) => (
+            <div
+              key={route.route_uuid}
+              onClick={() => previewRoute(route)}
+              className={`p-3 border-b cursor-pointer transition-colors ${
+                selected?.route_uuid === route.route_uuid ? "bg-amber-50 border-l-4 border-l-amber-500" : "hover:bg-gray-50"
+              }`}
+            >
+              <p className="text-sm font-medium text-gray-900 truncate">{route.name}</p>
+              <p className="text-xs text-gray-500 capitalize mt-0.5">{route.mode}</p>
+            </div>
           ))}
+          {pending.length === 0 && (
+            <div className="p-6 text-center text-gray-400 text-sm">No pending routes</div>
+          )}
         </div>
 
-        <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#f9fafb", display: "flex", gap: 8 }}>
-          <button onClick={fetchData} style={{ flex: 1, padding: "8px 0", background: "#7c3aed", color: "white", border: "none", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer" }}>🔄 Refresh</button>
-          <span style={{ fontSize: 10, color: "#9ca3af", alignSelf: "center" }}>{filtered.length} routes</span>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL - Map */}
-      <div style={{ flex: 1, position: "relative", minHeight: "100vh" }}>
-        <div
-          id="admin-osm-map"
-          style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}
-        />
-
-        {!selectedRoute && (
-          <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 1000, background: "rgba(255,255,255,0.9)", borderRadius: 8, padding: "8px 16px", fontSize: 14, color: "#6b7280", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-            👈 Click a route to inspect on the map
-          </div>
-        )}
-
-        {selectedRoute && (
-          <div style={{ position: "absolute", top: 16, left: 16, zIndex: 1000, background: "rgba(255,255,255,0.95)", borderRadius: 8, padding: 12, fontSize: 12, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", maxWidth: 280 }}>
-            <div style={{ fontWeight: "bold", color: "#4c1d95", fontSize: 14 }}>{selectedRoute.name}</div>
-            <div style={{ color: "#6b7280", marginTop: 4 }}>{selectedRoute.mode} | {selectedRoute.oneway ? "→ One-way" : "↔ Bidirectional"}{selectedRoute.loop ? " | ↻ Loop" : ""}</div>
-            <div style={{ color: "#9ca3af", fontSize: 10, marginTop: 2 }}>{selectedRoute.file}</div>
+        {/* Actions */}
+        {selected && (
+          <div className="p-3 border-t border-gray-200 bg-gray-50 flex gap-2">
+            <button
+              onClick={() => approve(selected.route_uuid)}
+              className="flex-1 py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600"
+            >
+              ✅ Approve
+            </button>
+            <button
+              onClick={() => reject(selected.route_uuid)}
+              className="flex-1 py-2 bg-red-500 text-white rounded-lg text-xs font-bold hover:bg-red-600"
+            >
+              ❌ Reject
+            </button>
           </div>
         )}
       </div>
 
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .tooltip-start {
-          background: #22c55e !important;
-          color: white !important;
-          border: none !important;
-          font-size: 10px !important;
-          font-weight: bold !important;
-          padding: 2px 6px !important;
-          border-radius: 4px !important;
-        }
-        .tooltip-end {
-          background: #ef4444 !important;
-          color: white !important;
-          border: none !important;
-          font-size: 10px !important;
-          font-weight: bold !important;
-          padding: 2px 6px !important;
-          border-radius: 4px !important;
-        }
-        .leaflet-container {
-          width: 100% !important;
-          height: 100% !important;
-        }
-      `}</style>
+      {/* Map */}
+      <div className="flex-1 relative">
+        <div ref={mapRef} className="absolute inset-0" />
+        {!mapReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50">
+            <div className="w-6 h-6 border-3 border-amber-200 border-t-amber-600 rounded-full animate-spin" />
+          </div>
+        )}
+        {selected && (
+          <div className="absolute top-4 left-4 z-[1000] bg-white/95 rounded-lg shadow-lg p-3 max-w-xs text-xs">
+            <p className="font-bold text-amber-800">{selected.name}</p>
+            <p className="text-gray-500 mt-1 capitalize">{selected.mode}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

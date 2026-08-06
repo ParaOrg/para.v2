@@ -1,32 +1,34 @@
 """
-models.py - Pydantic models for API
+models.py — Pydantic models for Para PH API.
 """
 
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
-# ============ CHAT MODELS ============
+
+# ── Chat ────────────────────────────────────────────────
+
 class ChatMessage(BaseModel):
-    """Chat message from user"""
     user_id: Optional[str] = "guest"
     message: str
     session_id: Optional[str] = None
     timestamp: Optional[datetime] = None
 
+
 class ChatResponse(BaseModel):
-    """Chat response from system"""
     reply_text: str
-    route_data: Optional[Dict] = None
+    route_data: Optional[Dict[str, Any]] = None
     origin: Optional[str] = None
     destination: Optional[str] = None
-    alternatives: Optional[List[Dict]] = None
+    alternatives: Optional[List[Dict[str, Any]]] = None
     task_id: Optional[str] = None
     status: str = "completed"
 
-# ============ ROUTE MODELS ============
+
+# ── Routing ─────────────────────────────────────────────
+
 class RouteRequest(BaseModel):
-    """Route calculation request"""
     origin_lat: float
     origin_lng: float
     dest_lat: float
@@ -34,20 +36,18 @@ class RouteRequest(BaseModel):
     user_id: Optional[str] = "guest"
     mode: Optional[str] = "transit"
 
+
 class RouteStep(BaseModel):
-    """Single step in a route"""
-    action: str
-    vehicle_type: str
+    from_stop: str
+    to_stop: str
     route_name: str
-    from_node: str
-    to_node: str
+    mode: str
     distance_m: float
     duration_min: float
     fare: float
-    geometry: List[List[float]]
+
 
 class RouteResponse(BaseModel):
-    """Route calculation response"""
     success: bool
     total_distance_m: float
     total_duration_min: float
@@ -55,11 +55,12 @@ class RouteResponse(BaseModel):
     steps: List[RouteStep]
     path_nodes: List[str]
     message: str
-    alternatives: Optional[List[Dict]] = None
+    alternatives: Optional[List[Dict[str, Any]]] = None
 
-# ============ FEEDBACK MODELS ============
+
+# ── Feedback ────────────────────────────────────────────
+
 class FeedbackRequest(BaseModel):
-    """User feedback on a route"""
     user_id: str
     route_id: str
     rating: int
@@ -71,9 +72,10 @@ class FeedbackRequest(BaseModel):
     total_time: Optional[float] = None
     timestamp: Optional[datetime] = None
 
-# ============ TELEMETRY MODELS ============
+
+# ── Telemetry ───────────────────────────────────────────
+
 class TelemetryPing(BaseModel):
-    """GPS ping from device"""
     device_id: str
     lat: float
     lng: float
@@ -82,35 +84,37 @@ class TelemetryPing(BaseModel):
     trip_id: Optional[str] = None
     timestamp: Optional[datetime] = None
 
+
 class TelemetryBatch(BaseModel):
-    """Batch of GPS pings"""
     pings: List[TelemetryPing]
     device_id: Optional[str] = None
 
+
 class SimulateRequest(BaseModel):
-    """Simulate telemetry data"""
     route_name: str
     count: int = 10
 
-# ============ TASK MODELS ============
+
+# ── Tasks ───────────────────────────────────────────────
+
 class TaskStatusResponse(BaseModel):
-    """Task status response for async operations"""
     task_id: str
     status: str
     progress: Optional[int] = 0
-    result: Optional[Dict] = None
+    result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     completed_at: Optional[str] = None
 
-# ============ GEOCODING MODELS ============
+
+# ── Geocoding ───────────────────────────────────────────
+
 class GeoRequest(BaseModel):
-    """Geocoding request"""
     location: str
     user_id: Optional[str] = "guest"
-    bounds: Optional[Dict] = None
+    bounds: Optional[Dict[str, float]] = None
+
 
 class GeoResponse(BaseModel):
-    """Geocoding response"""
     found: bool
     lat: Optional[float] = None
     lon: Optional[float] = None
@@ -118,9 +122,10 @@ class GeoResponse(BaseModel):
     source: Optional[str] = None
     confidence: Optional[float] = 0
 
-# ============ ADMIN MODELS ============
+
+# ── Admin ───────────────────────────────────────────────
+
 class RouteMetadata(BaseModel):
-    """Route metadata for admin"""
     name: str
     mode: str
     type: str
@@ -130,7 +135,7 @@ class RouteMetadata(BaseModel):
     source: str
     edge_count: int = 0
 
+
 class RouteListResponse(BaseModel):
-    """List of routes for admin"""
     routes: List[RouteMetadata]
     total: int

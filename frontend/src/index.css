@@ -1,4 +1,5 @@
 @import "tailwindcss";
+
 /* Mobile chat panel */
 @media (max-width: 768px) {
   .leaflet-container {
@@ -6,12 +7,11 @@
   }
 }
 
-/* Mobile full-height fixes */
+/* Full-height base */
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
 @media (max-width: 768px) {

@@ -1,176 +1,258 @@
-import { useState, useEffect, useRef } from "react";
-import { getApiBaseUrl } from "../config/api";
+/**
+ * ChatPanel.jsx — Chat interface for route finding.
+ * - Prompts for GPS on load
+ * - 55% width on desktop, 40% on mobile
+ * - Full route markers on map
+ */
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { getApiBaseUrl } from "../utils/api";
 import MapComponent from "./map_component";
+import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
 
 const API = getApiBaseUrl();
-const P = "#310775";
-
 
 function TypewriterText({ text, speed = 18 }) {
-  const [d, setD] = useState(""); const [done, setDone] = useState(false);
-  useEffect(() => { setD(""); setDone(false); let i = 0; const t = setInterval(() => { setD(text.slice(0, i)); i++; if (i > text.length) { clearInterval(t); setDone(true); } }, speed); return () => clearInterval(t); }, [text]);
-  return <span>{d}{!done && <span className="animate-pulse">|</span>}</span>;
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    setDisplayed("");
+    setDone(false);
+    let i = 0;
+    const timer = setInterval(() => {
+      setDisplayed(text.slice(0, i));
+      i++;
+      if (i > text.length) { clearInterval(timer); setDone(true); }
+    }, speed);
+    return () => clearInterval(timer);
+  }, [text]);
+  return <span>{displayed}{!done && <span className="animate-pulse">|</span>}</span>;
 }
 
 export default function ChatPanel() {
-  const [msgs, setMsgs] = useState([{ sender: "bot", text: "🚐 Kumusta! Ako si Para PH.\n\n🔍 Maghanap ng ruta: Type 'from UPD to UST'\n🚀 I-track: Start Commute after searching\n📤 Mag-upload: Punta sa Upload tab\n\nAno ang gusto mong gawin?" }]);
-  const [inp, setInp] = useState("");
-  const [load, setLoad] = useState(false);
+  const [messages, setMessages] = useState([{
+    sender: "bot",
+    text: "🚐 Kumusta! Ako si Para PH.\n\n🔍 Maghanap ng ruta: Type 'from UPD to UST'\n📤 Mag-upload: Punta sa Community tab\n\nSaan gusto mong puntahan?",
+  }]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [markers, setMarkers] = useState([]);
-  const [lines, setLines] = useState([]);
-  const [routes] = useState([]);
-  const [routeData, setRouteData] = useState(null);
+  const [routeMarkers, setRouteMarkers] = useState([]);
+  const [polylines, setPolylines] = useState([]);
   const [showTracker, setShowTracker] = useState(false);
+  const [activeRouteData, setActiveRouteData] = useState(null);
   const messagesEndRef = useRef(null);
 
-  useEffect(() => { setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100); }, [msgs]);
+  useEffect(() => {
+    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  }, [messages]);
 
-  const clearRoute = () => {
-    setLines([]);
-    setMarkers([]);
-  };
+  const drawRoute = useCallback((routeData) => {
+    if (!routeData) return;
+    const segments = routeData.segments || [];
+    const allMarkers = [];
+    const allLines = [];
 
-  const drawRoute = (routeData) => {
-    console.log('🔴 drawRoute called');
-    
-    if (!routeData) {
-      console.error('❌ routeData is null');
-      return;
-    }
-    
-    const segments = routeData.segments || routeData.steps || [];
-    console.log('📏 Segments:', segments.length);
-    
-    if (segments.length === 0) {
-      console.error('❌ No segments');
-      return;
-    }
-    
-    const newLines = [];
-    const newMarkers = [];
-    
-    segments.forEach((seg, index) => {
-      // Skip 0-min walk transfers
-      if (seg.time_min === 0 && (seg.type === 'walk' || seg.is_transfer)) {
-        console.log(`⏭️ Skip 0-min transfer`);
-        return;
-      }
-      
-      if (!seg.geometry || seg.geometry.length < 2) {
-        console.warn(`⚠️ Bad geometry for segment ${index}`);
-        return;
-      }
-      
-      const isWalk = seg.is_transfer || seg.type === 'walk' || seg.mode === 'walk';
-      
-      // FLIP: [lng, lat] -> [lat, lng] for Leaflet
-      const flippedGeometry = seg.geometry.map(coord => [coord[1], coord[0]]);
-      
-      console.log(`📏 Line ${index}: ${flippedGeometry.length} pts, walk:${isWalk}`);
-      
-      // Add polyline
-      newLines.push({
-        id: `seg-${index}`,
-        coordinates: flippedGeometry,
-        color: isWalk ? '#9CA3AF' : '#310775',
+    // Filter out virtual walk segments (WALK_TO_ROUTE, WALK_TO_DEST)
+    const realSegments = segments.filter(
+      (seg) => seg.route !== "WALK_TO_ROUTE" && seg.route !== "WALK_TO_DEST" && seg.route !== "WALK_TRANSFER"
+    );
+
+    realSegments.forEach((seg, i) => {
+      if (!seg.geometry || seg.geometry.length < 2) return;
+      const coords = seg.geometry.map((c) => [c[1], c[0]]);
+      const isWalk = seg.is_transfer || seg.type === "walk";
+      const isFirst = i === 0;
+      const isLast = i === realSegments.length - 1;
+
+      allLines.push({
+        coordinates: coords,
+        color: isWalk ? "#9CA3AF" : "#3e00a6",
         weight: isWalk ? 2 : 4,
-        opacity: 0.9,
         dashed: isWalk,
-        routeName: seg.route || ''
+        routeName: seg.route || "",
       });
-      
+
       // Start marker
-      newMarkers.push({
-        id: `start-${index}`,
-        position: flippedGeometry[0],
-        type: isWalk ? 'walk-start' : 'stop',
-        label: seg.from?.split('::')[0] || seg.route || 'Board',
-        routeName: seg.route || '',
-        isTransfer: false
-      });
-      
+      const startCoord = coords[0];
+      if (isFirst && isWalk) {
+        allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: "origin", label: "🚩 Start Walking" });
+      } else if (isFirst) {
+        allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: "origin", label: `🚌 Hop on: ${seg.route || "Transit"}` });
+      } else if (isWalk) {
+        allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: "stop", label: "🚶 Walk Transfer" });
+      } else {
+        allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: "stop", label: `🚌 Hop on: ${seg.route || "Transit"}` });
+      }
+
       // End marker
-      newMarkers.push({
-        id: `end-${index}`,
-        position: flippedGeometry[flippedGeometry.length - 1],
-        type: isWalk ? 'walk-end' : 'stop',
-        label: seg.to?.split('::')[0] || seg.route || 'Alight',
-        routeName: seg.route || '',
-        isTransfer: index < segments.length - 1
-      });
+      const endCoord = coords[coords.length - 1];
+      if (isLast && isWalk) {
+        allMarkers.push({ lat: endCoord[0], lng: endCoord[1], type: "destination", label: "🏁 Arrived" });
+      } else if (isLast) {
+        allMarkers.push({ lat: endCoord[0], lng: endCoord[1], type: "destination", label: `🚏 Hop off: ${seg.route || "Transit"}` });
+      } else if (isWalk) {
+        allMarkers.push({ lat: endCoord[0], lng: endCoord[1], type: "stop", label: "🚶 End Walk" });
+      } else {
+        allMarkers.push({ lat: endCoord[0], lng: endCoord[1], type: "stop", label: `🚏 Hop off: ${seg.route || "Transit"}` });
+      }
     });
-    
-    console.log(`✅ Setting ${newLines.length} lines, ${newMarkers.length} markers`);
-    setLines(newLines);
-    setMarkers(newMarkers);
-  };
+
+    setRouteMarkers(allMarkers);
+    setPolylines(allLines);
+  }, []);
 
   const send = async () => {
-    if (!inp.trim()) return;
-    
-    const userMsg = inp;
-    setMsgs(prev => [...prev, { sender: "user", text: userMsg }]);
-    setInp("");
-    setLoad(true);
+    const text = input.trim();
+    if (!text) return;
+    setMessages((prev) => [...prev, { sender: "user", text }]);
+    setInput("");
+    setLoading(true);
     setCollapsed(false);
-    clearRoute();
-    
+    setRouteMarkers([]);
+    setPolylines([]);
+
     try {
-      const res = await fetch(`${API}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: "guest", message: userMsg })
-      });
-      
+      const res = await fetch(`${API}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: "guest", message: text }) });
       const data = await res.json();
-      console.log('📦 Response:', data);
-
-      setMsgs(prev => [...prev, { sender: "bot", text: data.reply_text || data.reply || "No route found" }]);
-
+      setMessages((prev) => [...prev, { sender: "bot", text: data.reply_text || data.reply || "No route found", routeData: data.route_data || null }]);
       if (data.route_data) {
-        setRouteData(data.route_data);
-        setShowTracker(false);
+        setActiveRouteData(data.route_data);
         drawRoute(data.route_data);
       }
     } catch (error) {
-      console.error('❌ Error:', error);
-      setMsgs(prev => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]);
+      console.error("Chat error:", error);
+      setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]);
     }
-    
-    setLoad(false);
+    setLoading(false);
   };
 
   return (
     <div className="fixed inset-0 flex flex-col">
+      {/* Full-screen map */}
       <div className="absolute inset-0 z-0">
-        <MapComponent markers={markers} lines={lines} routes={routes} showLegend={false} fitBounds={true} />
+        <MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
       </div>
-      
-      <div className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 ${collapsed ? 'max-h-12' : 'max-h-[80vh]'}`}>
-        <div className="text-white p-3 font-bold text-sm flex items-center gap-2 shrink-0 justify-between" style={{ background: `linear-gradient(135deg,${P},#5a1fa8)` }}>
+
+
+
+      {/* Chat panel — 55% desktop, 40% mobile */}
+      <div
+        className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 ${
+          collapsed ? "max-h-12" : "max-h-[55%] md:max-h-[40%]"
+        } md:w-96`}
+      >
+        {/* Header */}
+        <div
+          className="text-white p-3 font-bold text-sm flex items-center gap-2 shrink-0 justify-between cursor-pointer"
+          style={{ background: "linear-gradient(135deg, #310775, #5a1fa8)" }}
+          onClick={() => setCollapsed(!collapsed)}
+        >
           <span>🚐 Para PH</span>
-          <button onClick={() => setCollapsed(!collapsed)} className="md:hidden text-white/70 hover:text-white text-lg leading-none">{collapsed ? "▲" : "▼"}</button>
+          <span className="text-white/70 hover:text-white text-lg leading-none select-none">
+            {collapsed ? "▲" : "▼"}
+          </span>
         </div>
-        
+
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-[120px]">
-          {msgs.map((m, i) => (
+          {messages.map((m, i) => (
             <div key={i} className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[95%] p-3 rounded-2xl text-sm ${m.sender === "user" ? "text-white rounded-br-none" : "bg-white text-gray-800 rounded-bl-none border border-gray-100 shadow-sm"}`} style={m.sender === "user" ? { background: `linear-gradient(135deg,${P},#5a1fa8)` } : {}}>
-                {m.sender === "bot" && i === msgs.length - 1 && !load ? <div className="whitespace-pre-wrap"><TypewriterText text={m.text} /></div> : <div className="whitespace-pre-wrap">{m.text}</div>}
+              <div
+                className={`max-w-[95%] p-3 rounded-2xl text-sm ${
+                  m.sender === "user"
+                    ? "text-white rounded-br-none"
+                    : "bg-white text-gray-800 rounded-bl-none border border-gray-100 shadow-sm"
+                }`}
+                style={
+                  m.sender === "user"
+                    ? { background: "linear-gradient(135deg, #310775, #5a1fa8)" }
+                    : {}
+                }
+              >
+                {m.sender === "bot" && i === messages.length - 1 && !loading ? (
+                  <div className="whitespace-pre-wrap">
+                    <TypewriterText text={m.text} />
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap">{m.text}</div>
+                )}
+
+                {m.routeData && (
+                  <div className="mt-2 space-y-2">
+                    <TripSummaryCard routeData={m.routeData} />
+                    {!showTracker && (
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => {
+                            setActiveRouteData(m.routeData);
+                            setShowTracker(true);
+                          }}
+                          className="w-full py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 transition-colors"
+                        >
+                          🚀 Start Tracked Commute
+                        </button>
+                        <p className="text-[10px] text-gray-400 text-center leading-tight">
+                          Your location will be tracked for safety and data training purposes.{" "}
+                          <Link to="/privacy-policy" className="text-purple-600 underline hover:text-purple-800">Learn more</Link>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
-          {load && <div className="flex justify-start"><div className="bg-white border border-gray-100 text-gray-400 p-3 rounded-2xl rounded-bl-none text-sm italic">Naghahanap ng ruta…</div></div>}
+
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-gray-100 text-gray-400 p-3 rounded-2xl rounded-bl-none text-sm italic">
+                Naghahanap ng ruta…
+              </div>
+            </div>
+          )}
           <span ref={messagesEndRef} />
-        {routeData && !showTracker && <button onClick={() => setShowTracker(true)} className="w-full py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold hover:bg-green-600 mt-2">🚀 Start Tracked Commute</button>}
-        {showTracker && routeData && <CommuteTracker routeData={routeData} onComplete={(log) => console.log("Done:", log)} />}
         </div>
-        
+
+        {/* Commute Tracker */}
+        {showTracker && activeRouteData && (
+          <>
+            <div className="fixed top-[15%] bottom-0 left-0 right-0 z-40 bg-black/50 rounded-t-3xl" onClick={() => setShowTracker(false)} />
+            <div className="fixed top-[15%] bottom-0 left-0 right-0 z-50 flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex-1 overflow-y-auto bg-white rounded-t-3xl">
+                <CommuteTracker
+                  routeData={activeRouteData}
+                  onComplete={(log) => {
+                    console.log("Commute complete:", log);
+                    setShowTracker(false);
+                    setActiveRouteData(null);
+                  }}
+                  onCancel={() => setShowTracker(false)}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Input */}
         <div className="p-3 border-t border-gray-100 bg-white flex gap-2 shrink-0">
-          <input value={inp} onChange={(e) => setInp(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Saan papunta?" className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
-          <button onClick={send} disabled={load} className="text-white px-4 py-2 rounded-xl hover:opacity-90 disabled:opacity-50 font-semibold text-sm" style={{ background: P }}>Send</button>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="Saan gusto mong puntahan?"
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+          <button
+            onClick={send}
+            disabled={loading}
+            className="text-white px-4 py-2 rounded-xl hover:opacity-90 disabled:opacity-50 font-semibold text-sm"
+            style={{ background: "#310775" }}
+          >
+            Send
+          </button>
         </div>
       </div>
     </div>

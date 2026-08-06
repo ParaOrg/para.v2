@@ -1,22 +1,17 @@
 import { Link } from 'react-router-dom';
 import paralogo from '../assets/images/Para1P.png';
 
-const PRODUCT_LINKS = [
-  { to: '/', label: 'Home' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
-];
-
-const LEGAL_LINKS = [
-  { to: '/privacy-policy', label: 'Privacy policy' },
+const FOOTER_LINKS = [
+  { to: '/', label: 'Home', locked: false },
+  { to: '/about', label: 'About', locked: false },
+  { to: '/privacy-policy', label: 'Privacy Policy', locked: false },
+  { to: '/explore', label: 'Explore', locked: true },
+  { to: '/community', label: 'Community', locked: true },
+  { to: '/signup', label: 'Sign Up', locked: false },
 ];
 
 const DPO_EMAIL = 'para.ph.info@gmail.com';
 
-/**
- * Site footer: semantic landmark, clear hierarchy, keyboard-friendly links.
- * Use on marketing pages (home, about, contact, legal).
- */
 export default function LandingPageFooter({ className = '' }) {
   const year = new Date().getFullYear();
 
@@ -46,19 +41,28 @@ export default function LandingPageFooter({ className = '' }) {
             </p>
           </div>
 
-          <nav aria-labelledby="footer-product-heading" className="min-w-0">
-            <h2 id="footer-product-heading" className="text-xs font-bold uppercase tracking-wider text-gray-900">
+          <nav aria-labelledby="footer-explore-heading" className="min-w-0">
+            <h2 id="footer-explore-heading" className="text-xs font-bold uppercase tracking-wider text-gray-900">
               Explore
             </h2>
             <ul className="mt-4 space-y-3">
-              {PRODUCT_LINKS.map(({ to, label }) => (
+              {FOOTER_LINKS.map(({ to, label, locked }) => (
                 <li key={to}>
-                  <Link
-                    to={to}
-                    className="text-sm font-medium text-gray-700 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
-                  >
-                    {label}
-                  </Link>
+                  {locked ? (
+                    <Link
+                      to="/signup"
+                      className="text-sm font-medium text-gray-500 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
+                    >
+                      {label} <span className="text-[10px] text-gray-400 ml-1">🔒</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      to={to}
+                      className="text-sm font-medium text-gray-700 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
+                    >
+                      {label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -69,16 +73,14 @@ export default function LandingPageFooter({ className = '' }) {
               Legal
             </h2>
             <ul className="mt-4 space-y-3">
-              {LEGAL_LINKS.map(({ to, label }) => (
-                <li key={to}>
-                  <Link
-                    to={to}
-                    className="text-sm font-medium text-gray-700 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  to="/privacy-policy"
+                  className="text-sm font-medium text-gray-700 hover:text-purple-900 focus:outline-none focus-visible:text-purple-900 focus-visible:underline rounded-sm"
+                >
+                  Privacy policy
+                </Link>
+              </li>
             </ul>
           </nav>
         </div>

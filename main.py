@@ -1,21 +1,18 @@
 """
-main.py - Para PH v3.0
+main.py — Para PH v3.0
+Supabase-powered transit routing engine for Metro Manila.
 """
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
-import os
 
-# Use redis.asyncio
-try:
-    import redis.asyncio as redis
-except ImportError:
-    redis = None
+from database import init_db, close_db
+from graph_engine import build_transit_graph
 from api_routes import router as api_router
 from admin_routes import router as admin_router
-from graph_engine import build_transit_graph
+from config import ENV, CORS_ORIGINS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,47 +20,41 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize and clean up resources"""
     logger.info("🚀 Starting Para PH v3.0...")
-    
-    # Redis connection (optional)
-    try:
-        app.state.redis = await redis.from_url(REDIS_URL, max_connections=10, decode_responses=True)
-        await app.state.redis.ping()
-        logger.info(f"✅ Redis connected: {REDIS_URL}")
-    except Exception as e:
-        logger.warning(f"⚠️ Redis connection failed: {e}")
-        app.state.redis = None
-    
-    # Build graph
-    logger.info("📊 Building transit graph...")
-    G = build_transit_graph("geojson_data/")
+
+    # Database (Supabase PostGIS)
+    await init_db()
+    logger.info("✅ Database connected")
+
+    # Build transit graph from Supabase
+    logger.info("📊 Building transit graph from Supabase...")
+    G = await build_transit_graph()
     app.state.G = G
-    
+
     logger.info(f"✅ Graph loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
     logger.info("✅ Para PH ready!")
-    
+
     yield
-    
+
     # Cleanup
-    if app.state.redis:
-        await app.state.redis.close()
+    await close_db()
     logger.info("👋 Shutting down...")
+
 
 app = FastAPI(
     title="Para PH v3.0",
     description="Transit Routing Engine for Metro Manila",
     version="3.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS.split(",") if CORS_ORIGINS != "*" else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,18 +63,25 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(admin_router)
 
+
 @app.get("/")
 async def root():
-    return {"status": "online", "service": "Para PH v3.0"}
+    return {"status": "online", "service": "Para PH v3.0", "env": ENV}
+
 
 @app.get("/health")
 async def health(req: Request):
+    G = req.app.state.G
     return {
         "status": "healthy",
-        "nodes": req.app.state.G.number_of_nodes(),
-        "edges": req.app.state.G.number_of_edges(),
-        "redis": "connected" if req.app.state.redis else "disconnected"
+        "env": ENV,
+        "graph": {
+            "nodes": G.number_of_nodes(),
+            "edges": G.number_of_edges(),
+            "routes": len(G.graph.get("route_nodes", {})),
+        },
     }
+
 
 if __name__ == "__main__":
     import uvicorn

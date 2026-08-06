@@ -1,213 +1,311 @@
-import { useState, useRef, useEffect } from "react";
+/**
+ * CommuteTracker.jsx — Live commute tracking with:
+ *   - Wait time timer (before first segment)
+ *   - Hop on / hop off per segment
+ *   - GPS tracking (if available)
+ *   - Evaluation/rating at the end
+ *
+ * Props:
+ *   routeData — { segments, total_fare, total_time_min, message }
+ *   onComplete — callback(commuteLog) when commute is finished
+ *   onCancel — callback to exit tracker
+ */
 
-const API = "";
+import { useState, useEffect, useRef, useCallback } from "react";
 
-export default function CommuteTracker({ routeData, onComplete }) {
-  const [status, setStatus] = useState("idle");
-  const [currentStep, setCurrentStep] = useState(0);
-  const [timer, setTimer] = useState(0);
-  const [segments, setSegments] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [gpsTrack, setGpsTrack] = useState([]);
-  const [gpsActive, setGpsActive] = useState(false);
-  const [distance, setDistance] = useState(0);
-  const [gpsDenied, setGpsDenied] = useState(false);
-  const timerRef = useRef(null);
-  const startTimeRef = useRef(null);
+export default function CommuteTracker({ routeData, onComplete, onCancel }) {
+  const rawSegments = routeData?.segments || [];
+  const segments = rawSegments.filter(
+    (seg) => seg.route !== "WALK_TO_ROUTE" && seg.route !== "WALK_TO_DEST" && seg.route !== "WALK_TRANSFER"
+  );
+  const [phase, setPhase] = useState("waiting"); // waiting | riding | done
+  const [currentSegment, setCurrentSegment] = useState(0);
+  const [waitStart] = useState(Date.now());
+  const [segmentStart, setSegmentStart] = useState(null);
+  const [waitTime, setWaitTime] = useState(0);
+  const [segmentTimes, setSegmentTimes] = useState(segments.map(() => 0));
+  const [gpsPoints, setGpsPoints] = useState([]);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [gpsError, setGpsError] = useState(null);
   const watchId = useRef(null);
-  const lastPos = useRef(null);
+  const timerRef = useRef(null);
 
+  // ── Wait timer ─────────────────────────────────────
   useEffect(() => {
-    if (routeData?.segments) {
-      const steps = [];
-      routeData.segments.forEach((seg) => {
-        if (seg.type === "walk" && seg.time_min > 0.5) {
-          steps.push({ type: "walk", label: `Walk ${seg.time_min.toFixed(0)} min`, time: seg.time_min });
-        } else if (seg.type !== "walk" && seg.time_min > 0.5) {
-          steps.push({ type: "ride", label: `Ride ${seg.route}`, time: seg.time_min, fare: seg.fare, route: seg.route });
-        }
+    if (phase !== "waiting") return;
+    timerRef.current = setInterval(() => {
+      setWaitTime(Math.floor((Date.now() - waitStart) / 1000));
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [phase, waitStart]);
+
+  // ── Segment timer ──────────────────────────────────
+  useEffect(() => {
+    if (phase !== "riding" || !segmentStart) return;
+    timerRef.current = setInterval(() => {
+      setSegmentTimes((prev) => {
+        const next = [...prev];
+        next[currentSegment] = Math.floor((Date.now() - segmentStart) / 1000);
+        return next;
       });
-      setSegments(steps);
-    }
-    return () => { clearInterval(timerRef.current); stopGPS(); };
-  }, [routeData]);
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [phase, segmentStart, currentSegment]);
 
-  const calcDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  };
-
-  const requestGPS = () => {
+  // ── GPS tracking ───────────────────────────────────
+  const startGps = useCallback(() => {
     if (!navigator.geolocation) {
-      setGpsDenied(true);
-      return false;
-    }
-    navigator.geolocation.getCurrentPosition(
-      () => { setGpsActive(true); startGPSTracking(); },
-      () => { setGpsDenied(true); },
-      { timeout: 5000 }
-    );
-    return true;
-  };
-
-  const startGPSTracking = () => {
-    setGpsActive(true);
-    watchId.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const pt = {
-          lat: pos.coords.latitude, lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy, time: new Date().toISOString(),
-          speed: pos.coords.speed || 0, step: currentStep, status: status,
-        };
-        setGpsTrack(prev => [...prev, pt]);
-        if (lastPos.current) {
-          setDistance(prev => prev + calcDistance(lastPos.current.lat, lastPos.current.lng, pt.lat, pt.lng));
-        }
-        lastPos.current = pt;
-      },
-      (err) => console.error("GPS:", err),
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
-    );
-  };
-
-  const stopGPS = () => {
-    if (watchId.current) { navigator.geolocation.clearWatch(watchId.current); watchId.current = null; }
-    setGpsActive(false);
-  };
-
-  const startTimer = () => {
-    startTimeRef.current = Date.now();
-    timerRef.current = setInterval(() => setTimer(Math.floor((Date.now() - startTimeRef.current) / 1000)), 1000);
-  };
-  const stopTimer = () => clearInterval(timerRef.current);
-  const formatTime = (s) => `${Math.floor(s/60)}:${(s%60).toString().padStart(2,"0")}`;
-  const formatDist = (m) => m < 1000 ? `${m.toFixed(0)}m` : `${(m/1000).toFixed(1)}km`;
-
-  const saveToBackend = (data) => {
-    fetch(`${API}/admin/commute/save`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    }).catch(e => console.error("Save error:", e));
-  };
-
-  const handleStart = () => {
-    setStatus("idle"); setCurrentStep(0); setDistance(0); setGpsTrack([]);
-    lastPos.current = null;
-    setLogs([{ time: new Date().toISOString(), action: "started" }]);
-    startTimer();
-    requestGPS();
-    advanceStep(0);
-  };
-
-  const advanceStep = (idx) => {
-    const step = segments[idx];
-    if (!step) {
-      setStatus("completed"); stopTimer(); stopGPS();
-      const data = { logs: [...logs, { time: new Date().toISOString(), action: "arrived" }], totalTime: timer, gpsTrack, distance, routeData };
-      setLogs(data.logs);
-      saveToBackend(data);
-      if (onComplete) onComplete(data);
+      setGpsError("GPS not available on this device");
       return;
     }
-    step.type === "ride" ? setStatus("waiting_ride") : setStatus("walking");
+    watchId.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        setGpsPoints((prev) => [
+          ...prev,
+          {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            timestamp: pos.timestamp,
+          },
+        ]);
+        setGpsError(null);
+      },
+      (err) => setGpsError(`GPS error: ${err.message}`),
+      { enableHighAccuracy: true, maximumAge: 5000 },
+    );
+  }, []);
+
+  const stopGps = useCallback(() => {
+    if (watchId.current) {
+      navigator.geolocation.clearWatch(watchId.current);
+      watchId.current = null;
+    }
+  }, []);
+
+  // Start GPS when tracker opens, stop when it closes
+  useEffect(() => {
+    startGps();
+    return () => stopGps();
+  }, [startGps, stopGps]);
+
+  // ── Actions ────────────────────────────────────────
+  const hopOn = () => {
+    setSegmentStart(Date.now());
+    setPhase("riding");
   };
 
-  const handleHopOn = () => {
-    const step = segments[currentStep];
-    if (!step || step.type !== "ride") return;
-    setLogs(prev => [...prev, { time: new Date().toISOString(), action: "hop_on", step: step.label }]);
-    setStatus("riding");
+  const hopOff = () => {
+    setSegmentStart(null);
+    const next = currentSegment + 1;
+    if (next >= segments.length) {
+      // Last segment — done
+      setPhase("done");
+      stopGps();
+    } else {
+      setCurrentSegment(next);
+      setPhase("waiting");
+    }
   };
 
-  const handleHopOff = () => {
-    const step = segments[currentStep];
-    if (!step) return;
-    setLogs(prev => [...prev, { time: new Date().toISOString(), action: "hop_off", step: step.label }]);
-    const next = currentStep + 1;
-    setCurrentStep(next);
-    advanceStep(next);
+  const finish = () => {
+    const commuteLog = {
+      routeData,
+      waitTimeSec: waitTime,
+      segmentTimesSec: segmentTimes,
+      totalTimeSec: waitTime + segmentTimes.reduce((a, b) => a + b, 0),
+      gpsPoints,
+      rating,
+      comment,
+      completedAt: new Date().toISOString(),
+    };
+    if (onComplete) onComplete(commuteLog);
   };
 
-  const handleWalkDone = () => {
-    const step = segments[currentStep];
-    if (!step) return;
-    setLogs(prev => [...prev, { time: new Date().toISOString(), action: "walk_done", step: step.label }]);
-    const next = currentStep + 1;
-    setCurrentStep(next);
-    advanceStep(next);
-  };
-
-  const handleArrive = () => {
-    stopTimer(); stopGPS(); setStatus("completed");
-    const data = { logs: [...logs, { time: new Date().toISOString(), action: "arrived" }], totalTime: timer, gpsTrack, distance, routeData };
-    setLogs(data.logs);
-    saveToBackend(data);
-    if (onComplete) onComplete(data);
-  };
-
-  const cur = segments[currentStep];
-  const nxt = segments[currentStep + 1];
-  const prog = segments.length > 0 ? (currentStep / segments.length) * 100 : 0;
+  // ── Render ─────────────────────────────────────────
+  const currentSeg = segments[currentSegment];
+  const isLastSegment = currentSegment >= segments.length - 1;
 
   return (
-    <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
-      <div className="flex justify-between items-center mb-2">
-        <div><span className="text-sm font-bold text-purple-800">⏱ {formatTime(timer)}</span>{gpsActive && <span className="ml-2 text-xs text-green-600 font-bold">📍 LIVE</span>}</div>
-        <div className="text-xs text-gray-500">Step {currentStep+1}/{segments.length}{distance>0 && ` • ${formatDist(distance)}`}</div>
+    <div className="bg-white rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
+      {/* Header — fixed */}
+      <div className="bg-purple-800 text-white px-4 py-3 flex items-center justify-between shrink-0 rounded-t-3xl">
+        <div>
+          <p className="font-bold text-sm">🚀 Tracked Commute</p>
+          <p className="text-purple-200 text-xs">{routeData?.message}</p>
+        </div>
+        <button onClick={onCancel} className="text-white/70 hover:text-white text-lg leading-none">✕</button>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-3"><div className="bg-purple-600 h-2 rounded-full transition-all" style={{width:`${prog}%`}}/></div>
 
-      {status === "idle" && !timer && (
-        <div className="text-center">
-          <p className="text-sm font-semibold text-purple-800 mb-2">Ready to commute?</p>
-          <p className="text-xs text-gray-500 mb-3">{segments.length} steps • {routeData?.total_time_min?.toFixed(0)} min • ₱{routeData?.total_fare?.toFixed(0)}</p>
-          <button onClick={handleStart} className="w-full py-2.5 bg-purple-600 text-white rounded-xl font-semibold text-sm hover:bg-purple-700">🚀 Start Commute</button>
-          <p className="text-[10px] text-gray-400 mt-1">GPS will be requested for accuracy</p>
-        </div>
-      )}
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto">
+      {/* GPS status */}
+      <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-2 text-xs">
+        <span className={`w-2 h-2 rounded-full ${gpsPoints.length > 0 ? "bg-green-500 animate-pulse" : "bg-gray-300"}`} />
+        <span className="text-gray-500">
+          {gpsError ? (
+            <span>
+              {gpsError}{" "}
+              <button onClick={() => {
+                navigator.geolocation?.getCurrentPosition(
+                  () => { setGpsError(null); startGps(); },
+                  (err) => setGpsError(`GPS: ${err.message}`),
+                  { timeout: 5000 }
+                );
+              }} className="text-purple-700 underline font-semibold">Retry</button>
+            </span>
+          ) : gpsPoints.length > 0 ? (
+            `GPS active (${gpsPoints.length} points)`
+          ) : (
+            "GPS starting…"
+          )}
+        </span>
+      </div>
 
-      {gpsDenied && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-2 mb-2 text-xs text-amber-700">
-          ⚠️ GPS access denied. Continuing without location tracking.
-        </div>
-      )}
+      {/* Segments progress */}
+      <div className="px-4 py-2 flex gap-1">
+        {segments.map((seg, i) => (
+          <div
+            key={i}
+            className={`flex-1 h-1.5 rounded-full ${
+              i < currentSegment ? "bg-green-500"
+              : i === currentSegment ? "bg-purple-500 animate-pulse"
+              : "bg-gray-200"
+            }`}
+          />
+        ))}
+      </div>
 
-      {status === "waiting_ride" && cur && (
-        <div>
-          <div className="bg-white rounded-lg p-3 mb-3 border"><p className="text-xs text-gray-400 uppercase">Next:</p><p className="text-sm font-semibold">🚌 {cur.label}</p>{cur.fare>0&&<p className="text-xs text-gray-500">Fare: ₱{cur.fare.toFixed(0)}</p>}{nxt&&<p className="text-xs text-gray-400 mt-1">Then: {nxt.type==="walk"?"🚶":"🚌"} {nxt.label}</p>}</div>
-          <button onClick={handleHopOn} className="w-full py-2.5 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600">🚌 Hop On</button>
-          <button onClick={handleArrive} className="w-full py-2 bg-red-100 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-200 mt-1">🏁 Arrived</button>
-        </div>
-      )}
+      {/* Content by phase */}
+      <div className="p-4 space-y-3">
+        {phase === "waiting" && (
+          <div className="text-center">
+            <p className="text-3xl font-black text-purple-800 tabular-nums">
+              {Math.floor(waitTime / 60)}:{(waitTime % 60).toString().padStart(2, "0")}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Waiting for your ride</p>
+            <p className="text-xs text-gray-400 mt-2 truncate">
+              Next: {currentSeg?.route || "Transit"} — {currentSeg?.time_min} min est.
+            </p>
+            <button
+              onClick={hopOn}
+              className="mt-4 w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors"
+            >
+              🚌 Hop On — {currentSeg?.route || "Start Ride"}
+            </button>
+          </div>
+        )}
 
-      {status === "riding" && cur && (
-        <div>
-          <div className="bg-green-50 rounded-lg p-3 mb-3 border border-green-200 text-center"><p className="text-xs text-green-600 uppercase font-bold">📍 Riding</p><p className="text-sm font-semibold text-green-800">{cur.route||cur.label}</p></div>
-          <button onClick={handleHopOff} className="w-full py-2.5 bg-amber-500 text-white rounded-xl font-bold text-sm hover:bg-amber-600">⬇️ Hop Off</button>
-          <button onClick={handleArrive} className="w-full py-2 bg-red-100 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-200 mt-1">🏁 Arrived</button>
-        </div>
-      )}
+        {phase === "riding" && (
+          <div className="text-center">
+            <p className="text-3xl font-black text-green-600 tabular-nums">
+              {Math.floor((segmentTimes[currentSegment] || 0) / 60)}:
+              {((segmentTimes[currentSegment] || 0) % 60).toString().padStart(2, "0")}
+            </p>
+            <p className="text-sm text-gray-500 mt-1">Riding — {currentSeg?.route || "Transit"}</p>
+            <p className="text-xs text-gray-400 mt-2">
+              {currentSeg?.time_min} min estimated · ₱{currentSeg?.fare}
+            </p>
+            <button
+              onClick={hopOff}
+              className="mt-4 w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-sm hover:bg-amber-600 transition-colors"
+            >
+              {isLastSegment ? "🏁 Hop Off — Finish Ride" : "🚏 Hop Off — Transfer"}
+            </button>
+          </div>
+        )}
 
-      {status === "walking" && cur && (
-        <div>
-          <div className="bg-blue-50 rounded-lg p-3 mb-3 border border-blue-200 text-center"><p className="text-xs text-blue-600 uppercase font-bold">🚶 Walking</p><p className="text-sm font-semibold text-blue-800">{cur.label}</p></div>
-          <button onClick={handleWalkDone} className="w-full py-2.5 bg-blue-500 text-white rounded-xl font-bold text-sm hover:bg-blue-600">🚶 Arrived at Stop</button>
-          <button onClick={handleArrive} className="w-full py-2 bg-red-100 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-200 mt-1">🏁 Arrived</button>
-        </div>
-      )}
+        {phase === "done" && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <p className="text-3xl mb-1">🎉</p>
+              <p className="font-bold text-gray-800">Commute Complete!</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Total: {Math.floor((waitTime + segmentTimes.reduce((a, b) => a + b, 0)) / 60)} min
+                · {gpsPoints.length} GPS points
+              </p>
+            </div>
 
-      {status === "completed" && (
-        <div className="text-center">
-          <div className="text-4xl mb-2">🎉</div>
-          <p className="text-sm font-bold text-green-700">Commute Complete!</p>
-          <p className="text-xs text-gray-500">{formatTime(timer)} • {formatDist(distance)} • Auto-saved ✓</p>
-          <button onClick={()=>{setStatus("idle");setCurrentStep(0);setTimer(0);setLogs([]);setGpsTrack([]);setDistance(0);setGpsDenied(false);}} className="mt-3 px-4 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-xs hover:bg-purple-200">New Commute</button>
-        </div>
-      )}
+            {/* Evaluation */}
+            <div>
+              <p className="text-sm font-semibold text-gray-700 mb-2">Rate your commute</p>
+              <div className="flex justify-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => setRating(star)}
+                    className={`text-2xl transition-colors ${star <= rating ? "text-amber-400" : "text-gray-300 hover:text-amber-300"}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Comment */}
+            <div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Any notes about this commute? (optional)"
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              />
+            </div>
+
+            {/* Segment breakdown */}
+            <div className="text-xs space-y-1">
+              <p className="font-semibold text-gray-600">Segment breakdown</p>
+              <div className="flex items-center gap-2 text-gray-500">
+                <span>⏳ Wait:</span>
+                <span>{Math.floor(waitTime / 60)}m {waitTime % 60}s</span>
+              </div>
+              {segments.map((seg, i) => (
+                <div key={i} className="flex items-center gap-2 text-gray-500">
+                  <span>{seg.is_transfer ? "🚶" : "🚌"}</span>
+                  <span className="truncate">{seg.route || "Transit"}:</span>
+                  <span>{Math.floor((segmentTimes[i] || 0) / 60)}m {(segmentTimes[i] || 0) % 60}s</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={finish}
+              className="w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors"
+            >
+              💾 Save & Finish
+            </button>
+
+            <button
+              onClick={() => {
+                alert("Share to community coming soon! Your route will be submitted for others to use.");
+              }}
+              className="w-full py-3 bg-green-500 text-white rounded-xl font-bold text-sm hover:bg-green-600 transition-colors"
+            >
+              📤 Share Route to Community
+            </button>
+
+            <button
+              onClick={() => {
+                finish();
+                onCancel();
+              }}
+              className="w-full py-3 border-2 border-purple-800 text-purple-800 rounded-xl font-bold text-sm hover:bg-purple-50 transition-colors"
+            >
+              🚐 Commute Again
+            </button>
+
+            <button
+              onClick={onCancel}
+              className="w-full py-2 border border-gray-300 text-gray-500 rounded-lg text-xs hover:bg-gray-50"
+            >
+              Discard
+            </button>
+          </div>
+        )}
+      </div>
+      </div>
     </div>
   );
 }
