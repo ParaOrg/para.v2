@@ -45,4 +45,4 @@ ENV/
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/
+.idea/backend/
