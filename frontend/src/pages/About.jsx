@@ -1,4 +1,5 @@
 import Navbar from '../components/Navbar';
+import BottomNav from '../components/BottomNav';
 import LandingPageFooter from '../components/landingpage-footer.component.jsx';
 import { Link } from 'react-router-dom';
 import heroBanner from '../assets/images/about-page/image-1.jpeg';
