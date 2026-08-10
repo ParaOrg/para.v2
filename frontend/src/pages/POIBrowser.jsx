@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
+import BottomNav from "../components/BottomNav";
 import POIForm from "../components/POIForm";
 
 const API = getApiBaseUrl();
@@ -18,6 +19,8 @@ const BOTTOM_NAV = [
   { id: "community", label: "Community", icon: "🌟", to: "/community" },
   { id: "profile", label: "Profile", icon: "👤", to: "/profile" },
 ];
+
+<div className="md:hidden"><BottomNav /></div>
 
 export default function POIBrowser() {
   const [pois, setPois] = useState([]);

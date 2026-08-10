@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import BottomNav from "../components/BottomNav";
 import { useAuth } from "../context/AuthContext";
 
 const BADGES = [
@@ -8,6 +9,8 @@ const BADGES = [
   { id: 3, name: "Commute Champion", icon: "🏆", description: "100 tracked commutes", tier: "gold", locked: true },
   { id: 4, name: "Early Adopter", icon: "⭐", description: "Joined during beta", tier: "bronze" },
 ];
+
+<div className="md:hidden"><BottomNav /></div>
 
 export default function Profile() {
   let auth = { user: null, isAuthenticated: false };
