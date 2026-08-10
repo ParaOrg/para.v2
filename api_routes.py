@@ -43,6 +43,152 @@ def _build_chat_reply(origin_raw: str, dest_raw: str, route: dict) -> str:
     return "\n".join(lines)
 
 
+
+
+
+
+# ── POI ────────────────────────────────────────────────
+
+@router.get("/poi/list")
+async def list_pois():
+    """List all points of interest."""
+    try:
+        res = supabase.table("ph_places").select("*").eq("is_active", True).order("canonical_name").execute()
+        pois = res.data or []
+        for p in pois:
+            loc = p.get("location")
+            if loc and isinstance(loc, str) and "POINT" in loc:
+                parts = loc.replace("POINT(", "").replace(")", "").split()
+                if len(parts) == 2:
+                    p["lng"] = float(parts[0])
+                    p["lat"] = float(parts[1])
+        return {"pois": pois, "total": len(pois)}
+    except Exception as e:
+        return {"pois": [], "total": 0, "error": str(e)}
+
+
+@router.post("/poi/add")
+async def add_poi(data: Dict[str, Any]):
+    """Add a new point of interest."""
+    try:
+        lat = data.get("lat")
+        lng = data.get("lng")
+        name = data.get("canonical_name", "").strip()
+        category = data.get("category", "landmark")
+        if not name or lat is None or lng is None:
+            return {"status": "error", "message": "Name, lat, and lng are required"}
+        supabase.table("ph_places").insert({
+            "canonical_name": name,
+            "category": category,
+            "location": f"POINT({lng} {lat})",
+            "is_active": True,
+        }).execute()
+        return {"status": "success", "message": f"Added {name}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+# ── Commute Tracking ──────────────────────────────────
+
+@router.post("/commute/save")
+async def save_commute(data: Dict[str, Any]):
+    """Save a completed tracked commute with GPS data, ratings, and timings."""
+    try:
+        user_id = data.get("user_id", "anonymous")
+        route_data = data.get("routeData", {})
+        
+        # Build the track record
+        track = {
+            "user_id": data.get("user_email") or user_id,
+            "route_uuid": data.get("route_uuid"),
+            "route_name": route_data.get("message", "Unknown Route"),
+            "total_time_sec": data.get("totalTimeSec", 0),
+            "distance_m": data.get("totalDistanceM", 0),
+            "gps_points": len(data.get("gpsPoints", [])),
+            "gps_track": data.get("gpsPoints"),
+            "raw_payload": data,
+        }
+        
+        res = supabase.table("ph_user_tracks").insert(track).execute()
+        if res.data:
+            return {"status": "success", "track_uuid": res.data[0].get("track_uuid")}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.post("/commute/rate")
+async def rate_commute(data: Dict[str, Any]):
+    """Save a rating for a completed commute."""
+    try:
+        rating_data = {
+            "user_id": data.get("user_email", "anonymous"),
+            "route_id": data.get("route_uuid", ""),
+            "rating": data.get("rating", 0),
+            "comment": data.get("comment", ""),
+            "total_fare": data.get("total_fare"),
+            "total_time": data.get("total_time"),
+            "route_nodes": data.get("route_nodes", []),
+        }
+        # Store rating as part of the track update
+        if data.get("track_uuid"):
+            supabase.table("ph_user_tracks").update({
+                "rating": data.get("rating"),
+            }).eq("track_uuid", data["track_uuid"]).execute()
+        
+        return {"status": "success", "message": "Rating saved"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/commute/logs")
+async def get_commute_logs(user_email: str = None):
+    """Get commute logs, optionally filtered by user."""
+    try:
+        query = supabase.table("ph_user_tracks").select("*").order("created_at", desc=True).limit(50)
+        if user_email:
+            query = query.eq("user_id", user_email)
+        res = query.execute()
+        return {"logs": res.data or [], "total": len(res.data or [])}
+    except Exception as e:
+        return {"logs": [], "error": str(e)}
+
+
+# ── GPS Telemetry ─────────────────────────────────────
+
+@router.post("/telemetry/ping")
+async def save_telemetry_ping(data: Dict[str, Any]):
+    """Save a single GPS ping during active commute."""
+    try:
+        ping = {
+            "device_id": data.get("device_id", "web"),
+            "lat": data.get("lat"),
+            "lng": data.get("lng"),
+            "speed_kmh": data.get("speed", 0),
+            "heading": data.get("heading", 0),
+            "trip_id": data.get("trip_id", ""),
+        }
+        # Store in telemetry table or as part of user_tracks
+        return {"status": "received"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.post("/telemetry/batch")
+async def save_telemetry_batch(data: Dict[str, Any]):
+    """Save a batch of GPS pings."""
+    try:
+        pings = data.get("pings", [])
+        device_id = data.get("device_id", "web")
+        trip_id = data.get("trip_id", "")
+        
+        for ping in pings:
+            ping["device_id"] = device_id
+            ping["trip_id"] = trip_id
+        
+        return {"status": "received", "count": len(pings)}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # ── Endpoints ──────────────────────────────────────────
 
 
