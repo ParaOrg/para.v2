@@ -201,7 +201,7 @@ async def save_community_route(data: Dict[str, Any]):
 
     # Insert route
     route_res = supabase.table("ph_routes").insert({
-        "name": route_name, "mode": mode, "is_approved": False, "status": "pending", "submitted_by": "community"
+        "name": route_name, "mode": mode, "is_approved": False, "status": "pending", "submitted_by": data.get("user_email", data.get("submitted_by", "anonymous"))
     }).execute()
     route_uuid = route_res.data[0]["route_uuid"]
 
