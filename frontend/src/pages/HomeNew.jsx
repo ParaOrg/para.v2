@@ -123,6 +123,13 @@ export default function HomeNew() {
     } catch (e) {
       setMessages(prev => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]);
     }
+    // Cache this search
+    try {
+      const cached = JSON.parse(localStorage.getItem("para_recent_searches") || "[]");
+      cached.unshift({ query: text, route: data.route_data, timestamp: Date.now() });
+      localStorage.setItem("para_recent_searches", JSON.stringify(cached.slice(0, 10)));
+    } catch {}
+    
     setLoading(false);
   };
 

@@ -87,6 +87,58 @@ async def add_poi(data: Dict[str, Any]):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+
+
+# ── Route Reports ──────────────────────────────────────
+
+@router.post("/routes/report")
+async def report_route(data: Dict[str, Any]):
+    """Report an issue with a route."""
+    try:
+        report = {
+            "route_uuid": data.get("route_uuid", ""),
+            "route_name": data.get("route_name", ""),
+            "reason": data.get("reason", ""),
+            "reported_by": data.get("user_email", "anonymous"),
+            "created_at": "now()"
+        }
+        # Store in a reports table or update route status
+        supabase.table("ph_routes").update({
+            "reviewer_note": f"Reported: {data.get('reason', 'Issue')} by {data.get('user_email', 'anonymous')}"
+        }).eq("route_uuid", data.get("route_uuid", "")).execute()
+        
+        return {"status": "success", "message": "Report submitted. Thank you!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+# ── Feedback Loop ──────────────────────────────────────
+
+@router.get("/user/submissions")
+async def get_user_submissions(user_email: str = None):
+    """Get all submissions by a user with their approval status."""
+    try:
+        if not user_email:
+            return {"submissions": [], "message": "Email required"}
+        
+        res = supabase.table("ph_routes").select("*").eq("submitted_by", user_email).order("created_at", desc=True).execute()
+        subs = res.data or []
+        
+        approved = [s for s in subs if s.get("is_approved")]
+        pending = [s for s in subs if not s.get("is_approved") and s.get("status") != "rejected"]
+        rejected = [s for s in subs if s.get("status") == "rejected"]
+        
+        return {
+            "submissions": subs,
+            "total": len(subs),
+            "approved": len(approved),
+            "pending": len(pending),
+            "rejected": len(rejected),
+            "message": f"You have {len(approved)} approved, {len(pending)} pending, {len(rejected)} rejected routes."
+        }
+    except Exception as e:
+        return {"submissions": [], "error": str(e)}
+
 # ── Commute Tracking ──────────────────────────────────
 
 @router.post("/commute/save")

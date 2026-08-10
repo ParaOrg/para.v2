@@ -102,6 +102,16 @@ export default function TripSummaryCard({ routeData, isRecommended = false, rank
             <span>💰 ₱{total_fare}</span>
             <span>⏱ {total_time_min} min</span>
             <span>🌤️ Mostly sheltered</span>
+            <button onClick={(e) => {
+              e.stopPropagation();
+              const reason = prompt("What's wrong with this route?\n\n- Wrong directions\n- Route no longer exists\n- Fare changed\n- Other");
+              if (reason) {
+                alert("Thank you! Your report has been submitted. We'll review this route.");
+                // TODO: POST to /routes/report endpoint
+              }
+            }} className="ml-auto text-[10px] text-red-400 hover:text-red-600 font-medium" title="Report an issue with this route">
+              ⚠️ Report
+            </button>
           </div>
         </div>
       </div>

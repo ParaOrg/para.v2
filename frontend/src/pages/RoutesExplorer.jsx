@@ -355,7 +355,21 @@ export default function RoutesExplorer() {
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-bold text-gray-900 truncate">{selected.name || selected.route_name}</h3>
-                  <Link to="/" className="flex items-center justify-center gap-2 py-2.5 mt-3 bg-purple-800 text-white rounded-xl font-bold text-[13px] no-underline">🚐 Commute</Link>
+                  <Link to={`/?route=${encodeURIComponent(selected?.name || selected?.route_name || "")}`} className="flex items-center justify-center gap-2 py-2.5 mt-3 bg-purple-800 text-white rounded-xl font-bold text-[13px] no-underline">
+                🚐 Commute this Route
+              </Link>
+              <button onClick={() => {
+                const routeName = selected?.name || selected?.route_name || "";
+                // Store in localStorage for chat to pick up
+                localStorage.setItem("para_track_route", JSON.stringify({
+                  name: routeName,
+                  route_uuid: selected?.route_uuid || selected?.id,
+                  timestamp: Date.now()
+                }));
+                window.location.href = "/";
+              }} className="w-full py-2 mt-1 bg-green-500 text-white rounded-lg text-[11px] font-bold">
+                📍 I'm on this route — Track it
+              </button>
                 </div>
               </div>
             </div>
