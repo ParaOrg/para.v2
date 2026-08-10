@@ -5,6 +5,35 @@ api_routes.py — Core chat and routing endpoints.
 import traceback
 from fastapi import APIRouter, Request
 
+
+from functools import lru_cache
+import hashlib
+import json
+import time
+
+# Simple in-memory route cache
+_route_cache = {}
+_cache_hits = 0
+_cache_misses = 0
+
+def get_cached_route(origin_lat, origin_lng, dest_lat, dest_lng):
+    key = f"{round(origin_lat,4)},{round(origin_lng,4)}->{round(dest_lat,4)},{round(dest_lng,4)}"
+    if key in _route_cache:
+        global _cache_hits
+        _cache_hits += 1
+        return _route_cache[key]
+    global _cache_misses
+    _cache_misses += 1
+    return None
+
+def set_cached_route(origin_lat, origin_lng, dest_lat, dest_lng, route):
+    key = f"{round(origin_lat,4)},{round(origin_lng,4)}->{round(dest_lat,4)},{round(dest_lng,4)}"
+    _route_cache[key] = route
+    # Keep cache under 1000 entries
+    if len(_route_cache) > 1000:
+        oldest = next(iter(_route_cache))
+        del _route_cache[oldest]
+
 from graph_engine import find_route, find_k_routes, get_walking_path, haversine
 from llm_engine import parse_chat_intent, normalize_location
 from models import ChatMessage, ChatResponse, RouteRequest, RouteResponse, RouteStep
@@ -359,12 +388,19 @@ async def chat(request: ChatMessage, req: Request):
             ))
 
         # Find K candidate routes and rank by Biyahe Score
-        candidates = find_k_routes(
-            G,
-            origin_geo["lat"], origin_geo["lon"],
-            dest_geo["lat"], dest_geo["lon"],
-            k=3
-        )
+        # Check cache first
+        cached = get_cached_route(origin_geo["lat"], origin_geo["lon"], dest_geo["lat"], dest_geo["lon"])
+        if cached:
+            candidates = cached
+        else:
+            candidates = find_k_routes(
+                G,
+                origin_geo["lat"], origin_geo["lon"],
+                dest_geo["lat"], dest_geo["lon"],
+                k=3
+            )
+            if candidates:
+                set_cached_route(origin_geo["lat"], origin_geo["lon"], dest_geo["lat"], dest_geo["lon"], candidates)
 
         if not candidates:
             return ChatResponse(reply_text=(

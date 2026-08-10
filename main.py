@@ -36,6 +36,25 @@ async def lifespan(app: FastAPI):
     app.state.G = G
 
     logger.info(f"✅ Graph loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
+    
+    # Pre-compute popular routes for instant responses
+    logger.info("🔥 Pre-warming route cache...")
+    popular_pairs = [
+        (14.6550, 121.0677, 14.6091, 120.9893),  # UPD -> UST
+        (14.6190, 121.0540, 14.5547, 121.0244),  # Cubao -> Makati
+        (14.6404, 121.0772, 14.5649, 120.9930),  # Ateneo -> DLSU
+        (14.5547, 121.0244, 14.5487, 121.0468),  # Makati -> BGC
+        (14.5350, 120.9821, 14.6190, 121.0540),  # MOA -> Cubao
+    ]
+    from api_routes import set_cached_route, get_cached_route
+    from graph_engine import find_k_routes
+    for lat1, lng1, lat2, lng2 in popular_pairs:
+        if not get_cached_route(lat1, lng1, lat2, lng2):
+            routes = find_k_routes(app.state.G, lat1, lng1, lat2, lng2, k=3)
+            if routes:
+                set_cached_route(lat1, lng1, lat2, lng2, routes)
+    logger.info(f"✅ Cache pre-warmed with {len(popular_pairs)} popular routes")
+
     logger.info("✅ Para PH ready!")
 
     yield
@@ -85,4 +104,4 @@ async def health(req: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, workers=4, reload=False)
