@@ -182,6 +182,8 @@ const COMMUTE_SCENARIOS = [
 //   },
 // ];
 
+<div className="md:hidden"><BottomNav /></div>
+
 export default function About() {
   return (
     <div className="relative w-full min-h-screen bg-white overflow-y-auto" style={{ fontFamily: 'Poppins, sans-serif' }}>

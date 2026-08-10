@@ -35,7 +35,7 @@ function TypewriterText({ text, speed = 18 }) {
 export default function ChatPanel() {
   const [messages, setMessages] = useState([{
     sender: "bot",
-    text: "🚐 Kumusta! Ako si Para PH.\n\n🔍 Maghanap ng ruta: Type 'from UPD to UST'\n📤 Mag-upload: Punta sa Community tab\n\nSaan gusto mong puntahan?",
+    text: "🚐 Para PH — Commute smarter, together.\n\n🔍 Maghanap ng ruta: Type 'from UPD to UST'\n📡 Mag-record: Type 'record route'\n📤 Mag-upload: Punta sa Community tab\n\nSaan gusto mong puntahan?",
   }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

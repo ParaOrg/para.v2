@@ -122,6 +122,8 @@ const SECTIONS = [
   },
 ];
 
+<div className="md:hidden"><BottomNav /></div>
+
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-white">

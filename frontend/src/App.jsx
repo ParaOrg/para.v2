@@ -11,6 +11,7 @@ import Signup from "./pages/Signup";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import About from "./pages/About";
 import GasPrices from "./pages/GasPrices";
+import POIBrowser from "./pages/POIBrowser";
 
 // Protected route wrapper
 function ProtectedRoute({ children }) {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/about" element={<About />} />
         <Route path="/gas-prices" element={<GasPrices />} />
+        <Route path="/poi" element={<POIBrowser />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
