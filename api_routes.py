@@ -45,6 +45,38 @@ def _build_chat_reply(origin_raw: str, dest_raw: str, route: dict) -> str:
 
 # ── Endpoints ──────────────────────────────────────────
 
+
+
+# ── Auth ───────────────────────────────────────────────
+
+@router.post("/auth/signup")
+async def signup(data: Dict[str, Any]):
+    """Sign up / join waitlist."""
+    try:
+        email = data.get("email", "").strip().lower()
+        name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
+        if not email:
+            return {"status": "error", "message": "Email is required"}
+        existing = supabase.table("waitlist").select("*").eq("email", email).execute()
+        if existing.data:
+            return {"status": "exists", "message": "You are already on the waitlist!", "user": existing.data[0]}
+        res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
+        if res.data:
+            return {"status": "success", "message": "Welcome! You are on the list.", "user": res.data[0]}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/auth/waitlist/count")
+async def waitlist_count():
+    """Total signups."""
+    try:
+        res = supabase.table("waitlist").select("*", count="exact").execute()
+        return {"count": res.count or 0}
+    except:
+        return {"count": 0}
+
 @router.post("/chat")
 async def chat(request: ChatMessage, req: Request):
     """Parse a natural-language message and return a route (or helpful reply)."""
