@@ -179,8 +179,40 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
       }).catch(() => {});
     }
     
+    // If offline, queue for later
+    if (!navigator.onLine) {
+      try {
+        const queue = JSON.parse(localStorage.getItem("para_offline_commutes") || "[]");
+        queue.push(commuteLog);
+        localStorage.setItem("para_offline_commutes", JSON.stringify(queue));
+      } catch {}
+    }
+    
     if (onComplete) onComplete(commuteLog);
   };
+
+  // Auto-upload queued commutes when back online
+  useEffect(() => {
+    const handleOnline = () => {
+      try {
+        const queue = JSON.parse(localStorage.getItem("para_offline_commutes") || "[]");
+        if (queue.length === 0) return;
+        
+        const API = (() => { try { return getApiBaseUrl(); } catch { return ""; } })();
+        queue.forEach(log => {
+          fetch((API || "") + "/commute/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(log),
+          }).catch(() => {});
+        });
+        localStorage.removeItem("para_offline_commutes");
+      } catch {}
+    };
+    
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, []);
 
   // ── Render ─────────────────────────────────────────
   const currentSeg = segments[currentSegment];
