@@ -51,18 +51,22 @@ def _build_chat_reply(origin_raw: str, dest_raw: str, route: dict) -> str:
 
 @router.post("/auth/signup")
 async def signup(data: Dict[str, Any]):
-    """Sign up / join waitlist."""
+    """Sign up / login via waitlist."""
     try:
         email = data.get("email", "").strip().lower()
         name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
         if not email:
             return {"status": "error", "message": "Email is required"}
+        
+        # Check if already in waitlist
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
-            return {"status": "exists", "message": "You are already on the waitlist!", "user": existing.data[0]}
+            return {"status": "exists", "message": "Welcome back!", "user": existing.data[0]}
+        
+        # New signup — add to waitlist
         res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
         if res.data:
-            return {"status": "success", "message": "Welcome! You are on the list.", "user": res.data[0]}
+            return {"status": "success", "message": "Welcome to Para PH! You are on the list.", "user": res.data[0]}
         return {"status": "error", "message": "Failed to save"}
     except Exception as e:
         return {"status": "error", "message": str(e)}

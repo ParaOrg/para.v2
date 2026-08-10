@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useCallback } from "react";
+import { createContext, useState, useContext, useCallback, useEffect } from "react";
 import { getApiBaseUrl } from "../utils/api";
 
 const API = getApiBaseUrl();
@@ -6,7 +6,16 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Check for saved session on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("para_user");
+    if (saved) {
+      try { setUser(JSON.parse(saved)); } catch {}
+    }
+    setLoading(false);
+  }, []);
 
   const isAuthenticated = !!user;
   const isGuest = !user;
@@ -20,14 +29,30 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
       const data = await res.json();
-      if (data.status === "success" || data.status === "exists") {
-        setUser({
+      if (data.status === "exists") {
+        // Already in waitlist — log them in
+        const userData = {
           uid: data.user?.user_id || email,
           email: email.trim().toLowerCase(),
           displayName: data.user?.name || email.split("@")[0],
           role: "user",
           isGuest: false,
-        });
+        };
+        setUser(userData);
+        localStorage.setItem("para_user", JSON.stringify(userData));
+      } else if (data.status === "success") {
+        // New signup — added to waitlist
+        const userData = {
+          uid: data.user?.user_id || email,
+          email: email.trim().toLowerCase(),
+          displayName: data.user?.name || email.split("@")[0],
+          role: "user",
+          isGuest: false,
+        };
+        setUser(userData);
+        localStorage.setItem("para_user", JSON.stringify(userData));
+      } else {
+        throw new Error(data.message || "Signup failed");
       }
     } catch (e) {
       console.error("Login failed:", e);
@@ -45,13 +70,17 @@ export function AuthProvider({ children }) {
       });
       const data = await res.json();
       if (data.status === "success" || data.status === "exists") {
-        setUser({
+        const userData = {
           uid: data.user?.user_id || email,
           email: email.trim().toLowerCase(),
           displayName: data.user?.name || email.split("@")[0],
           role: "user",
           isGuest: false,
-        });
+        };
+        setUser(userData);
+        localStorage.setItem("para_user", JSON.stringify(userData));
+      } else {
+        throw new Error(data.message || "Signup failed");
       }
     } catch (e) {
       console.error("Signup failed:", e);
@@ -59,7 +88,10 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const logout = useCallback(() => setUser(null), []);
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem("para_user");
+  }, []);
 
   const checkPermission = useCallback((level) => {
     if (level === "admin") return user?.role === "admin";
@@ -68,7 +100,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthenticated, isGuest, login, signup, logout, checkPermission }}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
