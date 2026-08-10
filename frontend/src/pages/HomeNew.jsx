@@ -66,7 +66,7 @@ export default function HomeNew() {
       setPlaceholder("");
       typeText(fullText, 60, () => {
         const t1 = setTimeout(() => backspaceText(fullText, 40, () => typeText(exampleText, 80, () => {
-          const t2 = setTimeout(() => backspaceText(exampleText, 40, () => { const t3 = setTimeout(() => runCycle(), 300); timeouts.push(t3); }), 5000);
+          const t2 = setTimeout(() => backspaceText(exampleText, 40, () => { const t3 = setTimeout(() => runCycle(), 300); timeouts.push(t3); }), 4000);
           timeouts.push(t2);
         })), 5000);
         timeouts.push(t1);

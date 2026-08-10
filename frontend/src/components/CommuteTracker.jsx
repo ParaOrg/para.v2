@@ -157,14 +157,28 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
   const finish = () => {
     const commuteLog = {
       routeData,
+      route_uuid: routeData?.route_uuid || "",
+      user_email: localStorage.getItem("para_user") ? JSON.parse(localStorage.getItem("para_user")).email : "anonymous",
       waitTimeSec: waitTime,
       segmentTimesSec: segmentTimes,
       totalTimeSec: waitTime + segmentTimes.reduce((a, b) => a + b, 0),
+      totalDistanceM: routeData?.total_distance_m || 0,
       gpsPoints,
       rating,
       comment,
       completedAt: new Date().toISOString(),
     };
+    
+    // Save to backend
+    const API = (() => { try { return getApiBaseUrl(); } catch { return ""; } })();
+    if (API || API === "") {
+      fetch((API || "") + "/commute/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(commuteLog),
+      }).catch(() => {});
+    }
+    
     if (onComplete) onComplete(commuteLog);
   };
 
