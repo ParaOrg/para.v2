@@ -1,65 +1,35 @@
-/**
- * api.js — HTTP wrapper for Para PH backend.
- * Uses Vite proxy in dev, direct URL in production.
- *
- * Exports:
- *   getApiBaseUrl() → "" in dev, "https://para-ph-api.onrender.com" in prod
- *   apiGet(path)    → fetch wrapper
- *   apiPost(path, body)
- *   apiPut(path, body)
- *   apiDelete(path)
- */
+const PRODUCTION_URL = import.meta.env.VITE_API_URL || "https://para-ph-api.onrender.com";
+let authToken = null;
 
-const PRODUCTION_URL = "https://para-ph-api.onrender.com";
+export function setApiToken(token) { authToken = token || null; }
+export function getApiToken() { return authToken; }
 
-/**
- * Returns empty string in dev mode (Vite proxy handles /api, /chat, /admin, /auth).
- * Returns production URL only when built and deployed.
- */
 export function getApiBaseUrl() {
-  if (import.meta.env.PROD) {
-    return PRODUCTION_URL;
-  }
+  if (import.meta.env.PROD) return PRODUCTION_URL;
   return "";
 }
 
-async function request(method, path, body = null) {
+async function request(method, path, body = null, options = {}) {
   const base = getApiBaseUrl();
   const url = `${base}${path}`;
-
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
-
-  const response = await fetch(url, options);
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`HTTP ${response.status}: ${errorText}`);
-  }
-
-  return response.json();
+  const headers = { ...(options.headers || {}) };
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  if (!isFormData) headers["Content-Type"] = headers["Content-Type"] || "application/json";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 20000);
+  try {
+    const response = await fetch(url, { method, headers, body: body ? (isFormData ? body : JSON.stringify(body)) : undefined, signal: controller.signal });
+    const text = await response.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch { data = { raw: text }; } }
+    if (!response.ok) { const message = data?.message || data?.detail || data?.error || `HTTP ${response.status}`; const error = new Error(message); error.status = response.status; error.data = data; throw error; }
+    return data;
+  } finally { clearTimeout(timeout); }
 }
 
-export function apiGet(path) {
-  return request("GET", path);
-}
-
-export function apiPost(path, body) {
-  return request("POST", path, body);
-}
-
-export function apiPut(path, body) {
-  return request("PUT", path, body);
-}
-
-export function apiDelete(path) {
-  return request("DELETE", path);
-}
+export function apiGet(path, options) { return request("GET", path, null, options); }
+export function apiPost(path, body, options) { return request("POST", path, body, options); }
+export function apiPut(path, body, options) { return request("PUT", path, body, options); }
+export function apiPatch(path, body, options) { return request("PATCH", path, body, options); }
+export function apiDelete(path, options) { return request("DELETE", path, null, options); }

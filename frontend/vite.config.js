@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -16,6 +16,10 @@ export default defineConfig({
       '/telemetry': 'http://127.0.0.1:8000',
       '/traffic': 'http://127.0.0.1:8000',
       '/admin': 'http://127.0.0.1:8000',
+      '/auth': 'http://127.0.0.1:8000',
+      '/poi': 'http://127.0.0.1:8000',
+      '/commute': 'http://127.0.0.1:8000',
+      '/routes': 'http://127.0.0.1:8000',
     }
   }
 })

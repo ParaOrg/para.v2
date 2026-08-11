@@ -110,7 +110,7 @@ export default function SignupDetailsStep({ onSuccess }) {
     try {
       const normalizedContact = contact.startsWith('0') ? contact : `0${contact}`;
 
-      const res = await fetch(`${API}/api/v1/auth/register`, {
+      const res = await fetch(`${API}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, contact: normalizedContact, password, role }),
