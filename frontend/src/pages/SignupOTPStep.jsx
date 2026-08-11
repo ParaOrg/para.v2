@@ -49,7 +49,7 @@ export default function SignupOTPStep({ uid, email, onBack }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API}/api/v1/auth/verify-otp`, {
+      const res = await fetch(`${API}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, otp }),
@@ -75,7 +75,7 @@ export default function SignupOTPStep({ uid, email, onBack }) {
     setError('');
 
     try {
-      const res = await fetch(`${API}/api/v1/auth/resend-otp`, {
+      const res = await fetch(`${API}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid }),

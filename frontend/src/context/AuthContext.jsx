@@ -1,106 +1,80 @@
-import { createContext, useState, useContext, useCallback, useEffect } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getApiBaseUrl } from "../utils/api";
 
-const API = getApiBaseUrl();
 const AuthContext = createContext(null);
+const USER_KEY = "para_user";
+const API = getApiBaseUrl();
+
+function safeParse(value) { try { return value ? JSON.parse(value) : null; } catch { return null; } }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => safeParse(localStorage.getItem(USER_KEY)));
   const [loading, setLoading] = useState(true);
 
-  // Check for saved session on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("para_user");
-    if (saved) {
-      try { setUser(JSON.parse(saved)); } catch {}
-    }
-    setLoading(false);
+  useEffect(() => { setLoading(false); }, []);
+
+  const login = useCallback(async (email) => {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail) throw new Error("Email is required");
+
+    const res = await fetch(`${API}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalizedEmail }),
+    });
+
+    if (!res.ok) throw new Error("Sign in failed");
+    const data = await res.json();
+
+    if (data.status === "error") throw new Error(data.message || "Sign in failed");
+
+    const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
+    try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
+    setUser(userData);
+    return data;
   }, []);
 
-  const isAuthenticated = !!user;
-  const isGuest = !user;
+  const signup = useCallback(async (email, name) => {
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!normalizedEmail) throw new Error("Email is required");
 
-  const login = useCallback(async (email, _password) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-      const data = await res.json();
-      if (data.status === "exists") {
-        // Already in waitlist — log them in
-        const userData = {
-          uid: data.user?.user_id || email,
-          email: email.trim().toLowerCase(),
-          displayName: data.user?.name || email.split("@")[0],
-          role: "user",
-          isGuest: false,
-        };
-        setUser(userData);
-        localStorage.setItem("para_user", JSON.stringify(userData));
-      } else if (data.status === "success") {
-        // New signup — added to waitlist
-        const userData = {
-          uid: data.user?.user_id || email,
-          email: email.trim().toLowerCase(),
-          displayName: data.user?.name || email.split("@")[0],
-          role: "user",
-          isGuest: false,
-        };
-        setUser(userData);
-        localStorage.setItem("para_user", JSON.stringify(userData));
-      } else {
-        throw new Error(data.message || "Signup failed");
-      }
-    } catch (e) {
-      console.error("Login failed:", e);
-    }
-    setLoading(false);
+    const res = await fetch(`${API}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalizedEmail, name: name || normalizedEmail.split("@")[0] }),
+    });
+
+    if (!res.ok) throw new Error("Sign up failed");
+    const data = await res.json();
+
+    if (data.status === "error") throw new Error(data.message || "Sign up failed");
+
+    const userData = data.user || { email: normalizedEmail, name };
+    try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
+    setUser(userData);
+    return data;
   }, []);
 
-  const signup = useCallback(async (email, _password) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-      const data = await res.json();
-      if (data.status === "success" || data.status === "exists") {
-        const userData = {
-          uid: data.user?.user_id || email,
-          email: email.trim().toLowerCase(),
-          displayName: data.user?.name || email.split("@")[0],
-          role: "user",
-          isGuest: false,
-        };
-        setUser(userData);
-        localStorage.setItem("para_user", JSON.stringify(userData));
-      } else {
-        throw new Error(data.message || "Signup failed");
-      }
-    } catch (e) {
-      console.error("Signup failed:", e);
-    }
-    setLoading(false);
-  }, []);
+  const loginWithCustomToken = useCallback(async (customToken) => {
+    // Backend doesn't have custom tokens — treat as email login
+    return login(customToken);
+  }, [login]);
 
   const logout = useCallback(() => {
+    try { localStorage.removeItem(USER_KEY); } catch {}
     setUser(null);
-    localStorage.removeItem("para_user");
   }, []);
 
+  const isAuthenticated = Boolean(user);
+  const isGuest = !user;
   const checkPermission = useCallback((level) => {
     if (level === "admin") return user?.role === "admin";
     return isAuthenticated;
   }, [user, isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, isGuest, login, signup, logout, checkPermission }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, loading, isAuthenticated, isGuest, login, signup, logout, checkPermission, loginWithCustomToken }}>
+      {children}
     </AuthContext.Provider>
   );
 }
