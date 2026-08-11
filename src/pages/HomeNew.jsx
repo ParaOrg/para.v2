@@ -109,9 +109,11 @@ export default function HomeNew() {
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setInput(""); setLoading(true); setShowChat(true); setRouteMarkers([]); setPolylines([]);
     const gpsLoc = location ? [location.lat, location.lng] : null;
-    const hasOrigin = /from|mula|galing|papunta/i.test(text);
+    const hasExplicitOrigin = /from|mula|galing|papunta/i.test(text);
+    const isDestinationOnly = /^(to |papunta |punta )/i.test(text);
+    const needsGPS = isDestinationOnly || (!hasExplicitOrigin && gpsLoc);
     const { normalized } = normalizeQuery(text, gpsLoc ? { lat: gpsLoc[0], lng: gpsLoc[1] } : null);
-    const backendMessage = !hasOrigin && gpsLoc ? `from here to ${normalized}` : normalized;
+    const backendMessage = needsGPS ? `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}` : normalized;
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
