@@ -123,7 +123,6 @@ const SECTIONS = [
   },
 ];
 
-<div className="md:hidden"><BottomNav /></div>
 
 export default function PrivacyPolicy() {
   return (

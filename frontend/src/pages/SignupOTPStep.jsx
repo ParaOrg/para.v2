@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import OTPInput from '../components/OTPInput';
 import AuthPageLayout from '../components/AuthPageLayout';
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+import { getApiBaseUrl } from '../utils/api';
+const API = getApiBaseUrl();
 
 function EmailIcon() {
   return (

@@ -6,12 +6,12 @@ import GasPriceWidget from './GasPrice/index.jsx';
 import { useAuth } from '../context/AuthContext';
 
 
-const NAV_LINKS = [
+const ALL_NAV_LINKS = [
   { to: '/', label: 'Commute' },
   { to: '/explore', label: 'Explore' },
   { to: '/community', label: 'Community' },
   { to: '/about', label: 'About' },
-  { to: '/admin', label: 'Admin' },
+  { to: '/admin', label: 'Admin', adminOnly: true },
 ];
 
 function HamburgerIcon({ open }) {
@@ -30,9 +30,10 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, logout, isGuest } = useAuth();
+  const visibleLinks = ALL_visibleLinks.filter(l => !l.adminOnly || user?.role === "admin");
 
   const activeIndex = useMemo(() => {
-    const idx = NAV_LINKS.findIndex(({ to }) => (to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(`${to}/`)));
+    const idx = visibleLinks.findIndex(({ to }) => (to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(`${to}/`)));
     return idx >= 0 ? idx : 0;
   }, [location.pathname]);
 
@@ -55,7 +56,7 @@ export default function Navbar() {
   }, [mobileOpen]);
 
   const closeMobile = () => setMobileOpen(false);
-  const pillWidth = `calc((100% - 0.75rem) / ${NAV_LINKS.length})`;
+  const pillWidth = `calc((100% - 0.75rem) / ${visibleLinks.length})`;
   const pillTransform = `translateX(${activeIndex * 100}%)`;
 
   return (
@@ -67,13 +68,13 @@ export default function Navbar() {
 
         <div className="hidden lg:flex items-center justify-center px-2 xl:px-4 lg:justify-self-center">
           <div className="relative grid h-[2.8rem] w-[36rem] items-center rounded-full border border-black/5 bg-gray-100/90 p-1 shadow-[0_10px_30px_rgba(15,23,42,0.05)] ring-1 ring-white/70"
-               style={{ gridTemplateColumns: `repeat(${NAV_LINKS.length}, minmax(0, 1fr))` }}>
+               style={{ gridTemplateColumns: `repeat(${visibleLinks.length}, minmax(0, 1fr))` }}>
             <span
               aria-hidden
               className="pointer-events-none absolute left-1.5 top-1.5 h-[calc(100%-0.75rem)] rounded-full bg-white shadow-[0_8px_18px_rgba(79,0,205,0.12)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
               style={{ width: pillWidth, transform: pillTransform }}
             />
-            {NAV_LINKS.map(({ to, label }) => {
+            {visibleLinks.map(({ to, label }) => {
               const isActive = activeLink(to);
               return (
                 <Link
@@ -136,7 +137,7 @@ export default function Navbar() {
               <button type="button" className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 -mr-1" aria-label="Close menu" onClick={closeMobile}><HamburgerIcon open /></button>
             </div>
             <nav className="flex flex-col px-6 pt-6 pb-6 gap-2 flex-1 overflow-y-auto">
-              {NAV_LINKS.map(({ to, label }) => (
+              {visibleLinks.map(({ to, label }) => (
                 <Link key={to} to={to} onClick={closeMobile} aria-current={activeLink(to) ? 'page' : undefined}
                   className={`py-3 px-2 rounded-xl text-[1.95rem] leading-[1.2] font-semibold transition-all duration-200 ${activeLink(to) ? 'text-[#7A4BC8] bg-[#f5f0ff]' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'}`}>
                   {label}
