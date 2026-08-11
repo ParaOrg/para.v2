@@ -34,8 +34,8 @@ const TABS = [
 ];
 
 export default function AdminDashboard() {
-  let auth = { isAuthenticated: false, user: null };
-  try { auth = useAuth(); } catch (_) {}
+  const auth = useAuth();
+  const [tab, setTab] = useState("doctor");
 
   if (!auth.isAuthenticated || auth.user?.role !== "admin") {
     return (
@@ -50,9 +50,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
-
-  const [tab, setTab] = useState("doctor");
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

@@ -1,7 +1,5 @@
 import Navbar from "../components/Navbar";
-import BottomNav from "../components/BottomNav";
 
-<div className="md:hidden"><BottomNav /></div>
 
 export default function GasPrices() {
   return (

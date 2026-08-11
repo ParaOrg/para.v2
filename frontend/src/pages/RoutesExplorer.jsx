@@ -8,7 +8,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
-import BottomNav from "../components/BottomNav";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -31,7 +30,6 @@ function useIsMobile() {
   return m;
 }
 
-<div className="md:hidden"><BottomNav /></div>
 
 export default function RoutesExplorer() {
   const isMobile = useIsMobile();
@@ -72,7 +70,7 @@ export default function RoutesExplorer() {
         const routesData = await routesRes.json();
         const refData = await refRes.json();
         const all = routesData.routes || [];
-        setVerified(all.filter((r) => r.is_approved));
+        setVerified(all.filter((r) => r.is_approved && !r.is_test && !/test|demo|dummy|staging/i.test(r.name || '')));
         
         // Build verified names set for comparison
         const vNames = new Set();
