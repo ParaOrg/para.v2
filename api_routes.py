@@ -3,7 +3,7 @@ api_routes.py — Core chat and routing endpoints.
 """
 
 import traceback
-from fastapi import APIRouter, Request
+from fastapi import Request,  APIRouter, Request
 
 
 from functools import lru_cache
@@ -277,9 +277,10 @@ async def save_telemetry_batch(data: Dict[str, Any]):
 # ── Auth ───────────────────────────────────────────────
 
 @router.post("/auth/signup")
-async def signup(data: Dict[str, Any]):
+async def signup(request: Request):
     """Sign up / login via waitlist."""
     try:
+        data = await request.json()
         email = data.get("email", "").strip().lower()
         name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
         if not email:
