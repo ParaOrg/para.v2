@@ -98,7 +98,8 @@ async def list_pois():
 
 
 @router.post("/poi/add")
-async def add_poi(data: Dict[str, Any]):
+async def add_poi(request: Request):
+    data = await request.json()
     """Add a new point of interest."""
     try:
         lat = data.get("lat")
@@ -122,7 +123,8 @@ async def add_poi(data: Dict[str, Any]):
 # ── Route Reports ──────────────────────────────────────
 
 @router.post("/routes/report")
-async def report_route(data: Dict[str, Any]):
+async def report_route(request: Request):
+    data = await request.json()
     """Report an issue with a route."""
     try:
         report = {
@@ -172,7 +174,8 @@ async def get_user_submissions(user_email: str = None):
 # ── Commute Tracking ──────────────────────────────────
 
 @router.post("/commute/save")
-async def save_commute(data: Dict[str, Any]):
+async def save_commute(request: Request):
+    data = await request.json()
     """Save a completed tracked commute with GPS data, ratings, and timings."""
     try:
         user_id = data.get("user_id", "anonymous")
@@ -199,7 +202,8 @@ async def save_commute(data: Dict[str, Any]):
 
 
 @router.post("/commute/rate")
-async def rate_commute(data: Dict[str, Any]):
+async def rate_commute(request: Request):
+    data = await request.json()
     """Save a rating for a completed commute."""
     try:
         rating_data = {
@@ -238,7 +242,8 @@ async def get_commute_logs(user_email: str = None):
 # ── GPS Telemetry ─────────────────────────────────────
 
 @router.post("/telemetry/ping")
-async def save_telemetry_ping(data: Dict[str, Any]):
+async def save_telemetry_ping(request: Request):
+    data = await request.json()
     """Save a single GPS ping during active commute."""
     try:
         ping = {
@@ -256,7 +261,8 @@ async def save_telemetry_ping(data: Dict[str, Any]):
 
 
 @router.post("/telemetry/batch")
-async def save_telemetry_batch(data: Dict[str, Any]):
+async def save_telemetry_batch(request: Request):
+    data = await request.json()
     """Save a batch of GPS pings."""
     try:
         pings = data.get("pings", [])
