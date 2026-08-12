@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 
 export default function GpsPrompt() {
@@ -22,6 +23,7 @@ export default function GpsPrompt() {
         {error && <div className="mt-4 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{error}</div>}
         <button onClick={requestConsentAndLocation} className="w-full mt-6 py-3 bg-[#7A4BC8] text-white rounded-xl font-bold text-sm hover:bg-[#6a3cb8] transition-colors">Enable Location</button>
         <button onClick={deny} className="w-full mt-2 py-2 text-gray-400 text-xs hover:text-gray-600 transition-colors">Not now</button>
+        <p className="text-[11px] text-gray-400 mt-3 text-center"><Link to="/privacy-policy" className="underline hover:text-gray-600">Read the Privacy Policy</Link></p>
       </div>
     </div>
   );
