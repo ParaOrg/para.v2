@@ -296,7 +296,10 @@ async def signup(request: Request):
         # Check if already in waitlist
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
-            return {"status": "exists", "message": "Welcome back!", "user": existing.data[0]}
+            user = existing.data[0]
+            # Generate simple token from user_id (UUID)
+            token = user.get("user_id", "")
+            return {"status": "exists", "message": "Welcome back!", "token": token, "user": user}
         
         # New signup — add to waitlist
         res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
