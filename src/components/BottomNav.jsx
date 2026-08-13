@@ -46,7 +46,7 @@ export default function BottomNav({ onSearchClick }) {
       )}
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3"
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3"
         style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))" }}>
         <div className="flex items-end justify-center gap-5 px-2">
           {/* Hamburger */}
