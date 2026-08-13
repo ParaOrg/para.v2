@@ -582,6 +582,7 @@ async def chat(request: ChatMessage, req: Request):
             route_data=route,
             origin=origin_raw,
             destination=dest_raw,
+            alternatives=ranked_filtered if ranked_filtered else None,
         )
 
     except Exception:
