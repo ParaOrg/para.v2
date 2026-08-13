@@ -222,6 +222,18 @@ async def create_thread(request: Request):
         return {"status": "error", "message": str(e)}
 
 
+@router.post("/community/threads/delete")
+async def delete_thread(request: Request):
+    """Delete a community thread."""
+    from database import supabase
+    data = await request.json()
+    try:
+        res = supabase.table("community_threads").delete().eq("thread_uuid", data.get("thread_uuid")).execute()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @router.post("/routes/report")
 async def report_route(request: Request):
     data = await request.json()
