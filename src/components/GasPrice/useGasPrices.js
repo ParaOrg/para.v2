@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || "https://para-ph-api.onrender.com";
 const API_URL = `${API_BASE}/api/v1/gas-prices/blended`;
 const POLL_INTERVAL_MS = 30_000; // re-fetch every 30 seconds
 
