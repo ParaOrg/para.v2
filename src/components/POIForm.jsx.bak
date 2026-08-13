@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { getApiBaseUrl } from "../utils/api";
-import { useTrackingConsent } from "../context/TrackingConsentContext";
 
 const API = getApiBaseUrl();
 
@@ -13,15 +12,18 @@ export default function POIForm({ onSuccess }) {
   const [lng, setLng] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
-  const { location, requestConsentAndLocation } = useTrackingConsent();
+  const [useGPS, setUseGPS] = useState(false);
 
   const useCurrentLocation = () => {
-    if (location) {
-      setLat(location.lat.toFixed(6));
-      setLng(location.lng.toFixed(6));
-    } else {
-      requestConsentAndLocation();
-      setMsg({ ok: false, text: "Enable location first, then try again" });
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLat(pos.coords.latitude.toFixed(6));
+          setLng(pos.coords.longitude.toFixed(6));
+          setUseGPS(true);
+        },
+        () => setMsg({ ok: false, text: "GPS not available" })
+      );
     }
   };
 
