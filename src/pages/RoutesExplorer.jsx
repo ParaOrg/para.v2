@@ -79,11 +79,11 @@ export default function RoutesExplorer() {
         });
         setVerifiedNames(vNames);
         
-        // Deduplicate reference routes and mark matched/unmatched
+        // Deduplicate reference routes by UNIQUE name
         const seen = new Set();
         const uniqueRef = [];
         (refData.routes || []).forEach(r => {
-          const name = (r.name || r.route_name || "").trim();
+          const name = (r.route_name || r.name || "").trim();
           const lower = name.toLowerCase();
           if (!lower || seen.has(lower)) return;
           seen.add(lower);

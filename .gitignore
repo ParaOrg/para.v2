@@ -46,3 +46,4 @@ ENV/
 Thumbs.db
 .vscode/
 .idea/backend/
+.vercel
