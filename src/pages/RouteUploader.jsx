@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { apiPost } from "../utils/api";
+import RouteNameInput from "../components/RouteNameInput";
 
 export default function RouteUploader() {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
@@ -11,6 +12,7 @@ export default function RouteUploader() {
   const [gpsPoints, setGpsPoints] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [routeName, setRouteName] = useState("");
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const startTimeRef = useRef(null);
@@ -95,6 +97,12 @@ export default function RouteUploader() {
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+        {!recording && !saved && (
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-600">Route Name</label>
+            <RouteNameInput value={routeName} onChange={setRouteName} />
+          </div>
+        )}
         {!recording && !saved && (
           <button
             onClick={start}
