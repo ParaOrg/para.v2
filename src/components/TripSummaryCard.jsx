@@ -1,6 +1,6 @@
 export default function TripSummaryCard({ routeData, isRecommended = false, rank = 0 }) {
   if (!routeData) return null;
-  const { segments = [], total_fare, total_time_min, biyahe_score } = routeData;
+  const { segments = [], total_fare = 0, total_time_min = 0, biyahe_score = 0 } = routeData;
   const score = typeof biyahe_score === "object" ? biyahe_score?.biyahe_score : biyahe_score;
   const scorePercent = score != null ? Math.round(score * 100) : null;
   const cardBg = isRecommended ? "bg-[#7A4BC81A]" : "bg-white";
