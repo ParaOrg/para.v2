@@ -64,8 +64,8 @@ export default function RoutesExplorer() {
     (async () => {
       try {
         const [routesRes, refRes] = await Promise.all([
-          fetch(`${API}/admin/routes/list`),
-          fetch(`${API}/admin/routes/reference`),
+          fetch(`${API}/routes/public`),
+          fetch(`${API}/routes/public/reference`),
         ]);
         const routesData = await routesRes.json();
         const refData = await refRes.json();
@@ -118,7 +118,7 @@ export default function RoutesExplorer() {
 
   const drawRoute = useCallback(async (routeId) => {
     try {
-      const res = await fetch(`${API}/admin/routes/geojson?route_id=${routeId}`);
+      const res = await fetch(`${API}/routes/public/geojson?route_id=${routeId}`);
       if (!res.ok) throw new Error("No geometry");
       const geo = await res.json();
       layerRef.current?.clearLayers();
@@ -238,7 +238,7 @@ export default function RoutesExplorer() {
                 const bounds = L.latLngBounds([]);
                 for (const route of buildQueue) {
                   try {
-                    const res = await fetch(`${API}/admin/routes/geojson?route_id=${route.route_uuid}`);
+                    const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
                     if (!res.ok) continue;
                     const geo = await res.json();
                     const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
