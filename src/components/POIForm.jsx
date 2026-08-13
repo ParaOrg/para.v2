@@ -10,8 +10,7 @@ const CATEGORIES = ["terminal", "station", "landmark", "mall", "school", "church
 export default function POIForm({ onSuccess }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("terminal");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
+  const [pin, setPin] = useState(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const { location, requestConsentAndLocation } = useTrackingConsent();
@@ -25,37 +24,30 @@ export default function POIForm({ onSuccess }) {
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
     L.control.zoom({ position: "bottomright" }).addTo(map);
     map.on("click", (e) => {
-      const { lat: clickedLat, lng: clickedLng } = e.latlng;
-      setLat(clickedLat.toFixed(6));
-      setLng(clickedLng.toFixed(6));
+      const { lat, lng } = e.latlng;
+      setPin({ lat: lat.toFixed(6), lng: lng.toFixed(6) });
       if (markerRef.current) map.removeLayer(markerRef.current);
-      markerRef.current = L.marker([clickedLat, clickedLng]).addTo(map)
-        .bindPopup("POI Location").openPopup();
+      markerRef.current = L.marker([lat, lng]).addTo(map).bindPopup("Pin location").openPopup();
     });
     mapInstance.current = map;
     return () => { map.remove(); mapInstance.current = null; };
   }, []);
 
-  const useCurrentLocation = () => {
+  const useMyLocation = () => {
     if (location) {
-      setLat(location.lat.toFixed(6));
-      setLng(location.lng.toFixed(6));
-      if (mapInstance.current) {
-        mapInstance.current.setView([location.lat, location.lng], 17, { animate: true });
-        if (markerRef.current) mapInstance.current.removeLayer(markerRef.current);
-        markerRef.current = L.marker([location.lat, location.lng]).addTo(mapInstance.current)
-          .bindPopup("Your Location").openPopup();
-      }
-      setMsg({ ok: true, text: "Location set from GPS" });
+      setPin({ lat: location.lat.toFixed(6), lng: location.lng.toFixed(6) });
+      mapInstance.current?.setView([location.lat, location.lng], 17, { animate: true });
+      if (markerRef.current) mapInstance.current.removeLayer(markerRef.current);
+      markerRef.current = L.marker([location.lat, location.lng]).addTo(mapInstance.current).bindPopup("Your location").openPopup();
     } else {
       requestConsentAndLocation();
       setMsg({ ok: false, text: "Enable location first" });
     }
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim() || !lat || !lng) {
-      setMsg({ ok: false, text: "Name and location are required. Click the map to set location." });
+  const save = async () => {
+    if (!name.trim() || !pin) {
+      setMsg({ ok: false, text: "Name and pin location are required. Tap the map to drop a pin." });
       return;
     }
     setSaving(true);
@@ -63,15 +55,17 @@ export default function POIForm({ onSuccess }) {
       const res = await fetch(`${API}/poi/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ canonical_name: name.trim(), category, lat: parseFloat(lat), lng: parseFloat(lng) }),
+        body: JSON.stringify({ canonical_name: name.trim(), category, lat: parseFloat(pin.lat), lng: parseFloat(pin.lng) }),
       });
       if (res.ok) {
-        setMsg({ ok: true, text: "POI added!" });
-        setName(""); setLat(""); setLng("");
-        if (onSuccess) setTimeout(onSuccess, 1500);
+        setMsg({ ok: true, text: "Place added!" });
+        setName(""); setPin(null);
+        if (markerRef.current) mapInstance.current?.removeLayer(markerRef.current);
+        markerRef.current = null;
+        if (onSuccess) setTimeout(onSuccess, 1000);
       } else throw new Error("Failed");
     } catch {
-      setMsg({ ok: false, text: "Failed to save POI" });
+      setMsg({ ok: false, text: "Failed to save place" });
     }
     setSaving(false);
   };
@@ -88,32 +82,32 @@ export default function POIForm({ onSuccess }) {
 
       <input value={name} onChange={(e) => setName(e.target.value)}
         placeholder="Place name (e.g., Cubao Terminal)"
-        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7A4BC8]" />
+        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-[#7A4BC8]" />
 
       <select value={category} onChange={(e) => setCategory(e.target.value)}
-        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none">
+        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none">
         {CATEGORIES.map(c => <option key={c} value={c} className="capitalize">{c}</option>)}
       </select>
 
       <div className="relative">
-        <div ref={mapRef} className="h-40 rounded-xl border border-gray-200" />
+        <div ref={mapRef} className="h-48 rounded-xl border border-gray-200" />
         <p className="absolute bottom-2 left-2 text-[10px] bg-white/80 px-2 py-0.5 rounded-lg text-gray-600">
-          Tap map to set location
+          Tap map to drop pin
         </p>
+        {pin && (
+          <p className="absolute top-2 right-2 text-[10px] bg-white/80 px-2 py-0.5 rounded-lg text-green-600">
+            📍 {pin.lat}, {pin.lng}
+          </p>
+        )}
       </div>
 
-      <div className="flex gap-2 text-[10px] text-gray-400">
-        <span>Lat: {lat || "—"}</span>
-        <span>Lng: {lng || "—"}</span>
-      </div>
-
-      <button onClick={useCurrentLocation}
+      <button onClick={useMyLocation}
         className="w-full py-1.5 text-xs border border-[#7A4BC8] text-[#7A4BC8] rounded-lg font-medium">
         Use My Current Location
       </button>
 
-      <button onClick={handleSubmit} disabled={saving}
-        className="w-full py-2 bg-[#7A4BC8] text-white rounded-lg text-xs font-bold disabled:opacity-50">
+      <button onClick={save} disabled={saving}
+        className="w-full py-2 bg-[#7A4BC8] text-white rounded-lg text-sm font-bold disabled:opacity-50">
         {saving ? "Saving..." : "Save Place"}
       </button>
     </div>
