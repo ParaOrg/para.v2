@@ -234,6 +234,61 @@ async def delete_thread(request: Request):
         return {"status": "error", "message": str(e)}
 
 
+@router.post("/community/route-edits")
+async def submit_route_edit(request: Request):
+    """Submit a route edit proposal for community voting."""
+    from database import supabase
+    import uuid, json
+    data = await request.json()
+    try:
+        res = supabase.table("route_edits").insert({
+            "edit_uuid": str(uuid.uuid4()),
+            "route_uuid": data.get("route_uuid"),
+            "user_email": data.get("user_email", "anonymous"),
+            "edit_type": data.get("edit_type", "custom"),
+            "before_data": json.dumps(data.get("before_data", {})),
+            "after_data": json.dumps(data.get("after_data", {})),
+            "status": "pending",
+            "created_at": "now()"
+        }).execute()
+        if res.data:
+            return {"status": "success", "edit": res.data[0]}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/community/route-edits")
+async def list_route_edits(route_uuid: str = None):
+    """List route edit proposals."""
+    from database import supabase
+    try:
+        query = supabase.table("route_edits").select("*").eq("status", "pending").order("created_at", desc=True).limit(50)
+        if route_uuid:
+            query = query.eq("route_uuid", route_uuid)
+        res = query.execute()
+        return {"edits": res.data or [], "total": len(res.data or [])}
+    except Exception as e:
+        return {"edits": [], "total": 0, "error": str(e)}
+
+
+@router.post("/community/route-edits/vote")
+async def vote_route_edit(request: Request):
+    """Vote on a route edit proposal."""
+    from database import supabase
+    import uuid
+    data = await request.json()
+    edit_uuid = data.get("edit_uuid")
+    vote = data.get("vote")
+    try:
+        # Update vote count
+        field = "upvotes" if vote == "up" else "downvotes"
+        supabase.table("route_edits").update({field: supabase.raw(f"{field} + 1")}).eq("edit_uuid", edit_uuid).execute()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @router.post("/routes/report")
 async def report_route(request: Request):
     data = await request.json()
