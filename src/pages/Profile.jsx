@@ -15,6 +15,13 @@ export default function Profile() {
   try { auth = useAuth(); } catch (_) {}
   const { user, isAuthenticated } = auth;
   const [bio, setBio] = useState("Metro Manila commuter. Helping build better routes for everyone.");
+  const [savedTracks, setSavedTracks] = useState([]);
+
+  useEffect(() => {
+    try {
+      setSavedTracks(JSON.parse(localStorage.getItem("para_saved_tracks") || "[]"));
+    } catch {}
+  }, []);
   const [editing, setEditing] = useState(false);
 
   if (!isAuthenticated) {
@@ -57,6 +64,25 @@ export default function Profile() {
         </div>
 
         {/* Badges */}
+        <div>
+          <h3 className="font-bold text-[#381D65] mb-3">Saved Commutes</h3>
+          {savedTracks.length === 0 ? (
+            <p className="text-sm text-gray-400">No saved commutes yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {savedTracks.map((track, i) => (
+                <div key={i} className="bg-gray-50 rounded-xl p-3 flex items-center gap-3">
+                  <span className="text-xl">🚐</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-800">{track.route_name}</p>
+                    <p className="text-xs text-gray-400">{Math.floor(track.total_time_sec / 60)} min • {new Date(track.saved_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div>
           <h3 className="font-bold text-[#381D65] mb-3">Badges</h3>
           <div className="grid grid-cols-2 gap-3">
