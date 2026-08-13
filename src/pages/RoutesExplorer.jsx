@@ -83,7 +83,7 @@ export default function RoutesExplorer() {
         const seen = new Set();
         const uniqueRef = [];
         (refData.routes || []).forEach(r => {
-          const name = (r.route_name || "").trim();
+          const name = (r.name || r.route_name || "").trim();
           const lower = name.toLowerCase();
           if (!lower || seen.has(lower)) return;
           seen.add(lower);
@@ -94,7 +94,7 @@ export default function RoutesExplorer() {
             if (lower.includes(vName) || vName.includes(lower)) matched = true;
           });
           
-          uniqueRef.push({ ...r, route_name: name, is_matched: matched });
+          uniqueRef.push({ ...r, name: name, route_name: name, is_matched: matched });
         });
         setReferenceRoutes(uniqueRef);
         setFiltered(all.filter((r) => r.is_approved));
