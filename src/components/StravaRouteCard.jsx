@@ -1,4 +1,6 @@
 import { useState } from "react";
+import TrafficOverlay from "./TrafficOverlay";
+import WeatherOverlay from "./WeatherOverlay";
 
 export default function StravaRouteCard({ routeData, onClose }) {
   const [expanded, setExpanded] = useState(false);
@@ -157,6 +159,14 @@ export default function StravaRouteCard({ routeData, onClose }) {
             })}
           </div>
         </div>
+
+        {/* Weather */}
+        <div className="mt-4">
+          <WeatherOverlay />
+        </div>
+
+        {/* Traffic */}
+        <TrafficOverlay routeData={routeData} />
 
         {/* Share buttons */}
         <div className="mt-4 flex gap-2">
