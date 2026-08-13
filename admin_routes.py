@@ -5,6 +5,7 @@ All data via Supabase REST API (table operations). No raw SQL.
 
 import io
 import csv
+import re
 from fastapi import APIRouter, HTTPException, Query, Response
 from typing import Dict, Any
 
@@ -39,9 +40,12 @@ async def list_routes_root():
 
 @router.get("/routes/list")
 async def list_routes():
-    """List all routes from Supabase."""
+    """List all routes from Supabase, excluding test/demo routes."""
     rows = await fetch_all("ph_routes", order="name")
     routes = [_row_to_dict(r) for r in rows]
+    # Exclude test/demo routes
+    TEST_PATTERN = re.compile(r"\b(test|demo|dummy|staging|sample)\b", re.IGNORECASE)
+    routes = [r for r in routes if not TEST_PATTERN.search(r.get("name", "") or "")]
     return {"routes": routes, "total": len(routes)}
 
 
