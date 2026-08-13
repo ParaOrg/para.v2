@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { getApiBaseUrl } from "../utils/api";
 
 const AuthContext = createContext(null);
-const USER_KEY = "para_user";
+const USER_KEY = "para_auth_user_v1";
+const TOKEN_KEY = "para_auth_token_v1";
 const API = getApiBaseUrl();
 
 function safeParse(value) { try { return value ? JSON.parse(value) : null; } catch { return null; } }
@@ -61,7 +62,7 @@ export function AuthProvider({ children }) {
   }, [login]);
 
   const logout = useCallback(() => {
-    try { localStorage.removeItem(USER_KEY); } catch {}
+    try { localStorage.removeItem(USER_KEY); localStorage.removeItem(TOKEN_KEY); } catch {}
     setUser(null);
   }, []);
 
