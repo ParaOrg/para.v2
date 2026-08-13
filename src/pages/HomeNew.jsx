@@ -131,7 +131,9 @@ export default function HomeNew() {
     const gpsLoc = location ? [location.lat, location.lng] : null;
     const hasExplicitOrigin = /from|mula|galing|papunta/i.test(text);
     const isDestinationOnly = /^(to |papunta |punta )/i.test(text);
-    const needsGPS = isDestinationOnly || (!hasExplicitOrigin && gpsLoc);
+    const hasTo = /\bto\b/i.test(text);
+    // Only prepend "here" if NO origin word AND NO "to" separator (pure destination)
+    const needsGPS = (!hasExplicitOrigin && !hasTo && gpsLoc);
     const { normalized } = normalizeQuery(text, gpsLoc ? { lat: gpsLoc[0], lng: gpsLoc[1] } : null);
     const backendMessage = needsGPS ? `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}` : normalized;
     const body = { user_id: "guest", message: backendMessage };
