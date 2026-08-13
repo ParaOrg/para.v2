@@ -71,7 +71,8 @@ export default function ChatPanel() {
     try {
       const gps = location ? [location.lat, location.lng] : null;
       const hasOrigin = /from|mula|galing|papunta/i.test(text);
-      const backendMessage = !hasOrigin && gps ? `from here to ${text}` : text;
+      const hasTo = /\bto\b/i.test(text);
+      const backendMessage = (!hasOrigin && !hasTo && gps) ? `from here to ${text}` : text;
       const payload = { user_id: "guest", message: backendMessage };
       if (gps) payload.user_location = { lat: gps[0], lng: gps[1] };
       const res = await fetch(`${API}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
