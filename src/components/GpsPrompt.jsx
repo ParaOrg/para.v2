@@ -6,12 +6,22 @@ export default function GpsPrompt() {
   const { consent, status, error, requestConsentAndLocation, deny } = useTrackingConsent();
   const [ready, setReady] = useState(false);
 
+  // No auto-timer — GpsPrompt only renders when explicitly triggered
+  const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    const timer = setTimeout(() => setReady(true), 1200);
-    return () => clearTimeout(timer);
+    // Only show if user clicks Enable GPS or similar action
+    const check = () => {
+      if (window.__showGpsPrompt) {
+        setVisible(true);
+        window.__showGpsPrompt = false;
+      }
+    };
+    const interval = setInterval(check, 500);
+    return () => clearInterval(interval);
   }, []);
 
-  if (!ready) return null;
+  if (!visible) return null;
   if (consent || status === "denied" || status === "requesting" || status === "watching") return null;
 
   return (
