@@ -118,7 +118,7 @@ export default function Navbar() {
 
         <button
           type="button"
-          className="md:hidden absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/45 transition-colors touch-manipulation"
+          className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/45 transition-colors touch-manipulation"
           aria-expanded={mobileOpen}
           aria-controls="mobile-nav-drawer"
           aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
@@ -130,8 +130,8 @@ export default function Navbar() {
 
       {mobileOpen && (
         <>
-          <div className="md:hidden fixed inset-0 z-[130] bg-black/40" aria-hidden={!mobileOpen} onClick={closeMobile} />
-          <div id="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation menu" className="md:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]">
+          <div className="lg:hidden fixed inset-0 z-[130] bg-black/40" aria-hidden={!mobileOpen} onClick={closeMobile} />
+          <div id="mobile-nav-drawer" className="lg:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]" role="dialog" aria-modal="true" aria-label="Navigation menu" className="md:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
               <span className="text-sm font-semibold tracking-[0.04em] text-gray-800">Menu</span>
               <button type="button" className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 -mr-1" aria-label="Close menu" onClick={closeMobile}><HamburgerIcon open /></button>
