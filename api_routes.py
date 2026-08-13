@@ -3,7 +3,7 @@ api_routes.py — Core chat and routing endpoints.
 """
 
 import traceback
-from fastapi import Request, APIRouter
+from fastapi import Request, APIRouter, Query
 from database import supabase
 
 
@@ -121,6 +121,51 @@ async def add_poi(request: Request):
 
 
 # ── Route Reports ──────────────────────────────────────
+
+@router.get("/routes/public")
+async def list_public_routes():
+    """Public: list verified routes only."""
+    from database import supabase
+    res = supabase.table("ph_routes").select("*").eq("is_approved", True).execute()
+    routes = res.data or []
+    # Filter out test/demo routes
+    import re
+    pattern = re.compile(r"\b(test|demo|dummy|staging|sample)\b", re.IGNORECASE)
+    routes = [r for r in routes if not pattern.search(r.get("name", "") or "")]
+    return {"routes": routes, "total": len(routes)}
+
+
+@router.get("/routes/public/geojson")
+async def get_public_route_geojson(route_id: str = Query(..., description="Route UUID")):
+    """Public: get route geometry."""
+    import json as json_mod
+    from database import supabase
+    route_res = supabase.table("ph_routes").select("*").eq("route_uuid", route_id).limit(1).execute()
+    if not route_res.data:
+        raise HTTPException(404, "Route not found")
+    shape_res = supabase.table("ph_route_shapes").select("geom_geojson").eq("route_uuid", route_id).limit(1).execute()
+    if not shape_res.data:
+        raise HTTPException(404, "No geometry found")
+    geom = shape_res.data[0].get("geom_geojson")
+    if isinstance(geom, str):
+        geom = json_mod.loads(geom)
+    return {
+        "type": "FeatureCollection",
+        "features": [{"type": "Feature", "properties": {"name": route_res.data[0].get("name")}, "geometry": geom}],
+    }
+
+
+@router.get("/routes/public/reference")
+async def list_public_reference_routes():
+    """Public: list reference routes for the Explore page."""
+    from database import supabase
+    res = supabase.table("ph_routes").select("*").execute()
+    routes = res.data or []
+    import re
+    pattern = re.compile(r"\b(test|demo|dummy|staging|sample)\b", re.IGNORECASE)
+    routes = [r for r in routes if not pattern.search(r.get("name", "") or "")]
+    return {"routes": routes, "total": len(routes)}
+
 
 @router.post("/routes/report")
 async def report_route(request: Request):
