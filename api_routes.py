@@ -288,6 +288,24 @@ async def get_user_submissions(user_email: str = None):
 @router.post("/commute/save")
 async def save_commute(request: Request):
     data = await request.json()
+    # If route_uuid provided, link GPS trace to route
+    route_uuid = data.get("route_uuid")
+    gps_points = data.get("gpsPoints", data.get("gps_points", []))
+    if route_uuid and gps_points:
+        try:
+            # Build GeoJSON LineString from GPS points
+            coords = [[p["lng"], p["lat"]] for p in gps_points if p.get("lat") and p.get("lng")]
+            if len(coords) > 2:
+                geojson = {"type": "LineString", "coordinates": coords}
+                # Update route shape table with new geometry
+                supabase.table("ph_route_shapes").upsert({
+                    "route_uuid": route_uuid,
+                    "geom_geojson": geojson,
+                    "length_m": len(coords),
+                    "source": "commute_track"
+                }).execute()
+        except Exception as e:
+            print(f"Failed to update route geometry: {e}")
     """Save a completed tracked commute with GPS data, ratings, and timings."""
     try:
         user_id = data.get("user_id", "anonymous")
