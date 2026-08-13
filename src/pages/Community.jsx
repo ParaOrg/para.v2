@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import BottomNav from "../components/BottomNav";
@@ -9,112 +8,111 @@ import { useAuth } from "../context/AuthContext";
 import { getApiBaseUrl } from "../utils/api";
 
 const API = getApiBaseUrl();
-
-const MOCK_THREADS = [
-  { id: 1, user: "JuanDelaCruz", title: "Best Cubao to Makati route at 7am?", replies: 24, votes: 15, time: "2h ago", tag: "Routes", content: "I've been trying different jeep routes from Cubao to Makati. The EDSA Carousel is fast but crowded. Any alternatives?" },
-  { id: 2, user: "CommuterQueen", title: "PSA: EDSA Carousel now has free WiFi!", replies: 18, votes: 42, time: "4h ago", tag: "Tips", content: "Just discovered that EDSA Carousel buses now have free WiFi. Game changer for the morning commute!" },
-  { id: 3, user: "JeepneyKing", title: "New UV Express terminal at Ayala - review", replies: 31, votes: 28, time: "6h ago", tag: "Review", content: "The new UV Express terminal near Ayala MRT is much better organized. Less waiting time compared to the old one." },
-  { id: 4, user: "TrafficWizard", title: "LRT-1 extension update: when will it open?", replies: 56, votes: 89, time: "8h ago", tag: "News", content: "Anyone have updates on the LRT-1 Cavite extension? Last I heard was Q4 2024 but seems delayed again." },
-  { id: 5, user: "BudgetBiyahe", title: "Cheapest way from Fairview to PITX?", replies: 12, votes: 7, time: "10h ago", tag: "Routes", content: "Budget is tight this week. Need the absolute cheapest way to get from Fairview to PITX. Willing to transfer multiple times." },
-];
-
 const TAGS = ["All", "Routes", "Tips", "Review", "News", "Questions"];
 
 export default function Community() {
-  let auth = { isAuthenticated: false };
-  try { auth = useAuth(); } catch (_) {}
-  const [showCTA, setShowCTA] = useState(!auth.isAuthenticated);
-  const [showUpload, setShowUpload] = useState(false);
-  const [showPOI, setShowPOI] = useState(false);
+  const auth = useAuth();
   const [threads, setThreads] = useState([]);
   const [activeTag, setActiveTag] = useState("All");
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: "", content: "", tag: "Routes" });
+  const [selectedThread, setSelectedThread] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
 
-  useEffect(() => {
+  const fetchThreads = () => {
     fetch(`${API}/community/threads`)
       .then(r => r.json())
       .then(d => setThreads(d.threads || []))
       .catch(() => {});
-  }, []);
+  };
+
+  useEffect(() => { fetchThreads(); }, []);
 
   const filtered = activeTag === "All" ? threads : threads.filter(t => t.tag === activeTag);
 
-  const handleNewPost = () => {
+  const handleNewPost = async () => {
     if (!newPost.title.trim() || !newPost.content.trim()) return;
-    const post = {
-      id: threads.length + 1,
-      user: auth.user?.displayName || auth.user?.email?.split("@")[0] || "Commuter",
-      title: newPost.title,
-      content: newPost.content,
-      tag: newPost.tag,
-      replies: 0,
-      votes: 0,
-      time: "just now",
-    };
-    setThreads([post, ...threads]);
-    setNewPost({ title: "", content: "", tag: "Routes" });
-    setShowNewPost(false);
+    try {
+      const res = await fetch(`${API}/community/threads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_email: auth.user?.email || "anonymous",
+          title: newPost.title,
+          content: newPost.content,
+          tag: newPost.tag,
+        }),
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        fetchThreads();
+        setNewPost({ title: "", content: "", tag: "Routes" });
+        setShowNewPost(false);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const deleteThread = async (threadUuid) => {
+    try {
+      await fetch(`${API}/community/threads/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thread_uuid: threadUuid }),
+      });
+      fetchThreads();
+      setSelectedThread(null);
+    } catch (e) { console.error(e); }
+  };
+
+  const openThread = (thread) => {
+    setSelectedThread(thread);
+    fetch(`${API}/community/comments?thread_uuid=${thread.thread_uuid}`)
+      .then(r => r.json())
+      .then(d => setComments(d.comments || []))
+      .catch(() => setComments([]));
+  };
+
+  const postComment = async () => {
+    if (!newComment.trim() || !selectedThread) return;
+    try {
+      await fetch(`${API}/community/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          thread_uuid: selectedThread.thread_uuid,
+          user_email: auth.user?.email || "anonymous",
+          content: newComment.trim(),
+        }),
+      });
+      setNewComment("");
+      const res = await fetch(`${API}/community/comments?thread_uuid=${selectedThread.thread_uuid}`);
+      const d = await res.json();
+      setComments(d.comments || []);
+    } catch (e) { console.error(e); }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
-      {/* Signup CTA */}
-      {showCTA && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center">
-            <span className="text-5xl">🌟</span>
-            <h2 className="text-2xl font-black text-[#381D65] mt-4">Join the Community</h2>
-            <p className="text-gray-500 mt-2 text-sm">Share routes, get tips, and help fellow commuters.</p>
-            <Link to="/signup" className="block w-full mt-6 py-3 bg-[#7A4BC8] text-white rounded-xl font-bold text-sm">Sign Up — It's Free</Link>
-            <button onClick={() => setShowCTA(false)} className="block w-full mt-2 py-2 text-gray-400 text-xs">Maybe later</button>
-          </div>
-        </div>
-      )}
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#381D65] to-[#7A4BC8] text-white">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <h2 className="text-xl font-black">Bawat biyahe, tulong sa komunidad. 🇵🇭</h2>
-          <p className="text-sm text-white/80 mt-2">Share routes, tips, and stories with fellow Metro Manila commuters.</p>
-        </div>
-      </div>
-
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Action bar */}
-        <div className="flex items-center gap-2 mb-4">
-          <button onClick={() => setShowNewPost(true)}
-            className="bg-[#7A4BC8] text-white px-4 py-2 rounded-full text-xs font-bold">
-            + New Post
-          </button>
-          <button onClick={() => setShowUpload(!showUpload)}
-            className={`px-4 py-2 rounded-full text-xs font-bold border ${showUpload ? "bg-gray-100 text-gray-600" : "border-[#7A4BC8] text-[#7A4BC8]"}`}>
-            {showUpload ? "✕ Close" : "📡 Record Route"}
-          </button>
-          <button onClick={() => setShowPOI(!showPOI)}
-            className={`px-4 py-2 rounded-full text-xs font-bold border ${showPOI ? "bg-gray-100 text-gray-600" : "border-[#7A4BC8] text-[#7A4BC8]"}`}>
-            {showPOI ? "✕ Close" : "📍 Add Place"}
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-black text-[#381D65]">Community</h1>
+          <button onClick={() => setShowNewPost(!showNewPost)}
+            className="bg-[#7A4BC8] text-white px-4 py-2 rounded-xl text-sm font-bold">
+            {showNewPost ? "Close" : "+ New Post"}
           </button>
         </div>
 
-        {/* Route Upload Form */}
-        {showUpload && (
-          <div className="mb-6">
-            <RouteUploader onSuccess={() => setShowUpload(false)} />
-          </div>
-        )}
-
-        {/* New Post Form */}
         {showNewPost && (
-          <div className="mb-6 bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
             <input value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})}
               placeholder="Post title..."
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none" />
             <textarea value={newPost.content} onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-              placeholder="Share your commute experience, tips, or questions..."
-              rows={3}
+              placeholder="Share your commute experience..."
+              rows={4}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none resize-none" />
             <div className="flex items-center gap-2">
               <select value={newPost.tag} onChange={(e) => setNewPost({...newPost, tag: e.target.value})}
@@ -122,49 +120,81 @@ export default function Community() {
                 {TAGS.filter(t => t !== "All").map(t => <option key={t} value={t}>{t}</option>)}
               </select>
               <button onClick={handleNewPost}
-                className="ml-auto bg-[#7A4BC8] text-white px-4 py-1.5 rounded-lg text-xs font-bold">Post</button>
-              <button onClick={() => setShowNewPost(false)}
-                className="text-gray-400 text-xs">Cancel</button>
+                className="ml-auto bg-[#7A4BC8] text-white px-4 py-1.5 rounded-lg text-xs font-bold">
+                Post
+              </button>
             </div>
           </div>
         )}
 
-        {/* Tag filters */}
-        <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+        <div className="flex gap-2 flex-wrap">
           {TAGS.map(tag => (
             <button key={tag} onClick={() => setActiveTag(tag)}
-              className={`px-3 py-1 rounded-full text-[10px] font-medium whitespace-nowrap ${
-                activeTag === tag ? "bg-[#7A4BC8] text-white" : "bg-white text-gray-500 border border-gray-200"
-              }`}>
+              className={`px-3 py-1 rounded-full text-xs font-medium ${activeTag === tag ? "bg-[#7A4BC8] text-white" : "bg-white text-gray-500 border border-gray-200"}`}>
               {tag}
             </button>
           ))}
         </div>
 
-        {/* Thread list */}
-        <div className="space-y-3">
-          {filtered.map((thread) => (
-            <div key={thread.id} className="bg-white rounded-2xl border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-6 h-6 rounded-full bg-[#D1B6FC] flex items-center justify-center text-[10px] font-bold text-[#381D65]">
-                  {thread.user[0]}
-                </span>
-                <span className="text-xs font-medium text-gray-500">{thread.user}</span>
-                <span className="text-[10px] text-gray-300">{thread.time}</span>
-                <span className="ml-auto text-[10px] bg-[#7A4BC81A] text-[#7A4BC8] px-2 py-0.5 rounded-full font-bold">{thread.tag}</span>
-              </div>
-              <h3 className="font-bold text-[#381D65] text-sm mb-1">{thread.title}</h3>
-              <p className="text-xs text-gray-500 line-clamp-2 mb-2">{thread.content}</p>
-              <div className="flex gap-4 text-[10px] text-gray-400">
-                <span>💬 {thread.replies} replies</span>
-                <span>⬆ {thread.votes} votes</span>
-              </div>
+        {filtered.map((thread) => (
+          <div key={thread.thread_uuid} onClick={() => openThread(thread)}
+            className="bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer hover:shadow-md transition-shadow">
+            <span className="text-xs font-bold text-[#7A4BC8]">{thread.tag || "General"}</span>
+            <h2 className="font-bold text-gray-900 mt-1">{thread.title}</h2>
+            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{thread.content}</p>
+            <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+              <span>{(thread.user_email || "anonymous").split("@")[0]}</span>
+              <span>•</span>
+              <span>{thread.created_at?.slice(0, 10)}</span>
+              <button onClick={(e) => { e.stopPropagation(); openThread(thread); }}
+                className="ml-auto text-[#7A4BC8] font-medium">
+                Read more →
+              </button>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
-      <div className="md:hidden"><BottomNav /></div>
+      {selectedThread && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setSelectedThread(null)}>
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[#7A4BC8]">{selectedThread.tag || "General"}</span>
+              <div className="flex gap-2">
+                <button onClick={() => deleteThread(selectedThread.thread_uuid)}
+                  className="text-red-400 text-xs font-medium hover:text-red-600">Delete</button>
+                <button onClick={() => setSelectedThread(null)} className="text-gray-400">✕</button>
+              </div>
+            </div>
+            <h2 className="text-xl font-black text-gray-900 mt-1">{selectedThread.title}</h2>
+            <p className="text-xs text-gray-400 mt-1">
+              Posted by {(selectedThread.user_email || "anonymous").split("@")[0]} • {selectedThread.created_at?.slice(0, 10)}
+            </p>
+            <div className="mt-4 text-sm text-gray-700 whitespace-pre-wrap">{selectedThread.content}</div>
+
+            <div className="mt-6 border-t border-gray-100 pt-4">
+              <p className="text-xs font-bold text-gray-500 mb-3">{comments.length} Comments</p>
+              {comments.map((comment) => (
+                <div key={comment.comment_uuid} className="mb-3 bg-gray-50 rounded-lg p-2">
+                  <p className="text-xs font-semibold text-gray-700">{(comment.user_email || "anonymous").split("@")[0]}</p>
+                  <p className="text-sm text-gray-600">{comment.content}</p>
+                </div>
+              ))}
+              <div className="flex gap-2 mt-3">
+                <input value={newComment} onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none" />
+                <button onClick={postComment}
+                  className="bg-[#7A4BC8] text-white px-4 py-2 rounded-lg text-xs font-bold">
+                  Comment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <BottomNav />
     </div>
   );
 }

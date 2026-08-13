@@ -85,6 +85,7 @@ export default function RoutesExplorer() {
         (refData.routes || []).forEach(r => {
           const name = (r.route_name || r.name || "").trim();
           const lower = name.toLowerCase();
+          if (!name) return;
           if (!lower || seen.has(lower)) return;
           seen.add(lower);
           
@@ -133,7 +134,7 @@ export default function RoutesExplorer() {
 
   const selectRoute = useCallback(async (route) => {
     const id = route.route_uuid || route.id;
-    const name = route.name || route.route_name || "";
+    const name = (route.name || route.route_name || "").trim();
     if (!id && !name) return;
 
     const currentId = selected?.route_uuid || selected?.id;
@@ -150,8 +151,9 @@ export default function RoutesExplorer() {
     if ((tab === "reference" && !id) || (!id && !route.route_uuid)) {
       layerRef.current?.clearLayers();
       const parts = name.split(" - ");
-      const origin = parts[0]?.trim();
-      const dest = parts[1]?.trim();
+      const origin = (parts[0] || "").trim();
+      const dest = (parts[1] || "").trim();
+      if (!origin && !dest) return;
       const bounds = L.latLngBounds([]);
       for (const [i, place] of [origin, dest].entries()) {
         if (!place) continue;
