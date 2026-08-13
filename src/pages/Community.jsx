@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import BottomNav from "../components/BottomNav";
 import RouteUploader from "../components/RouteUploader";
 import POIForm from "../components/POIForm";
 import { useAuth } from "../context/AuthContext";
+import { getApiBaseUrl } from "../utils/api";
+
+const API = getApiBaseUrl();
 
 const MOCK_THREADS = [
   { id: 1, user: "JuanDelaCruz", title: "Best Cubao to Makati route at 7am?", replies: 24, votes: 15, time: "2h ago", tag: "Routes", content: "I've been trying different jeep routes from Cubao to Makati. The EDSA Carousel is fast but crowded. Any alternatives?" },
@@ -22,10 +26,17 @@ export default function Community() {
   const [showCTA, setShowCTA] = useState(!auth.isAuthenticated);
   const [showUpload, setShowUpload] = useState(false);
   const [showPOI, setShowPOI] = useState(false);
-  const [threads, setThreads] = useState(MOCK_THREADS);
+  const [threads, setThreads] = useState([]);
   const [activeTag, setActiveTag] = useState("All");
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: "", content: "", tag: "Routes" });
+
+  useEffect(() => {
+    fetch(`${API}/community/threads`)
+      .then(r => r.json())
+      .then(d => setThreads(d.threads || []))
+      .catch(() => {});
+  }, []);
 
   const filtered = activeTag === "All" ? threads : threads.filter(t => t.tag === activeTag);
 
