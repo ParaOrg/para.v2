@@ -9,6 +9,7 @@ import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
+import BottomNav from "../components/BottomNav";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -366,7 +367,7 @@ export default function RoutesExplorer() {
                   route_uuid: selected?.route_uuid || selected?.id,
                   timestamp: Date.now()
                 }));
-                window.location.href = "/";
+                navigate("/");
               }} className="w-full py-2 mt-1 bg-green-500 text-white rounded-lg text-[11px] font-bold">
                 📍 I'm on this route — Track it
               </button>
@@ -376,6 +377,7 @@ export default function RoutesExplorer() {
           )}
         </div>
       </div>
+      <BottomNav />
       <LandingPageFooter />
     </>
   );

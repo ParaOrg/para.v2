@@ -107,7 +107,7 @@ export default function HomeNew() {
     const text = input.trim();
     if (!text) return;
     setMessages((prev) => [...prev, { sender: "user", text }]);
-    setInput(""); setLoading(true); setShowChat(true); setRouteMarkers([]); setPolylines([]);
+    setInput(""); setLoading(true); setShowChat(true);
     const gpsLoc = location ? [location.lat, location.lng] : null;
     const hasExplicitOrigin = /from|mula|galing|papunta/i.test(text);
     const isDestinationOnly = /^(to |papunta |punta )/i.test(text);
