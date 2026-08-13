@@ -164,12 +164,22 @@ async def list_public_reference_routes():
         routes = res.data or []
         return {"routes": routes, "total": len(routes)}
     except:
-        # Fallback: manual dedup
-        res = supabase.table("ph_route_reference").select("*").order("route_name").execute()
-        routes = res.data or []
+        # Fallback: paginate through all reference routes
+        all_routes = []
+        offset = 0
+        limit = 1000
+        while True:
+            res = supabase.table("ph_route_reference").select("*").range(offset, offset + limit - 1).execute()
+            rows = res.data or []
+            if not rows:
+                break
+            all_routes.extend(rows)
+            offset += len(rows)
+            if len(rows) < limit:
+                break
         seen = set()
         unique = []
-        for r in routes:
+        for r in all_routes:
             key = (r.get("route_name") or "").strip().lower()
             if not key or key in seen:
                 continue
