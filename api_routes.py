@@ -167,6 +167,40 @@ async def list_public_reference_routes():
     return {"routes": routes, "total": len(routes)}
 
 
+@router.get("/community/threads")
+async def list_threads():
+    """Public: list community threads."""
+    from database import supabase
+    try:
+        res = supabase.table("community_threads").select("*").order("created_at", desc=True).limit(100).execute()
+        return {"threads": res.data or [], "total": len(res.data or [])}
+    except:
+        # Table may not exist yet
+        return {"threads": [], "total": 0}
+
+
+@router.post("/community/threads")
+async def create_thread(request: Request):
+    """Create a new community thread."""
+    from database import supabase
+    import uuid
+    data = await request.json()
+    try:
+        res = supabase.table("community_threads").insert({
+            "thread_uuid": str(uuid.uuid4()),
+            "user_email": data.get("user_email", "anonymous"),
+            "title": data.get("title", ""),
+            "content": data.get("content", ""),
+            "tag": data.get("tag", "General"),
+            "created_at": "now()"
+        }).execute()
+        if res.data:
+            return {"status": "success", "thread": res.data[0]}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @router.post("/routes/report")
 async def report_route(request: Request):
     data = await request.json()
