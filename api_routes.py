@@ -157,14 +157,25 @@ async def get_public_route_geojson(route_id: str = Query(..., description="Route
 
 @router.get("/routes/public/reference")
 async def list_public_reference_routes():
-    """Public: list reference routes for the Explore page."""
+    """Public: list DISTINCT reference routes by route_name."""
     from database import supabase
-    res = supabase.table("ph_routes").select("*").execute()
-    routes = res.data or []
-    import re
-    pattern = re.compile(r"\b(test|demo|dummy|staging|sample)\b", re.IGNORECASE)
-    routes = [r for r in routes if not pattern.search(r.get("name", "") or "")]
-    return {"routes": routes, "total": len(routes)}
+    try:
+        res = supabase.rpc("get_unique_reference_routes")
+        routes = res.data or []
+        return {"routes": routes, "total": len(routes)}
+    except:
+        # Fallback: manual dedup
+        res = supabase.table("ph_route_reference").select("*").order("route_name").execute()
+        routes = res.data or []
+        seen = set()
+        unique = []
+        for r in routes:
+            key = (r.get("route_name") or "").strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            unique.append(r)
+        return {"routes": unique, "total": len(unique)}
 
 
 @router.get("/community/threads")
