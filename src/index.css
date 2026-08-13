@@ -20,3 +20,18 @@
     position: relative;
     display: block;
 }
+
+
+/* Landscape mobile — prevent broken layout */
+@media (max-width: 900px) and (orientation: landscape) {
+  .md\:hidden {
+    max-width: 50vw;
+  }
+  .chat-pill, [class*="chat"] {
+    max-height: 40vh !important;
+  }
+  .logo-motto {
+    flex-direction: row !important;
+    gap: 8px;
+  }
+}
