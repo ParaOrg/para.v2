@@ -43,6 +43,26 @@ export default function HomeNew() {
   const [kbOffset, setKbOffset] = useState(0);
 
   useEffect(() => {
+    // Check for route from Explore page
+    const params = new URLSearchParams(window.location.search);
+    const routeParam = params.get("route");
+    if (routeParam) {
+      setInput(routeParam);
+      send();
+    }
+    const trackRoute = localStorage.getItem("para_track_route");
+    if (trackRoute) {
+      try {
+        const parsed = JSON.parse(trackRoute);
+        // Auto-start tracker with this route
+        setActiveRouteData({ name: parsed.name, route_uuid: parsed.route_uuid });
+        setShowTracker(true);
+        localStorage.removeItem("para_track_route");
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       if (window.__paraMap) window.__paraMap.invalidateSize();
     }, 300);
