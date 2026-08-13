@@ -40,12 +40,11 @@ export default function ChatPanel() {
     if (!routeData) return;
     const segments = routeData.segments || [];
     const allMarkers = [], allLines = [];
-    const realSegments = segments.filter(seg => seg.route !== "WALK_TO_ROUTE" && seg.route !== "WALK_TO_DEST" && seg.route !== "WALK_TRANSFER");
-    realSegments.forEach((seg, i) => {
+    segments.forEach((seg, i) => {
       if (!seg.geometry || seg.geometry.length < 2) return;
       const coords = seg.geometry.map((c) => [c[1], c[0]]);
       const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.includes("WALK"));
-      const isFirst = i === 0, isLast = i === realSegments.length - 1;
+      const isFirst = i === 0, isLast = i === segments.length - 1;
       allLines.push({ coordinates: coords, color: isWalk ? "#9CA3AF" : "#3e00a6", weight: isWalk ? 2 : 4, dashed: isWalk, routeName: seg.route || "" });
       const startCoord = coords[0];
       allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: isFirst && isWalk ? "origin" : isFirst ? "origin" : "stop", label: isFirst && isWalk ? "🚩 Start Walking" : isFirst ? `🚌 Hop on: ${seg.route || "Transit"}` : isWalk ? "🚶 Walk Transfer" : `🚌 Hop on: ${seg.route || "Transit"}` });
