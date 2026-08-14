@@ -35,6 +35,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
+  const [livePosition, setLivePosition] = useState(null);
 
   useEffect(() => { if (onProgress) onProgress(currentSegment); }, [currentSegment, onProgress]);
 
@@ -46,6 +47,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
 
   useEffect(() => {
     if (!location || phase === "done") return;
+    setLivePosition(location);
     setGpsPoints((prev) => {
       const last = prev[prev.length - 1];
       if (last && last.timestamp === location.timestamp) return prev;

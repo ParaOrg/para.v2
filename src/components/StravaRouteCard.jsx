@@ -1,9 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TrafficOverlay from "./TrafficOverlay";
 import WeatherOverlay from "./WeatherOverlay";
 
 export default function StravaRouteCard({ routeData, onClose }) {
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    // Invalidate map size + fit route on mount
+    setTimeout(() => {
+      const map = window.__paraMap;
+      if (map) {
+        map.invalidateSize();
+        const coords = [];
+        (routeData?.segments || []).forEach(seg => {
+          if (seg.geometry) {
+            seg.geometry.forEach(c => {
+              if (Array.isArray(c) && c.length >= 2) coords.push([c[1], c[0]]);
+            });
+          }
+        });
+        if (coords.length > 0) {
+          map.fitBounds(coords, { padding: [50, 50], maxZoom: 14 });
+          const size = map.getSize();
+          map.panBy([0, -size.y * 0.3], { animate: true });
+        }
+      }
+    }, 500);
+  }, [routeData]);
 
   if (!routeData) return null;
 
@@ -167,6 +190,17 @@ export default function StravaRouteCard({ routeData, onClose }) {
 
         {/* Traffic */}
         <TrafficOverlay routeData={routeData} />
+
+        {/* Start Commute button — mobile bottom */}
+        <button
+          onClick={() => {
+            if (onClose) onClose();
+            if (onStartCommute) onStartCommute(routeData);
+          }}
+          className="w-full py-3 bg-[#7A4BC8] text-white rounded-[10px] font-medium text-sm mt-4"
+        >
+          Start Commute
+        </button>
 
         {/* Share buttons */}
         <div className="mt-4 flex gap-2">

@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getApiBaseUrl } from "../utils/api";
-import RouteLoadingAnimation from "./RouteLoadingAnimation";
-import WeatherPage from "./WeatherPage";
 import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
@@ -9,18 +7,53 @@ import InlineRecorder from "./InlineRecorder";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 
 const API = getApiBaseUrl();
-const WELCOME_MESSAGE = "🚐 Para PH — Commute smarter, together.\n🔍 Maghanap ng ruta: Type 'from UPD to UST'\n📡 Mag-record: Type 'record route'\n📤 Mag-upload: Punta sa Community tab\nSaan gusto mong puntahan?";
+
+const WELCOME_MESSAGE = "🚐 Para PH — Commute smarter, together.\n🔍 Maghanap ng ruta: Type 'from UPD to UST'\n📡 Mag-record: Type 'record route'\nSaan gusto mong puntahan?";
 
 function TypewriterText({ text, speed = 18 }) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
+
   useEffect(() => {
-    setDisplayed(""); setDone(false);
+    setDisplayed("");
+    setDone(false);
     let i = 0;
-    const timer = setInterval(() => { setDisplayed(text.slice(0, i)); i++; if (i > text.length) { clearInterval(timer); setDone(true); } }, speed);
+    const timer = setInterval(() => {
+      setDisplayed(text.slice(0, i));
+      i++;
+      if (i > text.length) {
+        clearInterval(timer);
+        setDone(true);
+      }
+    }, speed);
     return () => clearInterval(timer);
   }, [text, speed]);
-  return <span>{displayed}{!done && <span className="animate-pulse">|</span>}</span>;
+
+  return (
+    <span>
+      {displayed}
+      {!done && <span className="animate-pulse">|</span>}
+    </span>
+  );
+}
+
+function WarningTriangleIcon() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 40 37" fill="none">
+      <path d="M20 4 37 32H3L20 4z" stroke="#F2BA0F" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M20 14v8" stroke="#F2BA0F" strokeWidth="1.7" strokeLinecap="round" />
+      <circle cx="20" cy="27" r="1.5" fill="#F2BA0F" />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 30 28" fill="none">
+      <path d="M3 14L27 2L15 26L12 17L3 14Z" fill="#7A4BC8" />
+      <path d="M12 17L27 2" stroke="#7A4BC8" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 export default function ChatPanel() {
@@ -34,33 +67,62 @@ export default function ChatPanel() {
   const [activeRouteData, setActiveRouteData] = useState(null);
   const [showRecorder, setShowRecorder] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
-
-  useEffect(() => {
-    const handler = () => setShowWeather(true);
-    window.addEventListener("para-show-weather", handler);
-    return () => window.removeEventListener("para-show-weather", handler);
-  }, []);
+  const [weather, setWeather] = useState(null);
   const messagesEndRef = useRef(null);
   const { location, consent, requestConsentAndLocation } = useTrackingConsent();
 
-  useEffect(() => { setTimeout(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, 100); }, [messages]);
+  useEffect(() => {
+    const lat = location?.lat || 14.5995;
+    const lng = location?.lng || 120.9842;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&timezone=Asia/Manila`)
+      .then(r => r.json())
+      .then(d => setWeather(d.current || null))
+      .catch(() => {});
+  }, [location]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, [messages]);
 
   const drawRoute = useCallback((routeData) => {
     if (!routeData) return;
     const segments = routeData.segments || [];
-    const allMarkers = [], allLines = [];
+    const allMarkers = [];
+    const allLines = [];
+    const bounds = [];
     segments.forEach((seg, i) => {
       if (!seg.geometry || seg.geometry.length < 2) return;
       const coords = seg.geometry.map((c) => [c[1], c[0]]);
+      coords.forEach(coord => bounds.extend(coord));
       const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.includes("WALK"));
-      const isFirst = i === 0, isLast = i === segments.length - 1;
-      allLines.push({ coordinates: coords, color: isWalk ? "#9CA3AF" : "#3e00a6", weight: isWalk ? 2 : 4, dashed: isWalk, routeName: seg.route || "" });
+      const isFirst = i === 0;
+      const isLast = i === segments.length - 1;
+      allLines.push({
+        coordinates: coords,
+        color: isWalk ? "#9CA3AF" : "#3e00a6",
+        weight: isWalk ? 2 : 4,
+        dashed: isWalk,
+        routeName: seg.route || "",
+      });
       const startCoord = coords[0];
-      allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: isFirst && isWalk ? "origin" : isFirst ? "origin" : "stop", label: isFirst && isWalk ? "🚩 Start Walking" : isFirst ? `🚌 Hop on: ${seg.route || "Transit"}` : isWalk ? "🚶 Walk Transfer" : `🚌 Hop on: ${seg.route || "Transit"}` });
+      allMarkers.push({ lat: startCoord[0], lng: startCoord[1], type: isFirst ? "origin" : "stop", label: isFirst ? "Start" : "Transfer" });
       const endCoord = coords[coords.length - 1];
-      allMarkers.push({ lat: endCoord[0], lng: endCoord[1], type: isLast ? "destination" : "stop", label: isLast && isWalk ? "🏁 Arrived" : isLast ? `🚏 Hop off: ${seg.route || "Transit"}` : isWalk ? "🚶 End Walk" : `🚏 Hop off: ${seg.route || "Transit"}` });
+      allMarkers.push({ lat: endCoord[0], lng: endCoord[1], type: isLast ? "destination" : "stop", label: isLast ? "Arrive" : "Transfer" });
     });
-    setRouteMarkers(allMarkers); setPolylines(allLines);
+    setRouteMarkers(allMarkers);
+    setPolylines(allLines);
+    if (bounds.length > 0 && window.__paraMap) {
+      const map = window.__paraMap;
+      const latLngs = bounds.map(b => [b[0], b[1]]);
+      map.fitBounds(latLngs, { padding: [60, 60], maxZoom: 15 });
+      // After fit, pan up so route is in top 75% of map area
+      setTimeout(() => {
+        const mapSize = map.getSize();
+        map.panBy([0, -mapSize.y * 0.5], { animate: true });
+      }, 300);
+    }
   }, []);
 
   const send = async () => {
@@ -68,14 +130,20 @@ export default function ChatPanel() {
     if (!text) return;
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setInput("");
+
     const lowerText = text.toLowerCase();
     if (lowerText.includes("record route") || lowerText.includes("record a route")) {
       if (!consent) requestConsentAndLocation();
       setCollapsed(false);
-      setMessages((prev) => [...prev, { sender: "bot", text: "📡 Let's record your route!\n1. Press Start Recording below\n2. Ride your commute\n3. Press Stop when you arrive\nYour GPS trace will be saved automatically.", recordPrompt: true }]);
+      setMessages((prev) => [...prev, { sender: "bot", text: "📡 Let's record your route!\n1. Press Start Recording below\n2. Ride your commute\n3. Press Stop when you arrive", recordPrompt: true }]);
       return;
     }
-    setLoading(true); setCollapsed(false); setRouteMarkers([]); setPolylines([]);
+
+    setLoading(true);
+    setCollapsed(false);
+    setRouteMarkers([]);
+    setPolylines([]);
+
     try {
       const gps = location ? [location.lat, location.lng] : null;
       const hasOrigin = /from|mula|galing|papunta/i.test(text);
@@ -83,41 +151,159 @@ export default function ChatPanel() {
       const backendMessage = (!hasOrigin && !hasTo && gps) ? `from here to ${text}` : text;
       const payload = { user_id: "guest", message: backendMessage };
       if (gps) payload.user_location = { lat: gps[0], lng: gps[1] };
-      const res = await fetch(`${API}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+
+      const res = await fetch(`${API}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setMessages((prev) => [...prev, { sender: "bot", text: data.reply_text || data.reply || "No route found", routeData: data.route_data || null }]);
-      if (data.route_data) { setActiveRouteData(data.route_data); drawRoute(data.route_data); }
-    } catch { setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]); }
+
+      setMessages((prev) => [...prev, {
+        sender: "bot",
+        text: data.reply_text || "Here are your commute options:",
+        routeData: data.route_data || null,
+        alternatives: data.alternatives || [],
+      }]);
+
+      if (data.route_data) {
+        setActiveRouteData(data.route_data);
+        drawRoute(data.route_data);
+      }
+    } catch {
+      setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]);
+    }
     setLoading(false);
   };
 
   return (
     <div className="fixed inset-0 flex flex-col">
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
-      <button onClick={() => setShowWeather(true)} className="absolute top-20 right-4 z-20 bg-white rounded-full px-3 py-2 text-sm font-bold shadow-lg text-[#381D65]">🌤️</button>
-      <div className="absolute inset-0 z-0"><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
-      <div className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 ${collapsed ? "max-h-12" : "max-h-[80vh]"}`}>
-        <div className="text-white p-3 font-bold text-sm flex items-center gap-2 shrink-0 justify-between cursor-pointer" style={{ background: "linear-gradient(135deg, #310775, #5a1fa8)" }} onClick={() => setCollapsed(!collapsed)}>
-          <span>🚐 Para PH</span><span className="text-[10px] text-white/60 hidden sm:inline">Bawat biyahe, tulong sa komunidad 🇵🇭</span><span className="text-white/70 hover:text-white text-lg leading-none select-none">{collapsed ? "▲" : "▼"}</span>
+      <div className="hidden md:block absolute inset-0 z-0">
+        <MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
+      </div>
+
+      <div
+        className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] border border-gray-100 overflow-hidden transition-all duration-300 ${collapsed ? "max-h-12" : "h-[50vh] md:h-auto md:max-h-[80vh]"}`}
+      >
+        {/* Header */}
+        <div
+          className="text-white p-3 font-bold text-sm flex items-center gap-2 shrink-0 justify-between cursor-pointer"
+          style={{ background: "linear-gradient(135deg, #310775, #5a1fa8)" }}
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <span>🚐 Para PH</span>
+          <span className="text-white/70 hover:text-white text-lg leading-none select-none">{collapsed ? "▲" : "▼"}</span>
         </div>
+
+        {/* Messages */}
         <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-[120px]">
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[95%] p-3 rounded-2xl text-sm ${m.sender === "user" ? "text-white rounded-br-none" : "bg-white text-gray-800 rounded-bl-none border border-gray-100 shadow-sm"}`} style={m.sender === "user" ? { background: "linear-gradient(135deg, #310775, #5a1fa8)" } : {}}>
-                {m.sender === "bot" && i === messages.length - 1 && !loading ? <div className="whitespace-pre-wrap"><TypewriterText text={m.text} /></div> : <div className="whitespace-pre-wrap">{m.text}</div>}
-                {m.recordPrompt && <div className="mt-2"><InlineRecorder onDone={() => { setMessages((prev) => [...prev, { sender: "bot", text: "✅ Route recorded! Thank you for contributing to Para PH. Your route will help other commuters." }]); }} /></div>}
-                {m.routeData && <div className="mt-2 space-y-2"><TripSummaryCard routeData={m.routeData} />{!showTracker && <div className="space-y-1"><button onClick={() => { setActiveRouteData(m.routeData); setShowTracker(true); }} className="w-full py-2 bg-green-500 text-white rounded-lg text-xs font-bold hover:bg-green-600 transition-colors">🚀 Start Tracked Commute</button><p className="text-[10px] text-gray-400 text-center leading-tight">Your location will be tracked for safety and data training purposes.</p></div>}</div>}
-              </div>
+              {m.sender === "user" ? (
+                <div
+                  className="max-w-[85%] px-4 py-2.5 rounded-[15px] text-[16px] leading-[24px] text-[#FBFBFB]"
+                  style={{ background: "#7A4BC8", boxShadow: "2px 2px 6px 4px rgba(0,0,0,0.05)" }}
+                >
+                  {m.text}
+                </div>
+              ) : (
+                <div className="max-w-[95%]">
+                  {/* Bot text — plain, no bubble */}
+                  <div className="text-[16px] leading-[24px] text-[#381D65] whitespace-pre-wrap">
+                    {m.sender === "bot" && i === messages.length - 1 && !loading ? (
+                      <TypewriterText text={m.text} />
+                    ) : (
+                      m.text
+                    )}
+                  </div>
+
+                  {/* Record prompt */}
+                  {m.recordPrompt && (
+                    <div className="mt-2">
+                      <InlineRecorder onDone={() => {
+                        setMessages((prev) => [...prev, { sender: "bot", text: "✅ Route recorded!" }]);
+                      }} />
+                    </div>
+                  )}
+
+                  {/* Route data */}
+                  {m.routeData && (
+                    <div className="mt-3">
+                      <p className="text-[14px] font-medium text-[#7A4BC8] mb-2">Recommended</p>
+                      <div onClick={() => { setActiveRouteData(m.routeData); drawRoute(m.routeData); }} className="cursor-pointer"><TripSummaryCard routeData={m.routeData} isRecommended /></div>
+                      {m.alternatives && m.alternatives.length > 0 && (
+                        <div className="mt-3 space-y-3">
+                          {m.alternatives.map((alt, j) => (
+                            <div key={j} onClick={() => { setActiveRouteData(alt); drawRoute(alt); }} className="cursor-pointer"><TripSummaryCard routeData={alt} rank={j + 1} /></div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Weather alert */}
+                      <div className="mt-3 rounded-[15px] border p-3 flex items-start gap-3" style={{ background: "rgba(255, 204, 0, 0.1)", borderColor: "#FFCC00" }}>
+                        <WarningTriangleIcon />
+                        <p className="text-[12px] leading-[18px] text-[#381D65]">Weather Alert: {(() => { const w = weather?.weather_code || 3; const labels = {0:"Clear skies",1:"Partly cloudy",2:"Partly cloudy",3:"Overcast",45:"Foggy",48:"Foggy",51:"Light drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",80:"Light showers",95:"Thunderstorms"}; const now = new Date(); const nextHour = new Date(now.getTime() + 3600000).getHours(); const endHour = (nextHour + 3) % 24; const fmt = (h) => h === 0 ? "12AM" : h < 12 ? `${h}AM` : h === 12 ? "12PM" : `${h-12}PM`; return `${labels[w] || "Cloudy"} from ${fmt(nextHour)} to ${fmt(endHour)}`; })()}</p>
+                      </div>
+
+                      {/* Start Commute CTA — sticky on mobile */}
+                      {!showTracker && (
+                        <div className="mt-3 sticky bottom-0 bg-white/95 backdrop-blur-sm p-2 rounded-[15px] border border-gray-100">
+                          <button
+                            onClick={() => { if (!consent) requestConsentAndLocation(); setActiveRouteData(m.routeData); setShowTracker(true); }}
+                            className="w-full h-10 bg-[#7A4BC8] text-white text-[14px] font-medium rounded-[10px] hover:bg-[#5B339C] transition-colors"
+                            style={{ boxShadow: "2px 2px 6px 4px rgba(0,0,0,0.05)" }}
+                          >
+                            Start Commute
+                          </button>
+                          <p className="text-[10px] text-gray-400 text-center mt-1">Your location will be tracked for safety and data training.</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
-          {loading && <RouteLoadingAnimation loading={loading} />}
+
+          {loading && (
+            <div className="flex justify-start">
+              <div className="text-[16px] leading-[24px] text-[#381D65] italic">Naghahanap ng ruta…</div>
+            </div>
+          )}
+
           <span ref={messagesEndRef} />
         </div>
-        {showTracker && activeRouteData && <><div className="fixed top-[15%] bottom-0 left-0 right-0 z-40 bg-black/50 rounded-t-3xl" onClick={() => setShowTracker(false)} /><div className="fixed top-[15%] bottom-0 left-0 right-0 z-50 flex flex-col" onClick={(e) => e.stopPropagation()}><div className="flex-1 overflow-y-auto bg-white rounded-t-3xl"><CommuteTracker routeData={activeRouteData} onComplete={() => { setShowTracker(false); setActiveRouteData(null); }} onCancel={() => setShowTracker(false)} /></div></div></>}
+
+        {/* Commute Tracker */}
+        {showTracker && activeRouteData && (
+          <>
+            <div className="fixed top-[15%] bottom-0 left-0 right-0 z-40 bg-black/50 rounded-t-3xl" onClick={() => setShowTracker(false)} />
+            <div className="fixed top-[15%] bottom-0 left-0 right-0 z-50 flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex-1 overflow-y-auto bg-white rounded-t-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)]">
+                <CommuteTracker
+                  routeData={activeRouteData}
+                  onComplete={() => { setShowTracker(false); setActiveRouteData(null); }}
+                  onCancel={() => setShowTracker(false)}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Input */}
         <div className="p-3 border-t border-gray-100 bg-white flex gap-2 shrink-0">
-          <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder="Saan gusto mong puntahan?" className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
-          <button onClick={send} disabled={loading} className="text-white px-4 py-2 rounded-xl hover:opacity-90 disabled:opacity-50 font-semibold text-sm" style={{ background: "#310775" }}>Send</button>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send()}
+            placeholder="Reply..."
+            className="flex-1 text-[16px] leading-[24px] text-[#381D65] placeholder-gray-400 outline-none"
+          />
+          <button onClick={send} disabled={loading} className="shrink-0">
+            <SendIcon />
+          </button>
         </div>
       </div>
     </div>

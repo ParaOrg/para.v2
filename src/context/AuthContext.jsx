@@ -12,7 +12,26 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => safeParse(localStorage.getItem(USER_KEY)));
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { setLoading(false); }, []);
+  useEffect(() => {
+    const storedUser = safeParse(localStorage.getItem(USER_KEY));
+    if (storedUser && storedUser.email) {
+      fetch(`${API}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: storedUser.email }),
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.user && d.user.role) {
+            const updated = { ...storedUser, role: d.user.role };
+            localStorage.setItem(USER_KEY, JSON.stringify(updated));
+            setUser(updated);
+          }
+        })
+        .catch(() => {});
+    }
+    setLoading(false);
+  }, []);
 
   const login = useCallback(async (email) => {
     const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -30,6 +49,14 @@ export function AuthProvider({ children }) {
     if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
     const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
+    // Preserve role from stored user or backend
+    const stored = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+    if (stored.role) userData.role = stored.role;
+    if (data.user?.role) userData.role = data.user.role;
+    if (!userData.role && data.user) {
+      // Check if backend returned role in user object
+      userData.role = data.user.role || null;
+    }
     try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
     setUser(userData);
     return data;

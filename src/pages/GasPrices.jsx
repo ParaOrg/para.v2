@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import BottomNav from "../components/BottomNav";
 
 
 export default function GasPrices() {
@@ -17,6 +18,7 @@ export default function GasPrices() {
           <p className="text-yellow-600 text-sm mt-1">Gas price tracking is coming soon. Stay tuned!</p>
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }
