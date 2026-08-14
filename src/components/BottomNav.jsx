@@ -49,14 +49,7 @@ export default function BottomNav({ onSearchClick }) {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3"
         style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))" }}>
         <div className="flex items-end justify-center gap-5 px-2">
-          {/* Hamburger */}
-          <button onClick={() => setMenuOpen(!menuOpen)}
-            className="flex flex-col items-center gap-0.5 min-w-[48px]">
-            <span className="text-lg">{menuOpen ? "✕" : "☰"}</span>
-            <span className="text-[9px] font-medium text-gray-400">More</span>
-          </button>
-
-          {MAIN_NAV.map((item) => (
+              {MAIN_NAV.map((item) => (
             <button key={item.id} onClick={() => {
               if (item.primary && onSearchClick) onSearchClick();
               else if (item.to) navigate(item.to);
