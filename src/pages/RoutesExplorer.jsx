@@ -50,6 +50,8 @@ export default function RoutesExplorer() {
   const [listLoading, setListLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [buildQueue, setBuildQueue] = useState([]);
+  const [showRecorder, setShowRecorder] = useState(false);
+  const [recordingRoute, setRecordingRoute] = useState(null);
   const [verifiedNames, setVerifiedNames] = useState(new Set());
 
   // Init map
