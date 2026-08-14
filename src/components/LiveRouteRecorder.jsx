@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
+import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
 
 export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
+  const auth = useAuth();
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [gpsPoints, setGpsPoints] = useState([]);
@@ -80,6 +82,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
         client_log_id: `explore-${Date.now()}`,
         route_name: routeName,
         route_uuid: routeUuid,
+        user_email: auth?.user?.email || "anonymous",
         consent_granted: consent,
         total_time_sec: elapsed,
         gps_points: gpsPoints,
