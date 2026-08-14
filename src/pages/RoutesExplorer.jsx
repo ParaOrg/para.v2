@@ -381,6 +381,14 @@ export default function RoutesExplorer() {
         </div>
       </div>
       <BottomNav />
+      {showRecorder && recordingRoute && (
+        <LiveRouteRecorder
+          routeName={recordingRoute.name}
+          routeUuid={recordingRoute.uuid}
+          onComplete={() => { setShowRecorder(false); setRecordingRoute(null); }}
+          onCancel={() => { setShowRecorder(false); setRecordingRoute(null); }}
+        />
+      )}
       <LandingPageFooter />
     </>
   );
