@@ -2,13 +2,18 @@
 
 **Para PH** is a hyper-scale geo-sentiment analyzer and multi-modal transit routing engine built specifically for Metro Manila and the Philippines. It combines natural language processing (for local slang normalization) with a highly optimized, crowdsourced spatial routing graph to provide accurate, multi-modal commute directions.
 
+**Tagline:** *Bawat Byahe, Tulong sa Komunidad* — Every journey helps the community.
+
 ## ✨ Key Features
 
 * **Multi-Modal Routing:** Seamlessly computes paths across Jeepneys, Buses, LRT/MRT, UV Express, and walking routes.
 * **Smart Slang Normalization:** Built-in Gazetteer understands colloquial Philippine locations (e.g., "Katips" → "Katipunan", "UPD" → "UP Diliman").
 * **Active Commute Tracking:** Step-by-step live guidance, hop-on/hop-off state tracking, and automatic commute logging.
-* **Crowdsourced Route Mapping:** Built-in 4-step wizard for capturing Jeepney signs, recording live GPS tracks, and exporting GeoJSON data.
+* **Crowdsourced Route Mapping:** Guided multi-modal journey recorder (walk → jeep → transfer → destination), live GPS tracks, and GeoJSON export.
+* **Community Contributions:** Route edits with voting, POI submissions, forum discussions.
 * **Hyper-Fast Caching:** Multi-tiered resolution chain (Gazetteer L1 -> SQLite POI DB L2 -> Redis L3) achieving **0ms latency** for known POIs and completely bypassing 3rd-party API rate limits.
+* **Weather Integration:** Live Open-Meteo weather with dynamic hero effects (sun/cloud/rain/thunder/snow/fog).
+* **Role-Based Access:** Founder, Admin, and Commuter roles with tiered badges.
 
 ---
 
@@ -38,11 +43,51 @@ A custom NetworkX `MultiDiGraph` engine enforcing real-world transit rules.
 
 ---
 
+## 📊 Data Tracking & Privacy
+
+Para PH is transparent about what we collect and why. Full details in our [Privacy Policy](https://para-commute.org/privacy-policy).
+
+### What We Track (and Why)
+
+| Data Point | Purpose | Stored |
+|-----------|---------|--------|
+| **Email** | Account identity | Supabase `waitlist` |
+| **Name** | Personalization | Supabase `waitlist` |
+| **GPS trace** (during tracked commute only) | Build route geometry for unmapped routes | Supabase `ph_user_tracks.raw_payload` |
+| **Wait time** | Stop reliability scoring | Supabase `ph_user_tracks` |
+| **Segment times** | ETA prediction | Supabase `ph_user_tracks` |
+| **Fare confirmation** | Validate route fares | Supabase `ph_user_tracks.comment` |
+| **Traffic level** | Congestion modeling | Supabase `ph_user_tracks.comment` |
+| **Route accuracy** | Quality scoring | Supabase `ph_user_tracks.comment` |
+| **Route edits + votes** | Crowdsourced route improvement | Supabase `route_edits` |
+| **POI pins** | Place database | Supabase `ph_places` |
+
+### What We DON'T Track
+
+- ❌ Location before explicit consent
+- ❌ Background GPS (only during active tracking)
+- ❌ Raw email in commute logs (identity via token)
+- ❌ PII beyond what's listed above
+- ❌ Location data sold to third parties
+
+### Data Cleaning Pipeline
+
+`data_pipeline.py` runs on demand to:
+- Remove GPS outliers (>500m jumps, >50m accuracy)
+- Remove short tracks (<100m)
+- Deduplicate tracks (same user/route/day)
+- Average multiple traces for clean route geometry
+- Generate route statistics for analysis
+
+---
+
 ## 🛠️ Tech Stack
 
 * **Backend:** Python (FastAPI), NetworkX, SQLite, Redis Cluster
-* **Frontend:** React, Vite, Tailwind CSS, Leaflet (Maps)
-* **Data Layers:** GeoJSON, OpenStreetMap (OSM)
+* **Frontend:** React 19, Vite, Tailwind CSS, Leaflet (Maps)
+* **Database:** Supabase (PostgreSQL)
+* **Weather:** Open-Meteo API
+* **Geocoding:** Nominatim (OpenStreetMap)
 
 ---
 
@@ -61,3 +106,42 @@ para.v2/
 ├── para_poi.db              # SQLite POI cache 
 ├── para_ml_data.db          # Feedback and analytics store
 └── frontend/                # Symlink to React frontend -> ~/para-frontend
+```
+
+## 🌐 Pages & User Flows
+
+|Page|Route|Purpose|
+|---|---|---|
+|Home|`/`|Map + chat trip planner|
+|Explore|`/explore`|Browse 50 verified + 892 reference routes|
+|Contribute|`/contribute`|Guided journey recorder, route upload, POI|
+|Community|`/community`|Forum with Markdown, comments, edits|
+|Profile|`/profile`|Username, bio, badges, saved commutes|
+|Weather|Modal|Live weather with 7-day forecast|
+|Admin|`/admin`|Route doctor, inspector, approvals (role-gated)|
+
+## 🔐 Environment Variables
+
+
+```text
+1. VITE_API_URL=https://para-ph-api.onrender.com
+2. SUPABASE_URL=your-supabase-url
+3. SUPABASE_SERVICE_KEY=your-supabase-key
+```
+
+## ⚡ Performance
+
+- **10,000 request stress test:** 100% success, 0 failures
+- **Throughput:** 29 req/sec sustained
+- **P50 latency:** 483ms
+- **P99 latency:** 8.1s (geocoding cold start)
+- **Routes pre-geocoded:** 50 verified routes cached in database
+
+## License
+
+Copyright © 2026 PARA PH. All Rights Reserved.
+
+## Contact
+
+- **Email:** [para.ph.info@gmail.com](mailto:para.ph.info@gmail.com)
+- **Website:** [https://para-commute.org](https://para-commute.org/)
