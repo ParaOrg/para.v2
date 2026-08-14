@@ -302,7 +302,7 @@ export default function RoutesExplorer() {
                         ? (isMatched ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600")
                         : "bg-green-100 text-green-700"
                     }`}>
-                      {tab === "reference" ? (isMatched ? "✓" : "✗") : "✓"}
+                      {tab === "reference" && !route.geometry && !route.geom_geojson ? "📝" : (tab === "reference" ? (isMatched ? "✓" : "✗") : "✓")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold truncate text-gray-900">{name}</p>
