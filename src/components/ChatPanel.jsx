@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getApiBaseUrl } from "../utils/api";
+import RouteLoadingAnimation from "./RouteLoadingAnimation";
 import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
@@ -100,7 +101,7 @@ export default function ChatPanel() {
               </div>
             </div>
           ))}
-          {loading && <div className="flex justify-start"><div className="bg-white border border-gray-100 text-gray-400 p-3 rounded-2xl rounded-bl-none text-sm italic">Naghahanap ng ruta…</div></div>}
+          {loading && <RouteLoadingAnimation loading={loading} />}
           <span ref={messagesEndRef} />
         </div>
         {showTracker && activeRouteData && <><div className="fixed top-[15%] bottom-0 left-0 right-0 z-40 bg-black/50 rounded-t-3xl" onClick={() => setShowTracker(false)} /><div className="fixed top-[15%] bottom-0 left-0 right-0 z-50 flex flex-col" onClick={(e) => e.stopPropagation()}><div className="flex-1 overflow-y-auto bg-white rounded-t-3xl"><CommuteTracker routeData={activeRouteData} onComplete={() => { setShowTracker(false); setActiveRouteData(null); }} onCancel={() => setShowTracker(false)} /></div></div></>}
