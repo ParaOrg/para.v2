@@ -347,6 +347,46 @@ async def get_article(slug: str):
         return {"slug": slug, "content": ""}
 
 
+@router.get("/admin/tracks/pending")
+async def list_pending_tracks():
+    """List tracks awaiting review."""
+    from database import supabase
+    try:
+        res = supabase.table("ph_user_tracks").select("*").eq("review_status", "pending").order("created_at", desc=True).limit(50).execute()
+        return {"tracks": res.data or [], "total": len(res.data or [])}
+    except:
+        return {"tracks": [], "total": 0}
+
+
+@router.post("/admin/tracks/review")
+async def review_track(request: Request):
+    """Approve or reject a track."""
+    from database import supabase
+    data = await request.json()
+    track_uuid = data.get("track_uuid")
+    status = data.get("status")  # 'approved' or 'rejected'
+    try:
+        supabase.table("ph_user_tracks").update({"review_status": status}).eq("track_uuid", track_uuid).execute()
+        
+        # If approved, check if route has 3+ approved tracks
+        if status == "approved":
+            track = supabase.table("ph_user_tracks").select("*").eq("track_uuid", track_uuid).limit(1).execute()
+            if track.data:
+                route_name = track.data[0].get("route_name")
+                all_approved = supabase.table("ph_user_tracks").select("count", count="exact").eq("route_name", route_name).eq("review_status", "approved").execute()
+                if all_approved.count >= 3:
+                    # Update mapped_by on reference route
+                    supabase.table("ph_route_reference").update({
+                        "mapped_by": track.data[0].get("mapped_by"),
+                        "mapped_at": "now()",
+                        "track_count": all_approved.count,
+                    }).eq("route_name", route_name).execute()
+        
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @router.post("/routes/report")
 async def report_route(request: Request):
     data = await request.json()
