@@ -66,6 +66,8 @@ export default function WeatherPage({ onClose }) {
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [error, setError] = useState(null);
+  const [error, setError] = useState(null);
   const [daily, setDaily] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const [advisories, setAdvisories] = useState([]);
@@ -98,7 +100,7 @@ export default function WeatherPage({ onClose }) {
           setForecast(data);
         }
       })
-      .catch(() => {});
+      .catch((e) => { console.error("Weather fetch failed:", e); setError("Unable to load weather"); });
     
     // Fetch advisories
     fetch(`${getApiBaseUrl()}/community/advisories`)
@@ -127,7 +129,7 @@ export default function WeatherPage({ onClose }) {
           
           {/* Weather effects based on code */}
           {(() => {
-            const code = weather?.weather_code || 3;
+            const code = (weather && weather.weather_code) ? weather.weather_code : 3;
             return (
               <>
                 {/* Sun */}
@@ -190,6 +192,8 @@ export default function WeatherPage({ onClose }) {
           <button onClick={onClose} className="absolute right-4 top-4 w-9 h-9 rounded-full bg-black/20 flex items-center justify-center text-white z-20">✕</button>
 
           {/* Text */}
+          {error && <div className="absolute left-10 top-4 z-20 text-white/70 text-xs">{error}</div>}
+          {error && <div className="absolute left-10 top-4 z-20 text-white/70 text-xs">{error}</div>}
           <div className="absolute left-10 top-12 z-10">
             <span className="text-[#FCFCF5] font-medium text-[20px] leading-[30px]">Advisory</span>
           </div>
