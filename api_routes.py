@@ -387,6 +387,38 @@ async def review_track(request: Request):
         return {"status": "error", "message": str(e)}
 
 
+@router.get("/community/advisories")
+async def list_advisories():
+    """Public: list active advisories (weather, transport, traffic)."""
+    from database import supabase
+    try:
+        res = supabase.table("community_advisories").select("*").eq("is_active", True).order("created_at", desc=True).limit(10).execute()
+        return {"advisories": res.data or [], "total": len(res.data or [])}
+    except:
+        return {"advisories": [], "total": 0}
+
+
+@router.post("/community/advisories")
+async def create_advisory(request: Request):
+    """Admin: create a new advisory."""
+    from database import supabase
+    import uuid
+    data = await request.json()
+    try:
+        res = supabase.table("community_advisories").insert({
+            "advisory_uuid": str(uuid.uuid4()),
+            "type": data.get("type", "Weather"),
+            "title": data.get("title"),
+            "description": data.get("description"),
+            "accent": data.get("accent", "#F93F74"),
+            "is_active": True,
+            "created_at": "now()"
+        }).execute()
+        return {"status": "success", "advisory": res.data[0] if res.data else None}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @router.post("/routes/report")
 async def report_route(request: Request):
     data = await request.json()
