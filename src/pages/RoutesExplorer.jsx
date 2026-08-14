@@ -366,13 +366,11 @@ export default function RoutesExplorer() {
               </Link>
               <button onClick={() => {
                 const routeName = selected?.name || selected?.route_name || "";
-                // Store in localStorage for chat to pick up
-                localStorage.setItem("para_track_route", JSON.stringify({
+                setRecordingRoute({
                   name: routeName,
-                  route_uuid: selected?.route_uuid || selected?.id,
-                  timestamp: Date.now()
-                }));
-                navigate("/");
+                  uuid: selected?.route_uuid || selected?.id || null,
+                });
+                setShowRecorder(true);
               }} className="w-full py-2 mt-1 bg-green-500 text-white rounded-lg text-[11px] font-bold">
                 📍 I'm on this route — Track it
               </button>
