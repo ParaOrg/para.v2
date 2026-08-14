@@ -10,6 +10,7 @@ import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 import RouteLoadingAnimation from "../components/RouteLoadingAnimation";
+import LiveRouteRecorder from "../components/LiveRouteRecorder";
 import BottomNav from "../components/BottomNav";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -322,11 +323,11 @@ export default function RoutesExplorer() {
   return (
     <>
       <Navbar />
-      <div className="fixed inset-0 flex z-40 bg-gray-100" style={{ top: "4rem" }}>
-        {!isMobile && <aside className="w-80 shrink-0 h-full border-r border-gray-200 shadow-lg z-10">{sidebar}</aside>}
+      <div className="fixed inset-0 flex z-40 bg-gray-100" style={{ top: "4.5rem" }}>
+        {!isMobile && <aside className="w-80 shrink-0 h-full border-r border-gray-200 shadow-lg z-10 pt-16">{sidebar}</aside>}
         {isMobile && mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/50 z-50" />}
         {isMobile && (
-          <aside className={`fixed top-0 left-0 bottom-0 w-80 z-50 transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          <aside className={`fixed top-16 left-0 bottom-20 w-80 z-50 transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
             {sidebar}
           </aside>
         )}
