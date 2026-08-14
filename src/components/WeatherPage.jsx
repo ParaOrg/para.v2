@@ -67,7 +67,6 @@ export default function WeatherPage({ onClose }) {
   const [forecast, setForecast] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
-  const [error, setError] = useState(null);
   const [daily, setDaily] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const [advisories, setAdvisories] = useState([]);
