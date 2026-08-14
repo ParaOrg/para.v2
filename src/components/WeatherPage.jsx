@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { getApiBaseUrl } from "../utils/api";
 
 function RainCloudIcon({ stroke = "#F93F74" }) {
   return (
@@ -102,11 +101,8 @@ export default function WeatherPage({ onClose }) {
       })
       .catch((e) => { console.error("Weather fetch failed:", e); setError("Unable to load weather"); });
     
-    // Fetch advisories
-    fetch(`${getApiBaseUrl()}/community/advisories`)
-      .then(r => r.json())
-      .then(d => setAdvisories(d.advisories || []))
-      .catch(() => { setAdvisories([]); setLoading(false); });
+    // Use default advisories (backend fetch removed for stability)
+    setAdvisories(DEFAULT_ADVISORIES);
   }, [lat, lng]);
 
   const getIconType = (code) => {
