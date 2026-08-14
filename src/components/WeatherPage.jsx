@@ -67,7 +67,7 @@ export default function WeatherPage({ onClose }) {
   const [forecast, setForecast] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [daily, setDaily] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const [advisories, setAdvisories] = useState([]);
@@ -119,14 +119,6 @@ export default function WeatherPage({ onClose }) {
     const map = { 0:"Clear", 1:"Partly Cloudy", 2:"Partly Cloudy", 3:"Cloudy", 45:"Foggy", 48:"Foggy", 51:"Light Drizzle", 61:"Light Rain", 63:"Rain", 65:"Heavy Rain", 80:"Light Showers", 95:"Thunderstorm" };
     return map[code] || "Cloudy";
   };
-
-  if (loading) {
-    return (
-      <div className="fixed inset-0 z-[9999] bg-black/40 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
