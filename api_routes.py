@@ -12,6 +12,19 @@ import hashlib
 import json
 import time
 
+# Database-backed geocoding cache
+def get_cached_geocoding(name):
+    """Check if route name has cached coordinates."""
+    try:
+        res = supabase.table('ph_routes').select('origin_lat','origin_lng').ilike('name', f'%{name}%').limit(1).execute()
+        if res.data:
+            r = res.data[0]
+            if r.get('origin_lat') and r.get('origin_lng'):
+                return {'lat': r['origin_lat'], 'lng': r['origin_lng']}
+    except:
+        pass
+    return None
+
 # Simple in-memory route cache
 _route_cache = {}
 _cache_hits = 0
@@ -287,6 +300,51 @@ async def vote_route_edit(request: Request):
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+@router.get("/articles")
+async def list_articles():
+    """Fetch articles from GitHub repo (Obsidian vault)."""
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            # GitHub API for repo contents
+            res = await client.get(
+                "https://api.github.com/repos/ParaOrg/para-articles/contents/",
+                timeout=15
+            )
+            if res.status_code != 200:
+                return {"articles": [], "total": 0}
+            
+            files = res.json()
+            articles = []
+            for f in files:
+                if f.get('name', '').endswith('.md'):
+                    articles.append({
+                        'slug': f['name'].replace('.md', ''),
+                        'title': f['name'].replace('.md', '').replace('-', ' ').title(),
+                        'url': f['download_url'],
+                    })
+            return {"articles": articles, "total": len(articles)}
+    except:
+        return {"articles": [], "total": 0}
+
+
+@router.get("/articles/{slug}")
+async def get_article(slug: str):
+    """Fetch a specific article from GitHub."""
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.get(
+                f"https://raw.githubusercontent.com/ParaOrg/para-articles/main/{slug}.md",
+                timeout=15
+            )
+            if res.status_code == 200:
+                return {"slug": slug, "content": res.text}
+            return {"slug": slug, "content": ""}
+    except:
+        return {"slug": slug, "content": ""}
 
 
 @router.post("/routes/report")
