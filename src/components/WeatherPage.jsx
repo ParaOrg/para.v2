@@ -79,7 +79,7 @@ export default function WeatherPage({ onClose }) {
       .then(r => r.json())
       .then(d => {
         if (d.current) { setWeather(d.current); setLastUpdated(new Date()); }
-        if (d.daily) {
+        if (d.daily && d.daily.time && d.daily.temperature_2m_max) {
           setDaily(d.daily.time.map((day, i) => ({
             day: new Date(day).toLocaleDateString('en-US', { weekday: 'short' }),
             max: Math.round(d.daily.temperature_2m_max[i]),
@@ -87,7 +87,7 @@ export default function WeatherPage({ onClose }) {
             code: d.daily.weather_code[i],
           })));
         }
-        if (d.hourly) {
+        if (d.hourly && d.hourly.time && d.hourly.temperature_2m) {
           const nowHour = new Date().getHours();
           const data = [];
           for (let i = 0; i < d.hourly.time.length && data.length < 6; i++) {
