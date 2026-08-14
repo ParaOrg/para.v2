@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getApiBaseUrl } from "../utils/api";
 import RouteLoadingAnimation from "./RouteLoadingAnimation";
+import WeatherPage from "./WeatherPage";
 import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
@@ -32,6 +33,13 @@ export default function ChatPanel() {
   const [showTracker, setShowTracker] = useState(false);
   const [activeRouteData, setActiveRouteData] = useState(null);
   const [showRecorder, setShowRecorder] = useState(false);
+  const [showWeather, setShowWeather] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setShowWeather(true);
+    window.addEventListener("para-show-weather", handler);
+    return () => window.removeEventListener("para-show-weather", handler);
+  }, []);
   const messagesEndRef = useRef(null);
   const { location, consent, requestConsentAndLocation } = useTrackingConsent();
 
@@ -86,6 +94,8 @@ export default function ChatPanel() {
 
   return (
     <div className="fixed inset-0 flex flex-col">
+      {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
+      <button onClick={() => setShowWeather(true)} className="absolute top-20 right-4 z-20 bg-white rounded-full px-3 py-2 text-sm font-bold shadow-lg text-[#381D65]">🌤️</button>
       <div className="absolute inset-0 z-0"><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
       <div className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 ${collapsed ? "max-h-12" : "max-h-[80vh]"}`}>
         <div className="text-white p-3 font-bold text-sm flex items-center gap-2 shrink-0 justify-between cursor-pointer" style={{ background: "linear-gradient(135deg, #310775, #5a1fa8)" }} onClick={() => setCollapsed(!collapsed)}>

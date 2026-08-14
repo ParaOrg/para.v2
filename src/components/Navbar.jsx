@@ -92,9 +92,9 @@ export default function Navbar() {
         </div>
 
         <div className="hidden shrink-0 items-center gap-2.5 md:flex lg:justify-self-end">
-          <Link to="/gas-prices" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-500 hover:text-[#7A4BC8] hover:border-[#7A4BC8] transition-colors shadow-sm">
-            <span>⛽</span><span>Gas Prices</span>
-          </Link>
+          <button onClick={() => window.dispatchEvent(new Event("para-show-weather"))} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-500 hover:text-[#7A4BC8] hover:border-[#7A4BC8] transition-colors shadow-sm">
+            <span>🌤️</span><span>Weather</span>
+          </button>
           
 
           {user && !isGuest ? (
@@ -131,7 +131,7 @@ export default function Navbar() {
       {mobileOpen && (
         <>
           <div className="lg:hidden fixed inset-0 z-[130] bg-black/40" aria-hidden={!mobileOpen} onClick={closeMobile} />
-          <div id="mobile-nav-drawer" className="lg:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]" role="dialog" aria-modal="true" aria-label="Navigation menu" className="md:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]">
+          <div id="mobile-nav-drawer" className="lg:hidden fixed inset-0 z-[140] h-svh w-screen bg-white text-gray-900 shadow-2xl flex flex-col pt-[env(safe-area-inset-top)]" role="dialog" aria-modal="true" aria-label="Navigation menu">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
               <span className="text-sm font-semibold tracking-[0.04em] text-gray-800">Menu</span>
               <button type="button" className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 -mr-1" aria-label="Close menu" onClick={closeMobile}><HamburgerIcon open /></button>
