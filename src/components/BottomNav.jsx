@@ -2,9 +2,12 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const MAIN_NAV = [
+const LEFT_NAV = [
   { id: "explore", label: "Explore", icon: "🗺️", to: "/explore" },
-  { id: "search", label: "Search", icon: "🔍", to: "/", primary: true },
+  { id: "contribute", label: "Contribute", icon: "🛰️", to: "/contribute" },
+];
+
+const RIGHT_NAV = [
   { id: "community", label: "Community", icon: "🌟", to: "/community" },
   { id: "profile", label: "Profile", icon: "👤", to: "/profile" },
 ];
@@ -17,29 +20,29 @@ export default function BottomNav({ onSearchClick }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3"
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md rounded-t-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] px-2 py-2"
       style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))" }}>
-      <div className="flex items-end justify-center gap-7 px-4 py-2">
-        {MAIN_NAV.map((item) => (
-          <button key={item.id} onClick={() => {
-            if (item.primary && onSearchClick) onSearchClick();
-            else if (item.to) navigate(item.to);
-          }}
-            className={`flex flex-col items-center gap-0.5 min-w-[48px] ${item.primary ? "-mt-5" : ""}`}>
-            {item.primary ? (
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg text-lg ${
-                isActive("/") ? "bg-[#381D65] text-white" : "bg-[#7A4BC8] text-white"
-              }`}>
-                {item.icon}
-              </div>
-            ) : (
+      <div className="flex items-end justify-between px-4">
+        <div className="flex gap-6">
+          {LEFT_NAV.map((item) => (
+            <button key={item.id} onClick={() => navigate(item.to)} className="flex flex-col items-center gap-0.5 min-w-[48px]">
               <span className="text-lg">{item.icon}</span>
-            )}
-            <span className={`text-[9px] font-medium ${
-              isActive(item.to) ? "text-[#7A4BC8]" : "text-gray-400"
-            }`}>{item.label}</span>
-          </button>
-        ))}
+              <span className={`text-[9px] font-medium ${isActive(item.to) ? "text-[#7A4BC8]" : "text-gray-400"}`}>{item.label}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={onSearchClick} className="-mt-6 flex flex-col items-center">
+          <div className="w-14 h-14 rounded-full bg-[#7A4BC8] text-white flex items-center justify-center shadow-lg text-xl">🔍</div>
+          <span className="text-[9px] font-medium text-[#7A4BC8]">Search</span>
+        </button>
+        <div className="flex gap-6">
+          {RIGHT_NAV.map((item) => (
+            <button key={item.id} onClick={() => navigate(item.to)} className="flex flex-col items-center gap-0.5 min-w-[48px]">
+              <span className="text-lg">{item.icon}</span>
+              <span className={`text-[9px] font-medium ${isActive(item.to) ? "text-[#7A4BC8]" : "text-gray-400"}`}>{item.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

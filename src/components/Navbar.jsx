@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 
 const ALL_NAV_LINKS = [
-  { to: '/', label: 'Commute' },
+  { to: '/', label: 'Home' },
   { to: '/explore', label: 'Explore' },
   { to: '/community', label: 'Community' },
   { to: '/about', label: 'About' },

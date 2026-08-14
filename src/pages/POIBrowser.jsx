@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
+import BottomNav from "../components/BottomNav";
 import POIForm from "../components/POIForm";
 
 const API = getApiBaseUrl();
@@ -135,6 +136,7 @@ export default function POIBrowser() {
           ))}
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }
