@@ -380,7 +380,8 @@ function InspectorTab() {
     if (!selectedId || !geoJson) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/admin/routes/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(geoJson) });
+      const payload = { ...geoJson, route_id: selectedId, route_uuid: selectedId };
+      const res = await fetch(`${API}/admin/routes/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error("Save failed");
       setMsg({ ok: true, text: "✅ Geometry saved!" });
       fetchRoutes();
