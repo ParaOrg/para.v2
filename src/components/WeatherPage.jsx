@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTrackingConsent } from "../context/TrackingConsentContext";
 
 function RainCloudIcon({ stroke = "#F93F74" }) {
   return (
@@ -71,8 +72,9 @@ export default function WeatherPage({ onClose }) {
   const [expanded, setExpanded] = useState(false);
   const [advisories, setAdvisories] = useState([]);
 
-  const lat = window.__userLocation?.[0] || 14.5995;
-  const lng = window.__userLocation?.[1] || 120.9842;
+  const { location, consent } = useTrackingConsent();
+  const lat = location?.lat || window.__userLocation?.[0] || 14.5995;
+  const lng = location?.lng || window.__userLocation?.[1] || 120.9842;
 
   useEffect(() => {
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia/Manila&forecast_days=7`)
@@ -103,7 +105,7 @@ export default function WeatherPage({ onClose }) {
     
     // Use default advisories (backend fetch removed for stability)
     setAdvisories(DEFAULT_ADVISORIES);
-  }, [lat, lng]);
+  }, [lat, lng, consent, location]);
 
   const getIconType = (code) => {
     if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return "rain";
