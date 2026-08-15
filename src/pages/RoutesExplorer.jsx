@@ -153,26 +153,30 @@ export default function RoutesExplorer() {
     setLoading(true);
 
     if ((tab === "reference" && !id) || (!id && !route.route_uuid)) {
+      // No geometry — prompt to record this route
       layerRef.current?.clearLayers();
       const parts = name.split(" - ");
       const origin = (parts[0] || "").trim();
       const dest = (parts[1] || "").trim();
-      if (!origin && !dest) return;
-      const bounds = L.latLngBounds([]);
-      for (const [i, place] of [origin, dest].entries()) {
-        if (!place) continue;
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}, Metro Manila&limit=1`);
-          const data = await res.json();
-          if (data[0]) {
-            const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-            L.circleMarker(ll, { radius: 8, fillColor: i === 0 ? "#22c55e" : "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 })
-              .addTo(layerRef.current).bindTooltip(i === 0 ? `Origin: ${place}` : `Dest: ${place}`, { permanent: true, direction: "top" });
-            bounds.extend(ll);
-          }
-        } catch {}
+      if (origin && dest) {
+        const bounds = L.latLngBounds([]);
+        for (const [i, place] of [origin, dest].entries()) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}, Metro Manila&limit=1`);
+            const data = await res.json();
+            if (data[0]) {
+              const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              L.circleMarker(ll, { radius: 8, fillColor: i === 0 ? "#22c55e" : "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 })
+                .addTo(layerRef.current).bindTooltip(i === 0 ? `Origin: ${place}` : `Dest: ${place}`, { permanent: true, direction: "top" });
+              bounds.extend(ll);
+            }
+          } catch {}
+        }
+        if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
       }
-      if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
+      // Show recorder for unmapped routes
+      setRecordingRoute({ name, uuid: null });
+      setShowRecorder(true);
     } else {
       await drawRoute(id || route.route_uuid);
     }
