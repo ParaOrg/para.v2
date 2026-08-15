@@ -141,13 +141,15 @@ export default function RoutesExplorer() {
     const name = (route.name || route.route_name || "").trim();
     if (!id && !name) return;
 
-    const currentId = selected?.route_uuid || selected?.id;
-    const currentName = selected?.route_name || selected?.name || "";
-    if (currentId === id || currentName === name) {
-      setSelected(null);
-      layerRef.current?.clearLayers();
-      setRecordingRoute(null);
-      return;
+    if (selected) {
+      const currentId = selected?.route_uuid || selected?.id;
+      const currentName = selected?.route_name || selected?.name || "";
+      if ((id && currentId === id) || (!id && currentName === name)) {
+        setSelected(null);
+        layerRef.current?.clearLayers();
+        setRecordingRoute(null);
+        return;
+      }
     }
     setSelected(route);
     setMobileOpen(false);
