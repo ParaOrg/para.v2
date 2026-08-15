@@ -9,6 +9,8 @@ import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
+import LiveRouteRecorder from "../components/LiveRouteRecorder";
+import BottomNav from "../components/BottomNav";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -47,6 +49,8 @@ export default function RoutesExplorer() {
   const [listLoading, setListLoading] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [buildQueue, setBuildQueue] = useState([]);
+  const [showRecorder, setShowRecorder] = useState(false);
+  const [recordingRoute, setRecordingRoute] = useState(null);
   const [verifiedNames, setVerifiedNames] = useState(new Set());
 
   // Init map
@@ -64,8 +68,8 @@ export default function RoutesExplorer() {
     (async () => {
       try {
         const [routesRes, refRes] = await Promise.all([
-          fetch(`${API}/admin/routes/list`),
-          fetch(`${API}/admin/routes/reference`),
+          fetch(`${API}/routes/public`),
+          fetch(`${API}/routes/public/reference`),
         ]);
         const routesData = await routesRes.json();
         const refData = await refRes.json();
@@ -79,12 +83,13 @@ export default function RoutesExplorer() {
         });
         setVerifiedNames(vNames);
         
-        // Deduplicate reference routes and mark matched/unmatched
+        // Deduplicate reference routes by UNIQUE name
         const seen = new Set();
         const uniqueRef = [];
         (refData.routes || []).forEach(r => {
-          const name = (r.route_name || "").trim();
+          const name = (r.route_name || r.name || "").trim();
           const lower = name.toLowerCase();
+          if (!name) return;
           if (!lower || seen.has(lower)) return;
           seen.add(lower);
           
@@ -94,7 +99,7 @@ export default function RoutesExplorer() {
             if (lower.includes(vName) || vName.includes(lower)) matched = true;
           });
           
-          uniqueRef.push({ ...r, route_name: name, is_matched: matched });
+          uniqueRef.push({ ...r, name: name, route_name: name, is_matched: matched });
         });
         setReferenceRoutes(uniqueRef);
         setFiltered(all.filter((r) => r.is_approved));
@@ -118,7 +123,7 @@ export default function RoutesExplorer() {
 
   const drawRoute = useCallback(async (routeId) => {
     try {
-      const res = await fetch(`${API}/admin/routes/geojson?route_id=${routeId}`);
+      const res = await fetch(`${API}/routes/public/geojson?route_id=${routeId}`);
       if (!res.ok) throw new Error("No geometry");
       const geo = await res.json();
       layerRef.current?.clearLayers();
@@ -133,7 +138,7 @@ export default function RoutesExplorer() {
 
   const selectRoute = useCallback(async (route) => {
     const id = route.route_uuid || route.id;
-    const name = route.name || route.route_name || "";
+    const name = (route.name || route.route_name || "").trim();
     if (!id && !name) return;
 
     const currentId = selected?.route_uuid || selected?.id;
@@ -148,25 +153,30 @@ export default function RoutesExplorer() {
     setLoading(true);
 
     if ((tab === "reference" && !id) || (!id && !route.route_uuid)) {
+      // No geometry — prompt to record this route
       layerRef.current?.clearLayers();
       const parts = name.split(" - ");
-      const origin = parts[0]?.trim();
-      const dest = parts[1]?.trim();
-      const bounds = L.latLngBounds([]);
-      for (const [i, place] of [origin, dest].entries()) {
-        if (!place) continue;
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}, Metro Manila&limit=1`);
-          const data = await res.json();
-          if (data[0]) {
-            const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-            L.circleMarker(ll, { radius: 8, fillColor: i === 0 ? "#22c55e" : "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 })
-              .addTo(layerRef.current).bindTooltip(i === 0 ? `Origin: ${place}` : `Dest: ${place}`, { permanent: true, direction: "top" });
-            bounds.extend(ll);
-          }
-        } catch {}
+      const origin = (parts[0] || "").trim();
+      const dest = (parts[1] || "").trim();
+      if (origin && dest) {
+        const bounds = L.latLngBounds([]);
+        for (const [i, place] of [origin, dest].entries()) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}, Metro Manila&limit=1`);
+            const data = await res.json();
+            if (data[0]) {
+              const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              L.circleMarker(ll, { radius: 8, fillColor: i === 0 ? "#22c55e" : "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 })
+                .addTo(layerRef.current).bindTooltip(i === 0 ? `Origin: ${place}` : `Dest: ${place}`, { permanent: true, direction: "top" });
+              bounds.extend(ll);
+            }
+          } catch {}
+        }
+        if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
       }
-      if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
+      // Show recorder for unmapped routes
+      setRecordingRoute({ name, uuid: null });
+      setShowRecorder(true);
     } else {
       await drawRoute(id || route.route_uuid);
     }
@@ -238,7 +248,7 @@ export default function RoutesExplorer() {
                 const bounds = L.latLngBounds([]);
                 for (const route of buildQueue) {
                   try {
-                    const res = await fetch(`${API}/admin/routes/geojson?route_id=${route.route_uuid}`);
+                    const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
                     if (!res.ok) continue;
                     const geo = await res.json();
                     const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
@@ -295,7 +305,7 @@ export default function RoutesExplorer() {
                         ? (isMatched ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600")
                         : "bg-green-100 text-green-700"
                     }`}>
-                      {tab === "reference" ? (isMatched ? "✓" : "✗") : "✓"}
+                      {tab === "reference" && !route.geometry && !route.geom_geojson ? "📝" : (tab === "reference" ? (isMatched ? "✓" : "✗") : "✓")}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold truncate text-gray-900">{name}</p>
@@ -318,11 +328,11 @@ export default function RoutesExplorer() {
   return (
     <>
       <Navbar />
-      <div className="fixed inset-0 flex z-40 bg-gray-100" style={{ top: "4rem" }}>
+      <div className="fixed inset-0 flex z-40 bg-gray-100" style={{ top: "4.5rem" }}>
         {!isMobile && <aside className="w-80 shrink-0 h-full border-r border-gray-200 shadow-lg z-10">{sidebar}</aside>}
         {isMobile && mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/50 z-50" />}
         {isMobile && (
-          <aside className={`fixed top-0 left-0 bottom-0 w-80 z-50 transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          <aside className={`fixed top-16 left-0 bottom-20 w-80 z-50 transition-transform duration-300 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
             {sidebar}
           </aside>
         )}
@@ -330,7 +340,6 @@ export default function RoutesExplorer() {
           {isMobile && (
             <button onClick={() => setMobileOpen(true)} className="absolute top-4 left-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md font-semibold text-[13px] text-purple-800">☰ Routes</button>
           )}
-          <Link to="/" className="absolute top-4 right-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md text-gray-700 font-medium text-[13px] no-underline">Home</Link>
           <div ref={mapRef} className="absolute inset-0 z-0" />
           {loading && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
@@ -358,13 +367,11 @@ export default function RoutesExplorer() {
               </Link>
               <button onClick={() => {
                 const routeName = selected?.name || selected?.route_name || "";
-                // Store in localStorage for chat to pick up
-                localStorage.setItem("para_track_route", JSON.stringify({
+                setRecordingRoute({
                   name: routeName,
-                  route_uuid: selected?.route_uuid || selected?.id,
-                  timestamp: Date.now()
-                }));
-                window.location.href = "/";
+                  uuid: selected?.route_uuid || selected?.id || null,
+                });
+                setShowRecorder(true);
               }} className="w-full py-2 mt-1 bg-green-500 text-white rounded-lg text-[11px] font-bold">
                 📍 I'm on this route — Track it
               </button>
@@ -374,6 +381,15 @@ export default function RoutesExplorer() {
           )}
         </div>
       </div>
+      <BottomNav />
+      {showRecorder && recordingRoute && (
+        <LiveRouteRecorder
+          routeName={recordingRoute.name}
+          routeUuid={recordingRoute.uuid}
+          onComplete={() => { setShowRecorder(false); setRecordingRoute(null); }}
+          onCancel={() => { setShowRecorder(false); setRecordingRoute(null); }}
+        />
+      )}
       <LandingPageFooter />
     </>
   );
