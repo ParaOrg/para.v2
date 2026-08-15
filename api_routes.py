@@ -277,6 +277,33 @@ async def save_telemetry_batch(request: Request):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+# ── Username / Handle ──────────────────────────────────
+
+@router.post("/auth/username")
+async def set_username(request: Request):
+    """Set a unique username/handle for a user."""
+    try:
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        handle = data.get("handle", "").strip()
+        
+        if not email or not handle:
+            return {"status": "error", "message": "Email and handle required"}
+        
+        # Check if handle already taken by another user
+        existing = supabase.table("waitlist").select("*").eq("handle", handle).neq("email", email).execute()
+        if existing.data:
+            return {"status": "error", "message": "Username already taken"}
+        
+        # Update user's handle
+        res = supabase.table("waitlist").update({"handle": handle}).eq("email", email).execute()
+        if res.data:
+            return {"status": "success", "message": "Username set", "handle": handle}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 # ── Endpoints ──────────────────────────────────────────
 
 
