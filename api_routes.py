@@ -195,6 +195,15 @@ async def save_commute(request: Request):
         
         res = supabase.table("ph_user_tracks").insert(track).execute()
         if res.data:
+            # Increment ride counter on the route
+            if data.get("route_uuid"):
+                try:
+                    route_res = supabase.table("ph_routes").select("ride_count").eq("route_uuid", data["route_uuid"]).limit(1).execute()
+                    if route_res.data:
+                        current = route_res.data[0].get("ride_count", 0) or 0
+                        supabase.table("ph_routes").update({"ride_count": current + 1}).eq("route_uuid", data["route_uuid"]).execute()
+                except Exception:
+                    pass  # ride_count column may not exist yet
             return {"status": "success", "track_uuid": res.data[0].get("track_uuid")}
         return {"status": "error", "message": "Failed to save"}
     except Exception as e:
