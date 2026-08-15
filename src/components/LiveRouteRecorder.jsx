@@ -144,7 +144,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
   const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[60] w-[min(95vw,450px)]">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,400px)]">
       {/* Expanded panel */}
       {panelOpen && !saved && (
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-[70vh] overflow-y-auto">
@@ -170,7 +170,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
                 <p>1. Your GPS dot appears on the map</p>
                 <p>2. Ride the route — we draw the line live</p>
                 <p>3. Add POIs (terminals, landmarks) along the way</p>
-                <p>4. Stop when done — saves to ph_user_tracks table</p>
+                <p>4. Stop when done — it will be saved in our database</p>
               </div>
             )}
 

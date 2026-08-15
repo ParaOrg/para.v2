@@ -351,7 +351,7 @@ export default function RoutesExplorer() {
             </div>
           )}
           {selected && !loading && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 w-[min(90vw,320px)]">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[min(90vw,320px)]">
               <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 <div className="px-3 py-2 flex items-center gap-2">
                   <div className="flex-1 min-w-0">
