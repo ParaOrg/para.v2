@@ -99,8 +99,10 @@ export default function Navbar() {
 
           {user && !isGuest ? (
             <>
-              <Link to="/profile" className="text-sm text-gray-500 hover:text-[#7A4BC8] mr-1" title="Profile">👤</Link>
-              <span className="text-[10px] text-gray-400 truncate max-w-[100px] hidden sm:inline">{user?.email || ""}</span>
+              <Link to="/profile" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#7A4BC8] mr-1" title="Profile">
+                <span>👤</span>
+                <span className="text-[10px] text-gray-400 truncate max-w-[100px] hidden sm:inline">{user?.email || ""}</span>
+              </Link>
               <button
                 onClick={logout}
                 className="inline-flex h-10 items-center rounded-full bg-gray-800 px-4 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(15,23,42,0.1)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-gray-900 whitespace-nowrap"
