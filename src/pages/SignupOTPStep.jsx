@@ -18,7 +18,7 @@ function EmailIcon() {
 
 
 // Step 2 of the signup flow
-export default function SignupOTPStep({ uid, email, onBack }) {
+export default function SignupOTPStep({ uid, email, onBack, onSuccess }) {
   const [otp, setOtp]                 = useState('');
   const [resendCooldown, setCooldown] = useState(0);
   const [error, setError]             = useState('');
@@ -62,8 +62,12 @@ export default function SignupOTPStep({ uid, email, onBack }) {
         return;
       }
 
-      await loginWithCustomToken(data.customToken);
-      navigate('/');
+      if (onSuccess) {
+        await onSuccess(data.customToken);
+      } else {
+        await loginWithCustomToken(data.customToken);
+        navigate('/');
+      }
     } catch {
       setError('Network error. Check your connection and try again.');
     } finally {

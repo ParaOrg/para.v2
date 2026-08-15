@@ -3,7 +3,7 @@ api_routes.py — Core chat and routing endpoints.
 """
 
 import traceback
-from fastapi import Request, APIRouter, Query
+from fastapi import Request, APIRouter
 from database import supabase
 
 
@@ -11,19 +11,6 @@ from functools import lru_cache
 import hashlib
 import json
 import time
-
-# Database-backed geocoding cache
-def get_cached_geocoding(name):
-    """Check if route name has cached coordinates."""
-    try:
-        res = supabase.table('ph_routes').select('origin_lat','origin_lng').ilike('name', f'%{name}%').limit(1).execute()
-        if res.data:
-            r = res.data[0]
-            if r.get('origin_lat') and r.get('origin_lng'):
-                return {'lat': r['origin_lat'], 'lng': r['origin_lng']}
-    except:
-        pass
-    return None
 
 # Simple in-memory route cache
 _route_cache = {}
@@ -135,290 +122,6 @@ async def add_poi(request: Request):
 
 # ── Route Reports ──────────────────────────────────────
 
-@router.get("/routes/public")
-async def list_public_routes():
-    """Public: list verified routes only."""
-    from database import supabase
-    res = supabase.table("ph_routes").select("*").eq("is_approved", True).execute()
-    routes = res.data or []
-    # Filter out test/demo routes
-    import re
-    pattern = re.compile(r"\b(test|demo|dummy|staging|sample)\b", re.IGNORECASE)
-    routes = [r for r in routes if not pattern.search(r.get("name", "") or "")]
-    return {"routes": routes, "total": len(routes)}
-
-
-@router.get("/routes/public/geojson")
-async def get_public_route_geojson(route_id: str = Query(..., description="Route UUID")):
-    """Public: get route geometry."""
-    import json as json_mod
-    from database import supabase
-    route_res = supabase.table("ph_routes").select("*").eq("route_uuid", route_id).limit(1).execute()
-    if not route_res.data:
-        raise HTTPException(404, "Route not found")
-    shape_res = supabase.table("ph_route_shapes").select("geom_geojson").eq("route_uuid", route_id).limit(1).execute()
-    if not shape_res.data:
-        raise HTTPException(404, "No geometry found")
-    geom = shape_res.data[0].get("geom_geojson")
-    if isinstance(geom, str):
-        geom = json_mod.loads(geom)
-    return {
-        "type": "FeatureCollection",
-        "features": [{"type": "Feature", "properties": {"name": route_res.data[0].get("name")}, "geometry": geom}],
-    }
-
-
-@router.get("/routes/public/reference")
-async def list_public_reference_routes():
-    """Public: list DISTINCT reference routes by route_name."""
-    from database import supabase
-    try:
-        res = supabase.rpc("get_unique_reference_routes")
-        routes = res.data or []
-        return {"routes": routes, "total": len(routes)}
-    except:
-        # Fallback: paginate through all reference routes
-        all_routes = []
-        offset = 0
-        limit = 1000
-        while True:
-            res = supabase.table("ph_route_reference").select("*").range(offset, offset + limit - 1).execute()
-            rows = res.data or []
-            if not rows:
-                break
-            all_routes.extend(rows)
-            offset += len(rows)
-            if len(rows) < limit:
-                break
-        seen = set()
-        unique = []
-        for r in all_routes:
-            key = (r.get("route_name") or "").strip().lower()
-            if not key or key in seen:
-                continue
-            seen.add(key)
-            unique.append(r)
-        return {"routes": unique, "total": len(unique)}
-
-
-@router.get("/community/threads")
-async def list_threads():
-    """Public: list community threads."""
-    from database import supabase
-    try:
-        res = supabase.table("community_threads").select("*").order("created_at", desc=True).limit(100).execute()
-        return {"threads": res.data or [], "total": len(res.data or [])}
-    except:
-        # Table may not exist yet
-        return {"threads": [], "total": 0}
-
-
-@router.post("/community/threads")
-async def create_thread(request: Request):
-    """Create a new community thread."""
-    from database import supabase
-    import uuid
-    data = await request.json()
-    try:
-        res = supabase.table("community_threads").insert({
-            "thread_uuid": str(uuid.uuid4()),
-            "user_email": data.get("user_email", "anonymous"),
-            "title": data.get("title", ""),
-            "content": data.get("content", ""),
-            "tag": data.get("tag", "General"),
-            "created_at": "now()"
-        }).execute()
-        if res.data:
-            return {"status": "success", "thread": res.data[0]}
-        return {"status": "error", "message": "Failed to save"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@router.post("/community/threads/delete")
-async def delete_thread(request: Request):
-    """Delete a community thread."""
-    from database import supabase
-    data = await request.json()
-    try:
-        res = supabase.table("community_threads").delete().eq("thread_uuid", data.get("thread_uuid")).execute()
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@router.post("/community/route-edits")
-async def submit_route_edit(request: Request):
-    """Submit a route edit proposal for community voting."""
-    from database import supabase
-    import uuid, json
-    data = await request.json()
-    try:
-        res = supabase.table("route_edits").insert({
-            "edit_uuid": str(uuid.uuid4()),
-            "route_uuid": data.get("route_uuid"),
-            "user_email": data.get("user_email", "anonymous"),
-            "edit_type": data.get("edit_type", "custom"),
-            "before_data": json.dumps(data.get("before_data", {})),
-            "after_data": json.dumps(data.get("after_data", {})),
-            "status": "pending",
-            "created_at": "now()"
-        }).execute()
-        if res.data:
-            return {"status": "success", "edit": res.data[0]}
-        return {"status": "error", "message": "Failed to save"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@router.get("/community/route-edits")
-async def list_route_edits(route_uuid: str = None):
-    """List route edit proposals."""
-    from database import supabase
-    try:
-        query = supabase.table("route_edits").select("*").eq("status", "pending").order("created_at", desc=True).limit(50)
-        if route_uuid:
-            query = query.eq("route_uuid", route_uuid)
-        res = query.execute()
-        return {"edits": res.data or [], "total": len(res.data or [])}
-    except Exception as e:
-        return {"edits": [], "total": 0, "error": str(e)}
-
-
-@router.post("/community/route-edits/vote")
-async def vote_route_edit(request: Request):
-    """Vote on a route edit proposal."""
-    from database import supabase
-    import uuid
-    data = await request.json()
-    edit_uuid = data.get("edit_uuid")
-    vote = data.get("vote")
-    try:
-        # Update vote count
-        field = "upvotes" if vote == "up" else "downvotes"
-        supabase.table("route_edits").update({field: supabase.raw(f"{field} + 1")}).eq("edit_uuid", edit_uuid).execute()
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@router.get("/articles")
-async def list_articles():
-    """Fetch articles from GitHub repo (Obsidian vault)."""
-    import httpx
-    try:
-        async with httpx.AsyncClient() as client:
-            # GitHub API for repo contents
-            res = await client.get(
-                "https://api.github.com/repos/ParaOrg/para-articles/contents/",
-                timeout=15
-            )
-            if res.status_code != 200:
-                return {"articles": [], "total": 0}
-            
-            files = res.json()
-            articles = []
-            for f in files:
-                if f.get('name', '').endswith('.md'):
-                    articles.append({
-                        'slug': f['name'].replace('.md', ''),
-                        'title': f['name'].replace('.md', '').replace('-', ' ').title(),
-                        'url': f['download_url'],
-                    })
-            return {"articles": articles, "total": len(articles)}
-    except:
-        return {"articles": [], "total": 0}
-
-
-@router.get("/articles/{slug}")
-async def get_article(slug: str):
-    """Fetch a specific article from GitHub."""
-    import httpx
-    try:
-        async with httpx.AsyncClient() as client:
-            res = await client.get(
-                f"https://raw.githubusercontent.com/ParaOrg/para-articles/main/{slug}.md",
-                timeout=15
-            )
-            if res.status_code == 200:
-                return {"slug": slug, "content": res.text}
-            return {"slug": slug, "content": ""}
-    except:
-        return {"slug": slug, "content": ""}
-
-
-@router.get("/admin/tracks/pending")
-async def list_pending_tracks():
-    """List tracks awaiting review."""
-    from database import supabase
-    try:
-        res = supabase.table("ph_user_tracks").select("*").eq("review_status", "pending").order("created_at", desc=True).limit(50).execute()
-        return {"tracks": res.data or [], "total": len(res.data or [])}
-    except:
-        return {"tracks": [], "total": 0}
-
-
-@router.post("/admin/tracks/review")
-async def review_track(request: Request):
-    """Approve or reject a track."""
-    from database import supabase
-    data = await request.json()
-    track_uuid = data.get("track_uuid")
-    status = data.get("status")  # 'approved' or 'rejected'
-    try:
-        supabase.table("ph_user_tracks").update({"review_status": status}).eq("track_uuid", track_uuid).execute()
-        
-        # If approved, check if route has 3+ approved tracks
-        if status == "approved":
-            track = supabase.table("ph_user_tracks").select("*").eq("track_uuid", track_uuid).limit(1).execute()
-            if track.data:
-                route_name = track.data[0].get("route_name")
-                all_approved = supabase.table("ph_user_tracks").select("count", count="exact").eq("route_name", route_name).eq("review_status", "approved").execute()
-                if all_approved.count >= 3:
-                    # Update mapped_by on reference route
-                    supabase.table("ph_route_reference").update({
-                        "mapped_by": track.data[0].get("mapped_by"),
-                        "mapped_at": "now()",
-                        "track_count": all_approved.count,
-                    }).eq("route_name", route_name).execute()
-        
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@router.get("/community/advisories")
-async def list_advisories():
-    """Public: list active advisories (weather, transport, traffic)."""
-    from database import supabase
-    try:
-        res = supabase.table("community_advisories").select("*").eq("is_active", True).order("created_at", desc=True).limit(10).execute()
-        return {"advisories": res.data or [], "total": len(res.data or [])}
-    except:
-        return {"advisories": [], "total": 0}
-
-
-@router.post("/community/advisories")
-async def create_advisory(request: Request):
-    """Admin: create a new advisory."""
-    from database import supabase
-    import uuid
-    data = await request.json()
-    try:
-        res = supabase.table("community_advisories").insert({
-            "advisory_uuid": str(uuid.uuid4()),
-            "type": data.get("type", "Weather"),
-            "title": data.get("title"),
-            "description": data.get("description"),
-            "accent": data.get("accent", "#F93F74"),
-            "is_active": True,
-            "created_at": "now()"
-        }).execute()
-        return {"status": "success", "advisory": res.data[0] if res.data else None}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
 @router.post("/routes/report")
 async def report_route(request: Request):
     data = await request.json()
@@ -473,24 +176,6 @@ async def get_user_submissions(user_email: str = None):
 @router.post("/commute/save")
 async def save_commute(request: Request):
     data = await request.json()
-    # If route_uuid provided, link GPS trace to route
-    route_uuid = data.get("route_uuid")
-    gps_points = data.get("gpsPoints", data.get("gps_points", []))
-    if route_uuid and gps_points:
-        try:
-            # Build GeoJSON LineString from GPS points
-            coords = [[p["lng"], p["lat"]] for p in gps_points if p.get("lat") and p.get("lng")]
-            if len(coords) > 2:
-                geojson = {"type": "LineString", "coordinates": coords}
-                # Update route shape table with new geometry
-                supabase.table("ph_route_shapes").upsert({
-                    "route_uuid": route_uuid,
-                    "geom_geojson": geojson,
-                    "length_m": len(coords),
-                    "source": "commute_track"
-                }).execute()
-        except Exception as e:
-            print(f"Failed to update route geometry: {e}")
     """Save a completed tracked commute with GPS data, ratings, and timings."""
     try:
         user_id = data.get("user_id", "anonymous")
@@ -592,6 +277,44 @@ async def save_telemetry_batch(request: Request):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+# ── Username / Handle ──────────────────────────────────
+
+@router.post("/auth/username")
+async def set_username(request: Request):
+    """Set a unique username/handle and name for a user."""
+    try:
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        handle = data.get("handle", "").strip()
+        name = data.get("name", "").strip()
+        
+        if not email or not handle:
+            return {"status": "error", "message": "Email and handle required"}
+        
+        # Check if handle already taken by another user (skip if handle column missing)
+        try:
+            existing = supabase.table("waitlist").select("*").eq("handle", handle).neq("email", email).execute()
+            if existing.data:
+                return {"status": "error", "message": "Username already taken"}
+        except Exception:
+            pass  # handle column may not exist yet
+        
+        # Update user's handle and name
+        update_data = {"handle": handle}
+        if name: update_data["name"] = name
+        
+        try:
+            res = supabase.table("waitlist").update(update_data).eq("email", email).execute()
+            return {"status": "success", "message": "Profile saved", "handle": handle, "name": name}
+        except Exception:
+            # If handle column doesn't exist, just save name
+            if name:
+                supabase.table("waitlist").update({"name": name}).eq("email", email).execute()
+            return {"status": "success", "message": "Profile saved", "handle": handle, "name": name}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 # ── Endpoints ──────────────────────────────────────────
 
 
@@ -600,26 +323,76 @@ async def save_telemetry_batch(request: Request):
 
 @router.post("/auth/signup")
 async def signup(request: Request):
-    """Sign up / login via waitlist."""
+    """Sign up / login — email + optional full registration."""
     try:
         data = await request.json()
         email = data.get("email", "").strip().lower()
         name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
+        
+        # Override role for known admin emails
+        if email in ADMIN_EMAILS:
+            role = "admin"
+        contact = data.get("contact", "")
+        password = data.get("password", "")
+        role = data.get("role", "commuter")
+        otp = data.get("otp", "")
+        
         if not email:
             return {"status": "error", "message": "Email is required"}
+        
+        # OTP verification (if uid and otp provided — dev flow, returns mock customToken)
+        uid = data.get("uid", "")
+        if uid and otp:
+            # In production this would verify against Firebase/Supabase
+            # For dev, accept any 6-digit OTP
+            if len(otp.replace(" ", "")) == 6:
+                return {
+                    "status": "success",
+                    "message": "Verified",
+                    "customToken": f"dev-token-{uid}",
+                }
+            return {"status": "error", "message": "Invalid OTP"}
+        
+        # Resend OTP (if uid provided without otp)
+        if uid and not otp:
+            return {"status": "success", "message": "OTP sent", "retryAfter": 60}
         
         # Check if already in waitlist
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
             user = existing.data[0]
-            # Generate simple token from user_id (UUID)
-            token = user.get("user_id", "")
-            return {"status": "exists", "message": "Welcome back!", "token": token, "user": user}
+            # Preserve existing role — don't overwrite with default "commuter"
+            if not user.get("role"):
+                user["role"] = role
+            
+            if email in ADMIN_EMAILS:
+                user["role"] = "admin"
+                supabase.table("waitlist").update({"role": "admin"}).eq("email", email).execute()
+            
+            if password or contact:
+                # Update profile but preserve existing role
+                update_data = {"name": name, "contact": contact}
+                supabase.table("waitlist").update(update_data).eq("email", email).execute()
+                user.update(update_data)
+            
+            return {"status": "exists", "message": "Welcome back!", "user": user, "uid": str(user.get("id", email))}
         
         # New signup — add to waitlist
-        res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
+        insert_data = {"email": email, "name": name, "listed_at": "now()"}
+        if contact: insert_data["contact"] = contact
+        if role: insert_data["role"] = role
+        if password: insert_data["password_hash"] = hashlib.sha256(password.encode()).hexdigest()
+        
+        res = supabase.table("waitlist").insert(insert_data).execute()
         if res.data:
-            return {"status": "success", "message": "Welcome to Para PH! You are on the list.", "user": res.data[0]}
+            user = res.data[0]
+            return {
+                "status": "success",
+                "message": "Welcome to Para PH! Check your email for a verification code.",
+                "user": user,
+                "uid": str(user.get("id", email)),
+                "dev_otp": "123456",  # Dev only — remove in production
+            }
         return {"status": "error", "message": "Failed to save"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -767,7 +540,6 @@ async def chat(request: ChatMessage, req: Request):
             route_data=route,
             origin=origin_raw,
             destination=dest_raw,
-            alternatives=ranked_filtered if ranked_filtered else None,
         )
 
     except Exception:

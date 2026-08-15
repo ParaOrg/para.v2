@@ -47,6 +47,7 @@ OLLAMA_MODEL = _optional("OLLAMA_MODEL", "llama3")
 ENV = _optional("ENV", "development")
 PORT = int(_optional("PORT", "8000"))
 CORS_ORIGINS = _optional("CORS_ORIGINS", "*")
+ADMIN_EMAILS = [e.strip().lower() for e in _optional("ADMIN_EMAILS", "").split(",") if e.strip()]
 
 # ── Validation ─────────────────────────────────────────
 def _validate():

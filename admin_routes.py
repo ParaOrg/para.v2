@@ -5,7 +5,6 @@ All data via Supabase REST API (table operations). No raw SQL.
 
 import io
 import csv
-import re
 from fastapi import APIRouter, HTTPException, Query, Response
 from typing import Dict, Any
 
@@ -40,12 +39,9 @@ async def list_routes_root():
 
 @router.get("/routes/list")
 async def list_routes():
-    """List all routes from Supabase, excluding test/demo routes."""
+    """List all routes from Supabase."""
     rows = await fetch_all("ph_routes", order="name")
     routes = [_row_to_dict(r) for r in rows]
-    # Exclude test/demo routes
-    TEST_PATTERN = re.compile(r"\b(test|demo|dummy|staging|sample)\b", re.IGNORECASE)
-    routes = [r for r in routes if not TEST_PATTERN.search(r.get("name", "") or "")]
     return {"routes": routes, "total": len(routes)}
 
 
@@ -189,11 +185,33 @@ async def reload_routes():
     return {"status": "info", "message": "Data is live from Supabase. No cache to reload. Restart server to rebuild graph."}
 
 
+# ── Waitlist Cleanup ──────────────────────────────────
+
+@router.delete("/waitlist/cleanup")
+async def cleanup_waitlist(emails: str = Query("", description="Comma-separated emails to delete")):
+    """Delete specified waitlist entries. Only for admin cleanup."""
+    if not emails:
+        return {"status": "error", "message": "No emails provided"}
+    
+    email_list = [e.strip().lower() for e in emails.split(",") if e.strip()]
+    deleted = []
+    for email in email_list:
+        try:
+            res = supabase.table("waitlist").delete().eq("email", email).execute()
+            if res.data:
+                deleted.append(email)
+        except Exception as e:
+            pass
+    return {"status": "success", "deleted": deleted, "count": len(deleted)}
+
+
 # ── Community / Pending Routes ─────────────────────────
 
 @router.post("/routes/save")
 async def save_community_route(data: Dict[str, Any]):
-    """Save a community-submitted route."""
+    """Save or update a community-submitted route. If route_id is provided, update existing geometry."""
+    route_id = data.get("route_id") or data.get("route_uuid")
+    
     features = data.get("features", [])
     if not features:
         raise HTTPException(400, "No features in GeoJSON")
@@ -202,16 +220,27 @@ async def save_community_route(data: Dict[str, Any]):
     geom = features[0].get("geometry", {})
     route_name = props.get("route_long_name") or props.get("name", "Community Route")
     mode = props.get("type") or props.get("mode", "jeepney")
+    
+    import json
+    geom_str = json.dumps(geom) if isinstance(geom, dict) else str(geom)
 
-    # Insert route
+    if route_id:
+        # Update existing route geometry
+        supabase.table("ph_route_shapes").upsert({
+            "route_uuid": route_id, "geom_geojson": geom_str
+        }).execute()
+        supabase.table("ph_routes").update({
+            "name": route_name, "mode": mode, "updated_at": "now()"
+        }).eq("route_uuid", route_id).execute()
+        return {"status": "success", "message": f"Route updated: {route_name}", "route_uuid": route_id}
+
+    # Insert new route
     route_res = supabase.table("ph_routes").insert({
         "name": route_name, "mode": mode, "is_approved": False, "status": "pending", "submitted_by": data.get("user_email", data.get("submitted_by", "anonymous"))
     }).execute()
     route_uuid = route_res.data[0]["route_uuid"]
 
     # Insert geometry
-    import json
-    geom_str = json.dumps(geom) if isinstance(geom, dict) else str(geom)
     supabase.table("ph_route_shapes").insert({
         "route_uuid": route_uuid, "geom_geojson": geom_str
     }).execute()
