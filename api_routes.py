@@ -323,17 +323,20 @@ async def signup(request: Request):
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
             user = existing.data[0]
+            # Preserve existing role — don't overwrite with default "commuter"
+            if not user.get("role"):
+                user["role"] = role
+            
             if email in ADMIN_EMAILS:
                 user["role"] = "admin"
                 supabase.table("waitlist").update({"role": "admin"}).eq("email", email).execute()
+            
             if password or contact:
-                # Update with full profile
-                supabase.table("waitlist").update({
-                    "name": name,
-                    "contact": contact,
-                    "role": role,
-                }).eq("email", email).execute()
-                user.update({"name": name, "contact": contact, "role": role})
+                # Update profile but preserve existing role
+                update_data = {"name": name, "contact": contact}
+                supabase.table("waitlist").update(update_data).eq("email", email).execute()
+                user.update(update_data)
+            
             return {"status": "exists", "message": "Welcome back!", "user": user, "uid": str(user.get("id", email))}
         
         # New signup — add to waitlist
