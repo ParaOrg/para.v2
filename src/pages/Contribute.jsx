@@ -92,7 +92,7 @@ export default function Contribute() {
       
       <div className="flex-1 flex flex-col lg:flex-row pb-24 lg:pb-0">
         {/* Map — always visible */}
-        <div className="relative flex-1 min-h-[300px] lg:min-h-0">
+        <div className="relative flex-1 min-h-[300px] lg:min-h-0 z-0">
           <div ref={mapRef} className="absolute inset-0" />
           {!consent && (
             <button onClick={requestConsentAndLocation} className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-white rounded-2xl shadow-lg px-4 py-2 text-sm font-bold text-[#7A4BC8] animate-pulse">
@@ -102,7 +102,7 @@ export default function Contribute() {
         </div>
 
         {/* Form panel */}
-        <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-100 overflow-y-auto max-h-[60vh] lg:max-h-none">
+        <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-100 overflow-y-auto max-h-[60vh] lg:max-h-none z-10">
           <div className="p-4">
             <h1 className="text-xl font-black text-[#381D65]">Contribute</h1>
             <p className="text-xs text-gray-500">Help build the transit data for Metro Manila.</p>
