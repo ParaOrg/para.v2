@@ -22,8 +22,8 @@ export function AuthProvider({ children }) {
       })
         .then(r => r.json())
         .then(d => {
-          if (d.user && d.user.role) {
-            const updated = { ...storedUser, role: d.user.role };
+          if (d.user) {
+            const updated = { ...storedUser, ...(d.user.role ? { role: d.user.role } : {}) };
             localStorage.setItem(USER_KEY, JSON.stringify(updated));
             setUser(updated);
           }
@@ -49,14 +49,9 @@ export function AuthProvider({ children }) {
     if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
     const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
-    // Preserve role from stored user or backend
-    const stored = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-    if (stored.role) userData.role = stored.role;
+    // Always trust backend role — it's the source of truth
     if (data.user?.role) userData.role = data.user.role;
-    if (!userData.role && data.user) {
-      // Check if backend returned role in user object
-      userData.role = data.user.role || null;
-    }
+    if (!userData.role) userData.role = null;
     try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
     setUser(userData);
     return data;

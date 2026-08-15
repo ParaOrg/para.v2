@@ -290,6 +290,10 @@ async def signup(request: Request):
         data = await request.json()
         email = data.get("email", "").strip().lower()
         name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
+        
+        # Override role for known admin emails
+        if email in ADMIN_EMAILS:
+            role = "admin"
         contact = data.get("contact", "")
         password = data.get("password", "")
         role = data.get("role", "commuter")
@@ -319,6 +323,9 @@ async def signup(request: Request):
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
             user = existing.data[0]
+            if email in ADMIN_EMAILS:
+                user["role"] = "admin"
+                supabase.table("waitlist").update({"role": "admin"}).eq("email", email).execute()
             if password or contact:
                 # Update with full profile
                 supabase.table("waitlist").update({

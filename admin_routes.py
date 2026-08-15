@@ -185,6 +185,26 @@ async def reload_routes():
     return {"status": "info", "message": "Data is live from Supabase. No cache to reload. Restart server to rebuild graph."}
 
 
+# ── Waitlist Cleanup ──────────────────────────────────
+
+@router.delete("/waitlist/cleanup")
+async def cleanup_waitlist(emails: str = Query("", description="Comma-separated emails to delete")):
+    """Delete specified waitlist entries. Only for admin cleanup."""
+    if not emails:
+        return {"status": "error", "message": "No emails provided"}
+    
+    email_list = [e.strip().lower() for e in emails.split(",") if e.strip()]
+    deleted = []
+    for email in email_list:
+        try:
+            res = supabase.table("waitlist").delete().eq("email", email).execute()
+            if res.data:
+                deleted.append(email)
+        except Exception as e:
+            pass
+    return {"status": "success", "deleted": deleted, "count": len(deleted)}
+
+
 # ── Community / Pending Routes ─────────────────────────
 
 @router.post("/routes/save")
