@@ -12,6 +12,7 @@ from database import init_db, close_db
 from graph_engine import build_transit_graph
 from api_routes import router as api_router
 from admin_routes import router as admin_router
+from v1_routes import router as v1_router
 from config import ENV, CORS_ORIGINS
 
 logging.basicConfig(
@@ -81,6 +82,7 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(admin_router)
+app.include_router(v1_router)
 
 
 @app.get("/")

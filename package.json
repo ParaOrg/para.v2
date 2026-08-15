@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
+    "@tailwindcss/typography": "^0.5.20",
+    "@vercel/analytics": "^2.0.1",
     "@vis.gl/react-google-maps": "^1.8.1",
     "firebase": "^12.11.0",
     "leaflet": "^1.9.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.11.0"
   },
   "devDependencies": {
