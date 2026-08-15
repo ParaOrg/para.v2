@@ -92,7 +92,7 @@ export default function Contribute() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <div className="flex-1 flex flex-col lg:flex-row pb-24 lg:pb-0">
+      <div className="flex-1 flex flex-col lg:flex-row pb-32 lg:pb-0">
         {/* Map — always visible */}
         <div className="relative flex-1 min-h-[300px] lg:min-h-0 z-0">
           <div ref={mapRef} className="absolute inset-0" />
@@ -104,7 +104,7 @@ export default function Contribute() {
         </div>
 
         {/* Form panel */}
-        <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-100 overflow-y-auto max-h-[60vh] lg:max-h-none z-10">
+        <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-100 overflow-y-auto max-h-[45vh] lg:max-h-none z-10">
           <div className="p-4">
             <h1 className="text-xl font-black text-[#381D65]">Contribute</h1>
             <p className="text-xs text-gray-500">Help build the transit data for Metro Manila.</p>
