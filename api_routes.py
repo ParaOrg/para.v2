@@ -5,6 +5,7 @@ api_routes.py — Core chat and routing endpoints.
 import traceback
 from fastapi import Request, APIRouter
 from database import supabase
+from config import ADMIN_EMAILS
 
 
 from functools import lru_cache
