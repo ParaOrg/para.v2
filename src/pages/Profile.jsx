@@ -12,6 +12,7 @@ const BADGES = [
 
 export default function Profile() {
   const { user, isAuthenticated } = useAuth();
+  const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [editing, setEditing] = useState(false);
@@ -22,6 +23,7 @@ export default function Profile() {
     // Load from localStorage
     try {
       const savedUser = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
+      setName(savedUser.name || savedUser.email?.split("@")[0] || "");
       setUsername(savedUser.handle || "");
       setBio(savedUser.bio || "Metro Manila commuter. Helping build better routes for everyone.");
       setSavedTracks(JSON.parse(localStorage.getItem("para_saved_tracks") || "[]"));
@@ -57,7 +59,7 @@ export default function Profile() {
       const res = await fetch(`${API}/auth/username`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user?.email, handle: username }),
+        body: JSON.stringify({ email: user?.email, handle: username, name }),
       });
       const data = await res.json();
       if (data.status === "error") {
@@ -66,6 +68,7 @@ export default function Profile() {
       }
       const existing = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
       existing.handle = username;
+      existing.name = name;
       existing.bio = bio;
       localStorage.setItem("para_auth_user_v1", JSON.stringify(existing));
     } catch (e) {
@@ -87,17 +90,26 @@ export default function Profile() {
             </div>
             <div className="flex-1">
               {editing ? (
-                <input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Choose a username"
-                  className="w-full px-3 py-2 text-lg font-bold text-[#381D65] border border-gray-200 rounded-lg outline-none"
-                />
+                <>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    className="w-full px-3 py-2 text-lg font-bold text-[#381D65] border border-gray-200 rounded-lg outline-none"
+                  />
+                  <input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
+                    className="w-full mt-1 px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg outline-none"
+                  />
+                </>
               ) : (
-                <h2 className="text-xl font-bold text-[#381D65]">{username || "Commuter"}</h2>
+                <>
+                  <h2 className="text-xl font-bold text-[#381D65]">{name || "Your Name"}</h2>
+                  <p className="text-sm text-gray-400">@{username || "username"}</p>
+                </>
               )}
-              <p className="text-sm text-gray-400">@{username || "commuter"}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{user?.name || "No name set"}</p>
             {user?.role === "founder" && (
               <span className="inline-block mt-1 text-[10px] font-bold bg-gradient-to-r from-[#7A4BC8] to-[#381D65] text-white px-2 py-0.5 rounded-full">
                 👑 Founder

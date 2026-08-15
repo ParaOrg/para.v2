@@ -14,6 +14,7 @@ import About from "./pages/About";
 import GasPrices from "./pages/GasPrices";
 import POIBrowser from "./pages/POIBrowser";
 import Contribute from "./pages/Contribute";
+import GlobalWeather from "./components/GlobalWeather";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -33,6 +34,7 @@ export default function App() {
   return (
     <TrackingConsentProvider>
       <AuthProvider>
+        <GlobalWeather />
         <Routes>
           <Route path="/" element={<HomeNew />} />
           <Route path="/explore" element={<RoutesExplorer />} />

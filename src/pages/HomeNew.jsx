@@ -4,7 +4,6 @@ import MapComponent from "../components/map_component";
 import { RouteCardList } from "../components/TripSummaryCard";
 import RouteLoadingAnimation from "../components/RouteLoadingAnimation";
 import StravaRouteCard from "../components/StravaRouteCard";
-import WeatherPage from "../components/WeatherPage";
 import CommuteTracker from "../components/CommuteTracker";
 import { getApiBaseUrl } from "../utils/api";
 import { normalizeQuery } from "../utils/queryNormalizer";
@@ -37,7 +36,6 @@ export default function HomeNew() {
   const [activeRouteData, setActiveRouteData] = useState(null);
   const [showTracker, setShowTracker] = useState(false);
   const [showStravaCard, setShowStravaCard] = useState(false);
-  const [showWeather, setShowWeather] = useState(false);
   const [trackerMinimized, setTrackerMinimized] = useState(false);
   const [currentTrackSegment, setCurrentTrackSegment] = useState(0);
   const [placeholder, setPlaceholder] = useState(FULL_TEXT);
@@ -46,13 +44,6 @@ export default function HomeNew() {
   const { location, requestConsentAndLocation } = useTrackingConsent();
   const gpsActive = Boolean(location);
   const [kbOffset, setKbOffset] = useState(0);
-
-  useEffect(() => {
-    // Listen for weather button from Navbar
-    const showWeather = () => setShowWeather(true);
-    window.addEventListener("para-show-weather", showWeather);
-    return () => window.removeEventListener("para-show-weather", showWeather);
-  }, []);
 
   useEffect(() => {
     // Check for route from Explore page
@@ -201,7 +192,6 @@ export default function HomeNew() {
         {showTracker && activeRouteData && !trackerMinimized && <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[45vh] overflow-y-auto"><CommuteTracker routeData={activeRouteData} onMinimize={() => setTrackerMinimized(true)} onProgress={(seg) => setCurrentTrackSegment(seg)} onComplete={() => { setShowTracker(false); setActiveRouteData(null); setTrackerMinimized(false); }} onCancel={() => { setShowTracker(false); setTrackerMinimized(false); }} /></div>}
         <div className="absolute bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3" style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))", transform: kbOffset > 0 ? `translateY(${kbOffset}px)` : "none", transition: "transform 120ms ease-out" }}><div className="flex items-end justify-center gap-7 px-4 py-2">{BOTTOM_NAV.map((item) => (<button key={item.id} onClick={() => { if (item.id === "search") { if (input.trim()) send(); } else if (item.to) navigate(item.to); }} className="flex flex-col items-center gap-0.5">{item.primary ? <div className={`px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-1.5 ${chatOpen ? "bg-[#381D65] text-white" : "bg-[#7A4BC8] text-white"}`}><span>{item.icon}</span><span>{item.label}</span></div> : <><span className="text-lg">{item.icon}</span><span className="text-[9px] font-medium text-gray-400">{item.label}</span></>}</button>))}</div></div>
       </div>
-      {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
     </div>
   );
 }
