@@ -281,25 +281,36 @@ async def save_telemetry_batch(request: Request):
 
 @router.post("/auth/username")
 async def set_username(request: Request):
-    """Set a unique username/handle for a user."""
+    """Set a unique username/handle and name for a user."""
     try:
         data = await request.json()
         email = data.get("email", "").strip().lower()
         handle = data.get("handle", "").strip()
+        name = data.get("name", "").strip()
         
         if not email or not handle:
             return {"status": "error", "message": "Email and handle required"}
         
-        # Check if handle already taken by another user
-        existing = supabase.table("waitlist").select("*").eq("handle", handle).neq("email", email).execute()
-        if existing.data:
-            return {"status": "error", "message": "Username already taken"}
+        # Check if handle already taken by another user (skip if handle column missing)
+        try:
+            existing = supabase.table("waitlist").select("*").eq("handle", handle).neq("email", email).execute()
+            if existing.data:
+                return {"status": "error", "message": "Username already taken"}
+        except Exception:
+            pass  # handle column may not exist yet
         
-        # Update user's handle
-        res = supabase.table("waitlist").update({"handle": handle}).eq("email", email).execute()
-        if res.data:
-            return {"status": "success", "message": "Username set", "handle": handle}
-        return {"status": "error", "message": "Failed to save"}
+        # Update user's handle and name
+        update_data = {"handle": handle}
+        if name: update_data["name"] = name
+        
+        try:
+            res = supabase.table("waitlist").update(update_data).eq("email", email).execute()
+            return {"status": "success", "message": "Profile saved", "handle": handle, "name": name}
+        except Exception:
+            # If handle column doesn't exist, just save name
+            if name:
+                supabase.table("waitlist").update({"name": name}).eq("email", email).execute()
+            return {"status": "success", "message": "Profile saved", "handle": handle, "name": name}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 

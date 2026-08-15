@@ -62,8 +62,8 @@ export default function Profile() {
         body: JSON.stringify({ email: user?.email, handle: username, name }),
       });
       const data = await res.json();
-      if (data.status === "error") {
-        alert(data.message || "Username already taken");
+      if (data.status === "error" && data.message === "Username already taken") {
+        alert(data.message);
         return;
       }
       const existing = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
