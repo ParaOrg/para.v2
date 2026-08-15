@@ -351,31 +351,26 @@ export default function RoutesExplorer() {
             </div>
           )}
           {selected && !loading && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 w-[min(90vw,400px)]">
-              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
-                <div className="bg-gradient-to-r from-purple-800 to-purple-600 px-4 py-3 flex items-center gap-2.5">
-                  <div className="flex-1">
-                    <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
-                      {selected.mode || selected.agency || "transit"}
-                    </span>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 w-[min(90vw,320px)]">
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="px-3 py-2 flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 truncate">{selected.name || selected.route_name}</h3>
+                    <span className="text-[10px] text-gray-400 capitalize">{selected.mode || selected.agency || "transit"}</span>
                   </div>
-                  <button onClick={clearSelection} className="bg-white/20 rounded-lg w-7 h-7 flex items-center justify-center text-white text-sm">✕</button>
+                  <button onClick={clearSelection} className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0">✕</button>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-bold text-gray-900 truncate">{selected.name || selected.route_name}</h3>
-                  <Link to={`/?route=${encodeURIComponent(selected?.name || selected?.route_name || "")}`} className="flex items-center justify-center gap-2 py-2.5 mt-3 bg-purple-800 text-white rounded-xl font-bold text-[13px] no-underline">
-                🚐 Commute this Route
-              </Link>
-              <button onClick={() => {
-                const routeName = selected?.name || selected?.route_name || "";
-                setRecordingRoute({
-                  name: routeName,
-                  uuid: selected?.route_uuid || selected?.id || null,
-                });
-                setShowRecorder(true);
-              }} className="w-full py-2 mt-1 bg-green-500 text-white rounded-lg text-[11px] font-bold">
-                📍 I'm on this route — Track it
-              </button>
+                <div className="px-3 pb-2 flex gap-2">
+                  <Link to={`/?route=${encodeURIComponent(selected?.name || selected?.route_name || "")}`} className="flex-1 py-2 bg-purple-800 text-white rounded-lg font-bold text-[11px] text-center no-underline">
+                    🚐 Commute
+                  </Link>
+                  <button onClick={() => {
+                    const routeName = selected?.name || selected?.route_name || "";
+                    setRecordingRoute({ name: routeName, uuid: selected?.route_uuid || selected?.id || null });
+                    setShowRecorder(true);
+                  }} className="flex-1 py-2 bg-green-500 text-white rounded-lg text-[11px] font-bold">
+                    📍 Track it
+                  </button>
                 </div>
               </div>
             </div>
