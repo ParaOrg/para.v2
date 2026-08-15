@@ -52,47 +52,23 @@ async def list_public_routes():
 
 @router.get("/routes/public/reference")
 async def list_public_reference_routes():
-    """List reference routes, fuzzy-matched to verified route_uuid."""
+    """List all reference routes from ph_route_reference table."""
     try:
         rows = await fetch_all("ph_route_reference", order="route_name")
-        verified = await fetch_all("ph_routes", eq={"is_approved": True})
-        
-        verified_by_name = {}
-        verified_names = []
-        for v in verified:
-            vname = (v.get("name") or "").strip().lower()
-            if vname:
-                verified_by_name[vname] = v.get("route_uuid")
-                verified_names.append(vname)
-        
-        def find_match(ref_name):
-            rn = ref_name.lower().strip()
-            rn_clean = re.sub(r'^\([^)]+\)\s*', '', rn).strip()
-            if rn in verified_by_name:
-                return verified_by_name[rn]
-            if rn_clean in verified_by_name:
-                return verified_by_name[rn_clean]
-            for vname in verified_names:
-                if rn in vname or vname in rn or rn_clean in vname or vname in rn_clean:
-                    return verified_by_name[vname]
-            return None
-        
-        seen = set()
         unique = []
+        seen = set()
         for r in rows:
             name = (r.get("route_name") or r.get("name") or "").strip()
-            lname = name.lower()
-            if lname and lname not in seen:
-                seen.add(lname)
-                route_uuid = find_match(name)
+            if name and name.lower() not in seen:
+                seen.add(name.lower())
                 unique.append({
                     "route_name": name,
                     "mode": r.get("mode", ""),
                     "reference_id": str(r.get("id", r.get("reference_id", ""))),
-                    "route_uuid": route_uuid,
-                    "is_matched": bool(route_uuid),
                 })
         return {"routes": unique, "total": len(unique)}
+    except Exception as e:
+        return {"routes": [], "total": 0, "error": str(e)}
     except Exception as e:
         return {"routes": [], "total": 0, "error": str(e)}
 
