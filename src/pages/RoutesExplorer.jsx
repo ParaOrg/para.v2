@@ -325,7 +325,7 @@ export default function RoutesExplorer() {
   return (
     <>
       <Navbar />
-      <div className="fixed inset-0 flex z-40 bg-gray-100" style={{ top: "3.8rem" }}>
+      <div className="fixed inset-0 flex z-40 bg-gray-100" style={{ top: "4.5rem" }}>
         {!isMobile && <aside className="w-80 shrink-0 h-full border-r border-gray-200 shadow-lg z-10">{sidebar}</aside>}
         {isMobile && mobileOpen && <div onClick={() => setMobileOpen(false)} className="fixed inset-0 bg-black/50 z-50" />}
         {isMobile && (
