@@ -23,3 +23,14 @@
     }
   ]
 }
+,
+  "share_target": {
+    "action": "/?shared=1",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}}
