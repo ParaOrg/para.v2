@@ -48,6 +48,13 @@ export default function HomeNew() {
   const [kbOffset, setKbOffset] = useState(0);
 
   useEffect(() => {
+    // Listen for weather button from Navbar
+    const showWeather = () => setShowWeather(true);
+    window.addEventListener("para-show-weather", showWeather);
+    return () => window.removeEventListener("para-show-weather", showWeather);
+  }, []);
+
+  useEffect(() => {
     // Check for route from Explore page
     const params = new URLSearchParams(window.location.search);
     const routeParam = params.get("route");
@@ -173,12 +180,11 @@ export default function HomeNew() {
   return (
     <div className="fixed inset-0 bg-white">
       <GpsPrompt />
-      <div className="hidden md:block"><Navbar /><ChatPanel /><button onClick={() => setShowWeather(true)} className="fixed top-20 right-16 z-[9999] bg-white rounded-full px-3 py-2 text-sm font-bold shadow-lg text-[#381D65] hover:bg-gray-50 border border-gray-200">🌤️</button><button onClick={locateMap} className="fixed top-20 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">⊕</button></div>
+      <div className="hidden md:block"><Navbar /><ChatPanel /><button onClick={locateMap} className="fixed top-20 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">⊕</button></div>
       <div className="md:hidden">
         <div className="md:hidden absolute top-4 left-4 z-30 flex flex-col items-center"><img src={paralogo} alt="Para PH" className="w-10 h-10 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]" /><p className="text-[8px] text-gray-700 mt-0.5 font-medium leading-tight text-center drop-shadow-sm">Bawat Byahe,<br/>Tulong sa Komunidad</p></div>
         <div className="absolute inset-0 z-0"><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
         {!gpsActive && <button onClick={requestConsentAndLocation} className="md:hidden absolute top-16 right-4 z-30 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2 text-xs font-bold text-[#7A4BC8] animate-pulse"><span>📍</span><span>Enable GPS</span></button>}
-        <button onClick={() => setShowWeather(true)} className="absolute top-4 right-16 z-[9999] bg-white rounded-full px-3 py-2 text-sm font-bold shadow-lg text-[#381D65]">🌤️</button>
         <button onClick={locateMap} className="absolute top-4 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">⊕</button>
         {chatOpen && !showTracker && (
           <div className="absolute left-2 right-2 z-20 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style={{ bottom: `calc(84px + ${kbOffset}px)`, maxHeight: showChat ? "50vh" : "auto", transition: "bottom 120ms ease-out" }}>
