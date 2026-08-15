@@ -39,7 +39,7 @@ export function TrackingConsentProvider({ children }) {
         try { window.__userLocation = [next.lat, next.lng]; } catch {}
       },
       (err) => { setError(err.message || "Location permission denied."); setStatus("error"); },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 }
     );
     return true;
   }, [stopTracking]);

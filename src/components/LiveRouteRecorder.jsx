@@ -3,6 +3,7 @@ import L from "leaflet";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
+import { offlineBuffer } from "../utils/offlineBuffer";
 
 export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel, externalMap, externalLayer }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
@@ -121,23 +122,38 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     stopTracking();
     setRecording(false);
     setSaving(true);
-    try {
-      await apiPost("/commute/save", {
-        client_log_id: `explore-${Date.now()}`,
-        route_name: routeName,
-        route_uuid: routeUuid,
-        user_email: auth?.user?.email || "anonymous",
-        consent_granted: consent,
-        total_time_sec: elapsed,
-        gps_points: gpsPoints,
-        pois,
-        is_loop: isLoop,
-        completed_at: new Date().toISOString(),
-        source: "explore_tracker",
-      });
+    const trackData = {
+      client_log_id: `explore-${Date.now()}`,
+      route_name: routeName,
+      route_uuid: routeUuid,
+      user_email: auth?.user?.email || "anonymous",
+      consent_granted: consent,
+      total_time_sec: elapsed,
+      gps_points: gpsPoints,
+      pois,
+      is_loop: isLoop,
+      completed_at: new Date().toISOString(),
+      source: "explore_tracker",
+    };
+
+    if (!navigator.onLine) {
+      // Offline — buffer locally, sync later
+      await offlineBuffer.addCommute(trackData);
       setSaved(true);
       if (onComplete) setTimeout(onComplete, 1500);
-    } catch (e) { console.error("Save failed:", e); }
+      return;
+    }
+
+    try {
+      await apiPost("/commute/save", trackData);
+      setSaved(true);
+      if (onComplete) setTimeout(onComplete, 1500);
+    } catch (e) {
+      // Network error — buffer
+      await offlineBuffer.addCommute(trackData);
+      setSaved(true);
+      if (onComplete) setTimeout(onComplete, 1500);
+    }
     setSaving(false);
   };
 

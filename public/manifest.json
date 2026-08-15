@@ -1,0 +1,18 @@
+{
+  "name": "Para PH",
+  "short_name": "Para",
+  "description": "Community-driven commute tracking",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
+  "background_color": "#381D65",
+  "theme_color": "#7A4BC8",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
