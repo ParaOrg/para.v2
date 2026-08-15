@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl } from "../utils/api";
+import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
@@ -52,6 +53,25 @@ export default function RoutesExplorer() {
   const [showRecorder, setShowRecorder] = useState(false);
   const [recordingRoute, setRecordingRoute] = useState(null);
   const [verifiedNames, setVerifiedNames] = useState(new Set());
+
+  // GPS live tracking on main map
+  const { consent, location } = useTrackingConsent();
+  useEffect(() => {
+    const map = mapInst.current;
+    const layer = layerRef.current;
+    if (!map || !layer) return;
+    if (consent && location?.lat && location?.lng && showRecorder) {
+      L.circleMarker([location.lat, location.lng], {
+        radius: 10,
+        fillColor: "#4285F4",
+        color: "#fff",
+        weight: 3,
+        fillOpacity: 1,
+        zIndexOffset: 9999,
+      }).addTo(layer).bindTooltip("You are here", { permanent: true, direction: "top" });
+      map.setView([location.lat, location.lng], Math.max(map.getZoom(), 15), { animate: true });
+    }
+  }, [consent, location, showRecorder]);
 
   // Init map
   useEffect(() => {
@@ -147,13 +167,11 @@ export default function RoutesExplorer() {
       if ((id && currentId === id) || (!id && currentName === name)) {
         setSelected(null);
         layerRef.current?.clearLayers();
-        setRecordingRoute(null);
         return;
       }
     }
     setSelected(route);
     setMobileOpen(false);
-    setRecordingRoute({ name, uuid: id || null });
 
     // If route has geometry, draw it
     if (id || route.route_uuid) {

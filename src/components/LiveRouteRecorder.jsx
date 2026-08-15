@@ -90,12 +90,12 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
   const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   return (
-    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,500px)]">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-[min(95vw,450px)]">
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
         <div className="px-4 py-3 flex items-center justify-between">
           <div>
             <h3 className="font-bold text-gray-900 text-sm">🎯 Live Recording</h3>
-            <p className="text-xs text-gray-400 truncate">{routeName}</p>
+            <p className="text-xs text-gray-400 truncate max-w-[200px]">{routeName}</p>
           </div>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
@@ -103,9 +103,9 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
         {recording && (
           <div className="px-4 pb-2 flex items-center gap-2">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-red-500 font-bold text-sm">LIVE</span>
-            <span className="text-2xl font-black text-red-500 tabular-nums ml-auto">{formatTime(elapsed)}</span>
-            <span className="text-xs text-gray-400">{gpsPoints.length} pts</span>
+            <span className="text-red-500 font-bold text-xs">LIVE</span>
+            <span className="text-xl font-black text-red-500 tabular-nums">{formatTime(elapsed)}</span>
+            <span className="text-[10px] text-gray-400">{gpsPoints.length} pts</span>
           </div>
         )}
 
