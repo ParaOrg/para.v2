@@ -146,40 +146,20 @@ export default function RoutesExplorer() {
     if (currentId === id || currentName === name) {
       setSelected(null);
       layerRef.current?.clearLayers();
+      setRecordingRoute(null);
       return;
     }
     setSelected(route);
     setMobileOpen(false);
-    setLoading(true);
+    setRecordingRoute({ name, uuid: id || null });
 
-    setLoading(false);  // Always clear loading immediately — show card right away
-    
+    // If route has geometry, draw it
     if (id || route.route_uuid) {
       await drawRoute(id || route.route_uuid);
     } else {
-      // Reference route — fire-and-forget Nominatim geocoding
       layerRef.current?.clearLayers();
-      const parts = name.split(" - ");
-      const origin = (parts[0] || "").trim();
-      const dest = (parts[1] || "").trim();
-      const bounds = L.latLngBounds([]);
-      for (const [i, place] of [origin, dest].entries()) {
-        if (!place) continue;
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}, Metro Manila&limit=1`);
-          const data = await res.json();
-          if (data[0]) {
-            const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-            L.circleMarker(ll, { radius: 8, fillColor: i === 0 ? "#22c55e" : "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 })
-              .addTo(layerRef.current).bindTooltip(i === 0 ? `Origin: ${place}` : `Dest: ${place}`, { permanent: true, direction: "top" });
-            bounds.extend(ll);
-          }
-        } catch {}
-      }
-      if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
-      setRecordingRoute({ name, uuid: null });
     }
-  }, [selected, drawRoute, tab]);
+  }, [selected, drawRoute]);
 
   const clearSelection = useCallback(() => {
     setSelected(null);
