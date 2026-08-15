@@ -22,7 +22,7 @@ export default function Profile() {
     // Load from localStorage
     try {
       const savedUser = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
-      setUsername(savedUser.handle || savedUser.email?.split("@")[0] || "");
+      setUsername(savedUser.handle || "");
       setBio(savedUser.bio || "Metro Manila commuter. Helping build better routes for everyone.");
       setSavedTracks(JSON.parse(localStorage.getItem("para_saved_tracks") || "[]"));
     } catch {}
@@ -70,7 +70,7 @@ export default function Profile() {
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[#D1B6FC] flex items-center justify-center text-2xl font-bold text-[#381D65] shrink-0">
-              {(username || user?.email || "U")[0].toUpperCase()}
+              {(username || "U")[0].toUpperCase()}
             </div>
             <div className="flex-1">
               {editing ? (
@@ -83,7 +83,7 @@ export default function Profile() {
               ) : (
                 <h2 className="text-xl font-bold text-[#381D65]">{username || "Commuter"}</h2>
               )}
-              <p className="text-sm text-gray-500">{user?.email}</p>
+              <p className="text-sm text-gray-400">@{username || "commuter"}</p>
             {user?.role === "founder" && (
               <span className="inline-block mt-1 text-[10px] font-bold bg-gradient-to-r from-[#7A4BC8] to-[#381D65] text-white px-2 py-0.5 rounded-full">
                 👑 Founder
