@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
 
-export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel }) {
+export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel, externalMap, externalLayer }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
   const auth = useAuth();
   const [recording, setRecording] = useState(false);
@@ -13,22 +11,12 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
   const [gpsPoints, setGpsPoints] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
   const liveLine = useRef(null);
   const liveMarker = useRef(null);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
 
-  useEffect(() => {
-    if (!mapRef.current || mapInstance.current) return;
-    const map = L.map(mapRef.current, { zoomControl: false }).setView([14.5995, 120.9842], 13);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-    mapInstance.current = map;
-    return () => { map.remove(); mapInstance.current = null; };
-  }, []);
-
+  // Track GPS points
   useEffect(() => {
     if (!recording || !location) return;
     const newPoint = { lat: location.lat, lng: location.lng, timestamp: Date.now() };
@@ -39,22 +27,26 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     });
   }, [location, recording]);
 
+  // Draw on external map if provided
   useEffect(() => {
-    if (!mapInstance.current || gpsPoints.length < 2) return;
+    const map = externalMap || null;
+    const layer = externalLayer || null;
+    if (!map || !layer) return;
+    if (gpsPoints.length < 2) return;
     const coords = gpsPoints.map(p => [p.lat, p.lng]);
     if (!liveLine.current) {
-      liveLine.current = L.polyline(coords, { color: "#ef4444", weight: 4, dashArray: "8 4" }).addTo(mapInstance.current);
+      liveLine.current = L.polyline(coords, { color: "#ef4444", weight: 4, dashArray: "8 4" }).addTo(layer);
     } else {
       liveLine.current.setLatLngs(coords);
     }
     const last = gpsPoints[gpsPoints.length - 1];
     if (!liveMarker.current) {
-      liveMarker.current = L.circleMarker([last.lat, last.lng], { radius: 8, fillColor: "#ef4444", color: "#fff", weight: 3, fillOpacity: 1 }).addTo(mapInstance.current);
+      liveMarker.current = L.circleMarker([last.lat, last.lng], { radius: 8, fillColor: "#ef4444", color: "#fff", weight: 3, fillOpacity: 1 }).addTo(layer);
     } else {
       liveMarker.current.setLatLng([last.lat, last.lng]);
     }
-    mapInstance.current.fitBounds(coords, { padding: [40, 40] });
-  }, [gpsPoints]);
+    map.fitBounds(coords, { padding: [40, 40] });
+  }, [gpsPoints, externalMap, externalLayer]);
 
   useEffect(() => {
     if (!recording) return;
@@ -98,52 +90,46 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
   const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,500px)]">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-gray-900 text-sm">Live Route Recording</h3>
-            <p className="text-xs text-gray-400">{routeName}</p>
+            <h3 className="font-bold text-gray-900 text-sm">🎯 Live Recording</h3>
+            <p className="text-xs text-gray-400 truncate">{routeName}</p>
           </div>
-          <button onClick={onCancel} className="text-gray-400">✕</button>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
-        <div className="relative">
-          <div ref={mapRef} className="h-56" />
-          {recording && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" /> LIVE
-            </div>
-          )}
-        </div>
-        <div className="p-4 space-y-3">
+        
+        {recording && (
+          <div className="px-4 pb-2 flex items-center gap-2">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span className="text-red-500 font-bold text-sm">LIVE</span>
+            <span className="text-2xl font-black text-red-500 tabular-nums ml-auto">{formatTime(elapsed)}</span>
+            <span className="text-xs text-gray-400">{gpsPoints.length} pts</span>
+          </div>
+        )}
+
+        <div className="px-4 pb-4">
           {!recording && !saved && (
-            <>
-              <p className="text-sm text-gray-600 text-center">Ride the route and we'll record the path. GPS pings every 3 seconds.</p>
-              <button onClick={start} className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600">
-                {consent ? "Start Recording" : "Enable Location to Record"}
-              </button>
-            </>
+            <button onClick={start} className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600">
+              {consent ? "🔴 Start Recording" : "📍 Enable Location & Record"}
+            </button>
           )}
           {recording && (
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                <p className="text-2xl font-black text-red-500 tabular-nums">{formatTime(elapsed)}</p>
-              </div>
-              <p className="text-sm text-gray-500">{gpsPoints.length} GPS points recorded</p>
-              <button onClick={stop} className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold text-sm">Stop Recording</button>
-            </div>
+            <button onClick={stop} className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold text-sm">
+              ⏹ Stop & Save
+            </button>
           )}
           {saving && (
-            <div className="text-center py-4">
-              <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-sm text-gray-500 mt-2">Saving route...</p>
+            <div className="text-center py-3">
+              <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-xs text-gray-500 mt-1">Saving...</p>
             </div>
           )}
           {saved && (
-            <div className="text-center space-y-2">
-              <span className="text-3xl">✅</span>
-              <p className="text-sm font-bold text-green-600">Route recorded!</p>
+            <div className="text-center py-3">
+              <span className="text-2xl">✅</span>
+              <p className="text-xs font-bold text-green-600 mt-1">Route recorded!</p>
             </div>
           )}
         </div>
