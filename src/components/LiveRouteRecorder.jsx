@@ -163,6 +163,17 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
               This is a loop route (no start/end)
             </label>
 
+            {/* Instructions */}
+            {!recording && (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-gray-600 space-y-1">
+                <p className="font-bold text-blue-800">📋 What happens:</p>
+                <p>1. Your GPS dot appears on the map</p>
+                <p>2. Ride the route — we draw the line live</p>
+                <p>3. Add POIs (terminals, landmarks) along the way</p>
+                <p>4. Stop when done — saves to ph_user_tracks table</p>
+              </div>
+            )}
+
             {/* Start button */}
             {!recording && (
               <button onClick={start} className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600">
