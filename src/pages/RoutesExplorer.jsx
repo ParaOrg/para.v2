@@ -336,7 +336,6 @@ export default function RoutesExplorer() {
           {isMobile && (
             <button onClick={() => setMobileOpen(true)} className="absolute top-4 left-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md font-semibold text-[13px] text-purple-800">☰ Routes</button>
           )}
-          <Link to="/" className="absolute top-4 right-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md text-gray-700 font-medium text-[13px] no-underline">Home</Link>
           <div ref={mapRef} className="absolute inset-0 z-0" />
           {loading && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
