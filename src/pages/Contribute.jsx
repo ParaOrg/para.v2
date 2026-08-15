@@ -4,6 +4,7 @@ import BottomNav from "../components/BottomNav";
 import POIForm from "../components/POIForm";
 import RouteUploader from "../components/RouteUploader";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
+import FareReporter from "../components/FareReporter";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { apiPost } from "../utils/api";
 import L from "leaflet";
@@ -36,9 +37,10 @@ export default function Contribute() {
   const [showRecorder, setShowRecorder] = useState(false);
 
   const TABS = [
-    { id: "journey", label: "Record Journey", icon: "🚶", desc: "Multi-modal trip recording" },
-    { id: "upload", label: "Upload Route", icon: "📤", desc: "Submit route info" },
-    { id: "poi", label: "Add Place", icon: "📍", desc: "Drop a pin on map" },
+    { id: "journey", label: "Record", icon: "🚶", desc: "Track your trip" },
+    { id: "fare", label: "Report Fare", icon: "₱", desc: "Log what you paid" },
+    { id: "upload", label: "Upload", icon: "📤", desc: "Submit route" },
+    { id: "poi", label: "Add Place", icon: "📍", desc: "Drop a pin" },
   ];
 
   // Init map
@@ -108,7 +110,7 @@ export default function Contribute() {
             <p className="text-xs text-gray-500">Help build the transit data for Metro Manila.</p>
 
             {/* Tabs */}
-            <div className="grid grid-cols-3 gap-1 mt-3">
+            <div className="grid grid-cols-4 gap-1 mt-3">
               {TABS.map((t) => (
                 <button key={t.id} onClick={() => setTab(t.id)}
                   className={`p-2 rounded-lg text-center transition-colors ${tab === t.id ? "bg-purple-100" : "hover:bg-gray-50"}`}>
@@ -159,6 +161,7 @@ export default function Contribute() {
                 </div>
               )}
 
+              {tab === "fare" && <FareReporter />}
               {tab === "poi" && <POIForm />}
             </div>
           </div>
