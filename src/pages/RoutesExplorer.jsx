@@ -9,7 +9,6 @@ import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
-import RouteLoadingAnimation from "../components/RouteLoadingAnimation";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
 import BottomNav from "../components/BottomNav";
 
@@ -339,7 +338,6 @@ export default function RoutesExplorer() {
           )}
           <Link to="/" className="absolute top-4 right-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md text-gray-700 font-medium text-[13px] no-underline">Home</Link>
           <div ref={mapRef} className="absolute inset-0 z-0" />
-          {loading && <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40"><RouteLoadingAnimation loading={loading} /></div>}
           {loading && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40">
               <div className="bg-white rounded-2xl shadow-xl px-5 py-3.5 flex items-center gap-3">
