@@ -97,6 +97,7 @@ export default function Profile() {
                 <h2 className="text-xl font-bold text-[#381D65]">{username || "Commuter"}</h2>
               )}
               <p className="text-sm text-gray-400">@{username || "commuter"}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{user?.name || "No name set"}</p>
             {user?.role === "founder" && (
               <span className="inline-block mt-1 text-[10px] font-bold bg-gradient-to-r from-[#7A4BC8] to-[#381D65] text-white px-2 py-0.5 rounded-full">
                 👑 Founder
