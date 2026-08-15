@@ -101,7 +101,7 @@ export default function Navbar() {
             <>
               <Link to="/profile" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#7A4BC8] mr-1" title="Profile">
                 <span>👤</span>
-                <span className="text-[10px] text-gray-400 truncate max-w-[100px] hidden sm:inline">{user?.email || ""}</span>
+                <span className="text-[10px] text-gray-400 truncate max-w-[100px] hidden sm:inline">{user?.handle || user?.name || user?.email?.split("@")[0] || "Profile"}</span>
               </Link>
               <button
                 onClick={logout}
