@@ -90,7 +90,7 @@ export default function Contribute() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       
-      <div className="flex-1 flex flex-col lg:flex-row">
+      <div className="flex-1 flex flex-col lg:flex-row pb-24 lg:pb-0">
         {/* Map — always visible */}
         <div className="relative flex-1 min-h-[300px] lg:min-h-0">
           <div ref={mapRef} className="absolute inset-0" />
