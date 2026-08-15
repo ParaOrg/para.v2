@@ -152,10 +152,12 @@ export default function RoutesExplorer() {
     setMobileOpen(false);
     setLoading(true);
 
+    setLoading(false);  // Always clear loading immediately — show card right away
+    
     if (id || route.route_uuid) {
       await drawRoute(id || route.route_uuid);
     } else {
-      // Reference route without geometry — parse name and show markers
+      // Reference route — fire-and-forget Nominatim geocoding
       layerRef.current?.clearLayers();
       const parts = name.split(" - ");
       const origin = (parts[0] || "").trim();
@@ -175,10 +177,8 @@ export default function RoutesExplorer() {
         } catch {}
       }
       if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
-      // Store recording info but don't auto-open
       setRecordingRoute({ name, uuid: null });
     }
-    setLoading(false);
   }, [selected, drawRoute, tab]);
 
   const clearSelection = useCallback(() => {
