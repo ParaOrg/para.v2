@@ -37,7 +37,7 @@ export default function AdminDashboard() {
   const auth = useAuth();
   const [tab, setTab] = useState("doctor");
 
-  if (!auth.isAuthenticated || auth.user?.role !== "admin") {
+  if (!auth.isAuthenticated || (auth.user?.role !== "admin" && auth.user?.role !== "founder")) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />

@@ -30,7 +30,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, logout, isGuest } = useAuth();
-  const visibleLinks = ALL_NAV_LINKS.filter(l => !l.adminOnly || user?.role === "admin");
+  const visibleLinks = ALL_NAV_LINKS.filter(l => !l.adminOnly || user?.role === "admin" || user?.role === "founder");
 
   const activeIndex = useMemo(() => {
     const idx = visibleLinks.findIndex(({ to }) => (to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(`${to}/`)));
