@@ -4,6 +4,7 @@ Adds: /routes/public*, /community/*, /api/v1/gas-prices*, /api/v1/waitlist, /art
 """
 
 import json
+import re
 from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, Query
 from database import supabase, fetch_all
@@ -51,19 +52,45 @@ async def list_public_routes():
 
 @router.get("/routes/public/reference")
 async def list_public_reference_routes():
-    """List reference routes from ph_route_reference, deduplicated."""
+    """List reference routes, fuzzy-matched to verified route_uuid."""
     try:
         rows = await fetch_all("ph_route_reference", order="route_name")
+        verified = await fetch_all("ph_routes", eq={"is_approved": True})
+        
+        verified_by_name = {}
+        verified_names = []
+        for v in verified:
+            vname = (v.get("name") or "").strip().lower()
+            if vname:
+                verified_by_name[vname] = v.get("route_uuid")
+                verified_names.append(vname)
+        
+        def find_match(ref_name):
+            rn = ref_name.lower().strip()
+            rn_clean = re.sub(r'^\([^)]+\)\s*', '', rn).strip()
+            if rn in verified_by_name:
+                return verified_by_name[rn]
+            if rn_clean in verified_by_name:
+                return verified_by_name[rn_clean]
+            for vname in verified_names:
+                if rn in vname or vname in rn or rn_clean in vname or vname in rn_clean:
+                    return verified_by_name[vname]
+            return None
+        
         seen = set()
         unique = []
         for r in rows:
-            name = (r.get("route_name") or r.get("name") or "").strip().lower()
-            if name and name not in seen:
-                seen.add(name)
+            name = (r.get("route_name") or r.get("name") or "").strip()
+            lname = name.lower()
+            if lname and lname not in seen:
+                seen.add(lname)
+                route_uuid = find_match(name)
                 unique.append({
-                    "route_name": r.get("route_name") or r.get("name"),
+                    "route_name": name,
                     "mode": r.get("mode", ""),
                     "reference_id": str(r.get("id", r.get("reference_id", ""))),
+                    "route_uuid": route_uuid,
+                    "is_matched": bool(route_uuid),
                 })
         return {"routes": unique, "total": len(unique)}
     except Exception as e:
@@ -107,11 +134,10 @@ async def get_public_route_geojson(route_id: str = Query(..., description="Route
         return {"type": "FeatureCollection", "features": [], "error": str(e)}
 
 
-# ── /community/threads ─────────────────────────────────
+# ── /community ─────────────────────────────────────────
 
 @router.get("/community/threads")
 async def get_community_threads():
-    """Get community discussion threads."""
     try:
         rows = await fetch_all("community_threads", order="-created_at")
         return {"threads": rows or [], "total": len(rows or [])}
@@ -121,7 +147,6 @@ async def get_community_threads():
 
 @router.post("/community/threads")
 async def create_community_thread(data: Dict[str, Any]):
-    """Create a new community thread."""
     try:
         thread = {
             "title": data.get("title", "").strip(),
@@ -142,7 +167,6 @@ async def create_community_thread(data: Dict[str, Any]):
 
 @router.post("/community/threads/delete")
 async def delete_community_thread(data: Dict[str, Any]):
-    """Delete a community thread."""
     try:
         thread_uuid = data.get("thread_uuid", "")
         if not thread_uuid:
@@ -153,11 +177,8 @@ async def delete_community_thread(data: Dict[str, Any]):
         return {"status": "error", "message": str(e)}
 
 
-# ── /community/comments ────────────────────────────────
-
 @router.get("/community/comments")
 async def get_community_comments(thread_uuid: str = Query("")):
-    """Get comments for a thread."""
     try:
         query = supabase.table("community_comments").select("*").order("created_at")
         if thread_uuid:
@@ -170,7 +191,6 @@ async def get_community_comments(thread_uuid: str = Query("")):
 
 @router.post("/community/comments")
 async def create_community_comment(data: Dict[str, Any]):
-    """Post a comment on a thread."""
     try:
         comment = {
             "thread_uuid": data.get("thread_uuid", ""),
@@ -186,11 +206,8 @@ async def create_community_comment(data: Dict[str, Any]):
         return {"status": "error", "message": str(e)}
 
 
-# ── /community/route-edits ─────────────────────────────
-
 @router.get("/community/route-edits")
 async def get_route_edits(route_uuid: str = Query("")):
-    """Get route edit suggestions."""
     try:
         query = supabase.table("community_route_edits").select("*").order("-created_at")
         if route_uuid:
@@ -203,7 +220,6 @@ async def get_route_edits(route_uuid: str = Query("")):
 
 @router.post("/community/route-edits")
 async def create_route_edit(data: Dict[str, Any]):
-    """Submit a route edit suggestion."""
     try:
         edit = {
             "route_uuid": data.get("route_uuid", ""),
@@ -221,7 +237,6 @@ async def create_route_edit(data: Dict[str, Any]):
 
 @router.post("/community/route-edits/vote")
 async def vote_route_edit(data: Dict[str, Any]):
-    """Vote on a route edit."""
     try:
         vote = {
             "edit_id": data.get("edit_id", ""),
@@ -239,7 +254,6 @@ async def vote_route_edit(data: Dict[str, Any]):
 
 @router.get("/api/v1/gas-prices/blended")
 async def get_blended_gas_price():
-    """Get blended (average) gas price."""
     try:
         res = supabase.table("gas_prices").select("*").order("-created_at").limit(50).execute()
         prices = res.data or []
@@ -253,7 +267,6 @@ async def get_blended_gas_price():
 
 @router.get("/api/v1/gas-prices/stations")
 async def get_gas_stations():
-    """Get list of gas stations with prices."""
     try:
         res = supabase.table("gas_stations").select("*").eq("is_active", True).execute()
         stations = res.data or []
@@ -264,7 +277,6 @@ async def get_gas_stations():
 
 @router.post("/api/v1/gas-prices/stations/{station_id}/submit")
 async def submit_gas_price(station_id: str, data: Dict[str, Any]):
-    """Submit a gas price for a station."""
     try:
         price = {
             "station_id": station_id,
@@ -283,17 +295,14 @@ async def submit_gas_price(station_id: str, data: Dict[str, Any]):
 
 @router.post("/api/v1/waitlist")
 async def join_waitlist(data: Dict[str, Any]):
-    """Join the waitlist."""
     try:
         email = data.get("email", "").strip().lower()
         name = data.get("name", "").strip()
         if not email:
             return {"status": "error", "message": "Email is required"}
-
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
             return {"status": "error", "message": "This email is already on the waitlist.", "error": "DUPLICATE_EMAIL"}
-
         res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
         if res.data:
             return {"status": "success", "message": "You have been added to the waitlist!"}
@@ -306,7 +315,6 @@ async def join_waitlist(data: Dict[str, Any]):
 
 @router.post("/contact")
 async def submit_contact(data: Dict[str, Any]):
-    """Submit a contact form message."""
     try:
         message = {
             "name": data.get("name", "").strip(),
@@ -316,7 +324,7 @@ async def submit_contact(data: Dict[str, Any]):
         }
         if not message["name"] or not message["email"] or not message["message"]:
             return {"status": "error", "message": "All fields are required"}
-        res = supabase.table("contact_messages").insert(message).execute()
+        supabase.table("contact_messages").insert(message).execute()
         return {"status": "success", "message": "Thanks for reaching out! We'll get back to you soon."}
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -326,7 +334,6 @@ async def submit_contact(data: Dict[str, Any]):
 
 @router.get("/articles/{slug}")
 async def get_article(slug: str):
-    """Get an article by slug."""
     try:
         res = supabase.table("articles").select("*").eq("slug", slug).limit(1).execute()
         if res.data:
@@ -336,11 +343,10 @@ async def get_article(slug: str):
         return {"content": "", "slug": slug, "error": str(e)}
 
 
-# ── /admin/commute/logs (alias to /commute/logs) ───────
+# ── /admin/commute/logs ────────────────────────────────
 
 @router.get("/admin/commute/logs")
 async def get_admin_commute_logs(user_email: str = Query("")):
-    """Get commute logs (admin view)."""
     try:
         query = supabase.table("ph_user_tracks").select("*").order("-created_at").limit(100)
         if user_email:
