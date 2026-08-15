@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { getApiBaseUrl } from "../utils/api";
+import AnalyticsDashboard from "../components/AnalyticsDashboard";
 import BottomNav from "../components/BottomNav";
 import { useAuth } from "../context/AuthContext";
 
@@ -148,6 +149,12 @@ export default function Profile() {
           ) : (
             <p className="mt-4 text-sm text-gray-600">{bio}</p>
           )}
+        </div>
+
+        {/* Analytics */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+          <h3 className="text-sm font-bold text-gray-900 mb-3">Your Commute Stats</h3>
+          <AnalyticsDashboard />
         </div>
 
         {/* Saved Commutes */}
