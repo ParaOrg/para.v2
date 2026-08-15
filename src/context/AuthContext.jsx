@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = Boolean(user);
   const isGuest = !user;
   const checkPermission = useCallback((level) => {
-    if (level === "admin") return user?.role === "admin";
+    if (level === "admin") return user?.role === "admin" || user?.role === "founder";
     return isAuthenticated;
   }, [user, isAuthenticated]);
 
