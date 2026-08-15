@@ -39,7 +39,7 @@ export function TrackingConsentProvider({ children }) {
         try { window.__userLocation = [next.lat, next.lng]; } catch {}
       },
       (err) => { setError(err.message || "Location permission denied."); setStatus("error"); },
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 }
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 30000, distanceFilter: 5 }
     );
     return true;
   }, [stopTracking]);
@@ -55,6 +55,10 @@ export function TrackingConsentProvider({ children }) {
   const requestConsentAndLocation = useCallback(() => { grant(); beginWatch(); }, [grant, beginWatch]);
   const startTracking = useCallback(() => {
     if (!consent) { setStatus("consent_required"); return false; }
+    // Register background sync
+    if (navigator.serviceWorker?.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: "REGISTER_SYNC" });
+    }
     return beginWatch();
   }, [consent, beginWatch]);
 
