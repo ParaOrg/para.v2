@@ -1,4 +1,5 @@
 import loopGif from "../assets/images/loop.gif";
+import paralogo from "../assets/images/Para1P.png";
 
 export default function AuthPageLayout({ children, variant = "center" }) {
   return (
@@ -11,15 +12,21 @@ export default function AuthPageLayout({ children, variant = "center" }) {
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          opacity: 0.15,
         }}
       />
-      {/* Overlay for readability */}
-      <div className="absolute inset-0 z-10 bg-white/70" />
+      {/* Subtle dark overlay for readability — keeps GIF visible */}
+      <div className="absolute inset-0 z-10 bg-black/20" />
       
       {/* Content */}
-      <div className="relative z-20 w-full flex items-center justify-center">
-        <div className={variant === "split" ? "w-full max-w-2xl" : "w-full max-w-xl"}>{children}</div>
+      <div className="relative z-20 w-full flex flex-col items-center justify-center gap-6">
+        {/* Logo */}
+        <img src={paralogo} alt="Para PH" className="h-12 w-auto object-contain" />
+        
+        <div className={variant === "split" ? "w-full max-w-md" : "w-full max-w-sm"}>
+          <div className="rounded-2xl p-6 md:p-8 shadow-2xl" style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(8px)" }}>
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );
