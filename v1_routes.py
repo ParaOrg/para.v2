@@ -26,6 +26,7 @@ def _row_to_route_dict(row: dict) -> dict:
         "is_approved": row.get("is_approved", False),
         "is_test": row.get("is_test", False),
         "status": row.get("status", "pending"),
+        "ride_count": row.get("ride_count", 0) or 0,
         "created_at": str(row.get("created_at", "")),
     }
 
