@@ -241,10 +241,10 @@ export default function ChatPanel() {
                         </div>
                       )}
 
-                      {/* Weather alert */}
-                      <div className="mt-3 rounded-[15px] border p-3 flex items-start gap-3" style={{ background: "rgba(255, 204, 0, 0.1)", borderColor: "#FFCC00" }}>
+                      {/* Weather alert — centered, left-aligned */}
+                      <div className="mt-4 mx-auto max-w-[90%] rounded-[15px] border p-3 flex items-start gap-3" style={{ background: "rgba(255, 204, 0, 0.1)", borderColor: "#FFCC00" }}>
                         <WarningTriangleIcon />
-                        <p className="text-[12px] leading-[18px] text-[#381D65]">Weather Alert: {(() => { const w = weather?.weather_code || 3; const labels = {0:"Clear skies",1:"Partly cloudy",2:"Partly cloudy",3:"Overcast",45:"Foggy",48:"Foggy",51:"Light drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",80:"Light showers",95:"Thunderstorms"}; const now = new Date(); const nextHour = new Date(now.getTime() + 3600000).getHours(); const endHour = (nextHour + 3) % 24; const fmt = (h) => h === 0 ? "12AM" : h < 12 ? `${h}AM` : h === 12 ? "12PM" : `${h-12}PM`; return `${labels[w] || "Cloudy"} from ${fmt(nextHour)} to ${fmt(endHour)}`; })()}</p>
+                        <p className="text-left text-[12px] leading-[18px] text-[#381D65]">Weather Alert: {(() => { const w = weather?.weather_code || 3; const labels = {0:"Clear skies",1:"Partly cloudy",2:"Partly cloudy",3:"Overcast",45:"Foggy",48:"Foggy",51:"Light drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",80:"Light showers",95:"Thunderstorms"}; const now = new Date(); const nextHour = new Date(now.getTime() + 3600000).getHours(); const endHour = (nextHour + 3) % 24; const fmt = (h) => h === 0 ? "12AM" : h < 12 ? `${h}AM` : h === 12 ? "12PM" : `${h-12}PM`; return `${labels[w] || "Cloudy"} from ${fmt(nextHour)} to ${fmt(endHour)}`; })()}</p>
                       </div>
 
                       {/* Start Commute CTA — sticky on mobile */}
