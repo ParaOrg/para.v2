@@ -52,13 +52,26 @@ export default function Profile() {
     );
   }
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
     try {
+      const res = await fetch(`${API}/auth/username`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user?.email, handle: username }),
+      });
+      const data = await res.json();
+      if (data.status === "error") {
+        alert(data.message || "Username already taken");
+        return;
+      }
       const existing = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
       existing.handle = username;
       existing.bio = bio;
       localStorage.setItem("para_auth_user_v1", JSON.stringify(existing));
-    } catch {}
+    } catch (e) {
+      alert("Failed to save. Try again.");
+      return;
+    }
     setEditing(false);
   };
 
