@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
+import { getApiBaseUrl } from "../utils/api";
 import BottomNav from "../components/BottomNav";
 import { useAuth } from "../context/AuthContext";
 
@@ -9,6 +10,8 @@ const BADGES = [
   { id: 3, name: "Commute Champion", icon: "🏆", description: "100 tracked commutes", tier: "gold", locked: true },
   { id: 4, name: "Early Adopter", icon: "⭐", description: "Joined during beta", tier: "bronze", unlocked: true },
 ];
+
+const API = getApiBaseUrl();
 
 export default function Profile() {
   const { user, isAuthenticated } = useAuth();
