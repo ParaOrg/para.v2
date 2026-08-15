@@ -272,7 +272,10 @@ export default function RoutesExplorer() {
                 const id = route.route_uuid || route.id;
                 const name = route.name || route.route_name || "Unknown";
                 const mode = route.mode || route.agency || "";
-                const active = (selected?.route_uuid || selected?.id) === id;
+                const active = selected && (
+                  (id && (selected?.route_uuid || selected?.id) === id) ||
+                  (!id && (selected?.route_name || selected?.name) === name)
+                );
                 const isMatched = tab === "reference" ? route.is_matched : route.is_approved;
                 return (
                   <button key={id || name} onClick={() => selectRoute(route)}
