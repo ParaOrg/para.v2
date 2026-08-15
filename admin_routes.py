@@ -189,7 +189,9 @@ async def reload_routes():
 
 @router.post("/routes/save")
 async def save_community_route(data: Dict[str, Any]):
-    """Save a community-submitted route."""
+    """Save or update a community-submitted route. If route_id is provided, update existing geometry."""
+    route_id = data.get("route_id") or data.get("route_uuid")
+    
     features = data.get("features", [])
     if not features:
         raise HTTPException(400, "No features in GeoJSON")
@@ -198,16 +200,27 @@ async def save_community_route(data: Dict[str, Any]):
     geom = features[0].get("geometry", {})
     route_name = props.get("route_long_name") or props.get("name", "Community Route")
     mode = props.get("type") or props.get("mode", "jeepney")
+    
+    import json
+    geom_str = json.dumps(geom) if isinstance(geom, dict) else str(geom)
 
-    # Insert route
+    if route_id:
+        # Update existing route geometry
+        supabase.table("ph_route_shapes").upsert({
+            "route_uuid": route_id, "geom_geojson": geom_str
+        }).execute()
+        supabase.table("ph_routes").update({
+            "name": route_name, "mode": mode, "updated_at": "now()"
+        }).eq("route_uuid", route_id).execute()
+        return {"status": "success", "message": f"Route updated: {route_name}", "route_uuid": route_id}
+
+    # Insert new route
     route_res = supabase.table("ph_routes").insert({
         "name": route_name, "mode": mode, "is_approved": False, "status": "pending", "submitted_by": data.get("user_email", data.get("submitted_by", "anonymous"))
     }).execute()
     route_uuid = route_res.data[0]["route_uuid"]
 
     # Insert geometry
-    import json
-    geom_str = json.dumps(geom) if isinstance(geom, dict) else str(geom)
     supabase.table("ph_route_shapes").insert({
         "route_uuid": route_uuid, "geom_geojson": geom_str
     }).execute()

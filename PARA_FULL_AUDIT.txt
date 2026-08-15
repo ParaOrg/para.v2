@@ -1,0 +1,1876 @@
+=== PROJECT TREE (excluding node_modules, .git, __pycache__, .venv, dist) ===
+.
+├── add_poi.sh
+├── admin_routes.py
+├── api_routes.py
+├── backend
+│   ├── admin_routes.py
+│   ├── api_routes.py
+│   ├── biyahe_score.py
+│   ├── config.py
+│   ├── database.py
+│   ├── debug_snap.py
+│   ├── diagnose_paths.py
+│   ├── filter_pedestrian_roads.py
+│   ├── graph_engine.py
+│   ├── ingest_pois.py
+│   ├── llm_engine.py
+│   ├── main.py
+│   ├── models.py
+│   ├── README.md
+│   ├── requirements.txt
+│   ├── smart_cache.py
+│   ├── tasks.py
+│   └── telemetry_engine.py
+├── biyahe_score.py
+├── config.py
+├── database.py
+├── debug_snap.py
+├── diagnose_paths.py
+├── docker-compose.yml
+├── eslint.config.js
+├── filter_pedestrian_roads.py
+├── Future
+│   └── landmarks.geojson
+├── geojson_data
+│   ├── 1routes.geojson
+│   ├── 1routes.geojson.bak.20260729_212316
+│   ├── 1routes.geojson.bak.20260729_212800
+│   ├── 1routes.geojson.bak.20260729_212830
+│   ├── 1routes.geojson.bak.20260729_215421
+│   ├── 1routes.geojson.bak.20260729_230103
+│   ├── 1routes.geojson.bak.20260729_232618
+│   ├── 1routes.geojson.bak.20260730_154452
+│   ├── 1routes.geojson.bak.20260730_215552
+│   ├── clean_routes.py
+│   ├── community_Test_Route_1785467060.geojson
+│   ├── full_jeepney_routes.csv
+│   ├── inspect_geojson.py
+│   ├── POI.geojson.bak
+│   ├── POI.qmd
+│   ├── prepare_geojson.py
+│   ├── routes.geojson.bak.20260730_215552
+│   ├── routes.geojson.bak.20260730_220125
+│   ├── routes.geojson.duplicate
+│   ├── schools.geojson.bak
+│   ├── walk_paths.geojson.bak
+│   └── walk_paths.geojson.disabled
+├── graph_engine.py
+├── graph_engine.py.bak.20260731_094001
+├── index.html
+├── ingest_pois.py
+├── knowledge_base.txt
+├── llm_engine.py
+├── main.py
+├── models.py
+├── package.json
+├── package-lock.json
+├── PARA_FULL_AUDIT.txt
+├── para_geo_knowledge.db
+├── para_ml_data.db
+├── para_poi.db
+├── public
+│   ├── favicon.ico
+│   ├── favicon.jpg
+│   ├── _headers
+│   ├── logos
+│   │   ├── caltex.svg
+│   │   ├── cleanfuel.svg
+│   │   ├── petron.svg
+│   │   ├── ptt.svg
+│   │   ├── seaoil.svg
+│   │   ├── shell.svg
+│   │   └── total.svg
+│   └── _redirects
+├── README.md
+├── render.yaml
+├── requirements.txt.backend
+├── runtime.txt
+├── smart_cache.py
+├── src
+│   ├── App.jsx
+│   ├── assets
+│   │   ├── images
+│   │   └── inverted_favicon.png
+│   ├── components
+│   │   ├── AuthPageLayout.jsx
+│   │   ├── BottomNav.jsx
+│   │   ├── ChatPanel.jsx
+│   │   ├── CommuteTracker.jsx
+│   │   ├── GasPrice
+│   │   ├── GpsPrompt.jsx
+│   │   ├── InlineRecorder.jsx
+│   │   ├── input_box.jsx
+│   │   ├── landing_page
+│   │   ├── landingpage-footer.component.jsx
+│   │   ├── LiveRouteRecorder.jsx
+│   │   ├── map_component.jsx
+│   │   ├── map_constants.js
+│   │   ├── Navbar.jsx
+│   │   ├── OTPInput.jsx
+│   │   ├── POIForm.jsx
+│   │   ├── RouteEditor.jsx
+│   │   ├── RouteEditVoting.jsx
+│   │   ├── RouteLegend.jsx
+│   │   ├── RouteLines.jsx
+│   │   ├── RouteLoadingAnimation.jsx
+│   │   ├── RouteMarkers.jsx
+│   │   ├── RouteNameInput.jsx
+│   │   ├── RouteOptionsPanel.jsx
+│   │   ├── RouteSteps.jsx
+│   │   ├── RouteUploader.jsx
+│   │   ├── SearchInput.jsx
+│   │   ├── StravaRouteCard.jsx
+│   │   ├── TrafficOverlay.jsx
+│   │   ├── TripSummaryCard.jsx
+│   │   ├── waitList
+│   │   ├── waitList_bubble.jsx
+│   │   ├── WeatherOverlay.jsx
+│   │   └── WeatherPage.jsx
+│   ├── config
+│   │   ├── api.js
+│   │   └── googleMaps.js
+│   ├── context
+│   │   ├── AuthContext.jsx
+│   │   └── TrackingConsentContext.jsx
+│   ├── firebase.js
+│   ├── frontend
+│   ├── hooks
+│   │   └── useGoogleMaps.js
+│   ├── index.css
+│   ├── main.jsx
+│   ├── pages
+│   │   ├── About.jsx
+│   │   ├── AdminApproval.jsx
+│   │   ├── AdminDashboard.jsx
+│   │   ├── AdminDashboard.jsx.old
+│   │   ├── ArticlePage.jsx
+│   │   ├── Community.jsx
+│   │   ├── Contact.jsx
+│   │   ├── Contribute.jsx
+│   │   ├── GasPricePage.jsx
+│   │   ├── GasPrices.jsx
+│   │   ├── HomeNew.jsx
+│   │   ├── Login.jsx
+│   │   ├── POIBrowser.jsx
+│   │   ├── PrivacyPolicy.jsx
+│   │   ├── Profile.jsx
+│   │   ├── RouteOptionsPage.jsx
+│   │   ├── RoutesExplorer.jsx
+│   │   ├── RouteUploader.jsx
+│   │   ├── SignupDetailsStep.jsx
+│   │   ├── Signup.jsx
+│   │   └── SignupOTPStep.jsx
+│   ├── styles
+│   │   └── Map.css
+│   └── utils
+│       ├── api.js
+│       └── queryNormalizer.js
+├── supabase.js
+├── tailwindcss.css
+├── tasks.py
+├── telemetry_engine.py
+├── test
+│   ├── index (1).css
+│   ├── main (1).tsx
+│   ├── package (1).json
+│   ├── postcss.config (1).js
+│   ├── src
+│   │   ├── App.tsx
+│   │   ├── index (4).css
+│   │   ├── main (2).tsx
+│   │   └── pages
+│   ├── tsconfig (1).json
+│   └── vite.config (1).ts
+├── vercel.json
+└── vite.config.js
+
+23 directories, 162 files
+
+
+=== ALL PROJECT FILES (sorted) ===
+./add_poi.sh
+./admin_routes.py
+./api_routes.py
+./backend/admin_routes.py
+./backend/api_routes.py
+./backend/biyahe_score.py
+./backend/config.py
+./backend/database.py
+./backend/debug_snap.py
+./backend/diagnose_paths.py
+./backend/.env.example
+./backend/filter_pedestrian_roads.py
+./backend/graph_engine.py
+./backend/ingest_pois.py
+./backend/llm_engine.py
+./backend/main.py
+./backend/models.py
+./backend/README.md
+./backend/requirements.txt
+./backend/smart_cache.py
+./backend/tasks.py
+./backend/telemetry_engine.py
+./biyahe_score.py
+./config.py
+./database.py
+./debug_snap.py
+./diagnose_paths.py
+./docker-compose.yml
+./.env.example
+./eslint.config.js
+./filter_pedestrian_roads.py
+./Future/landmarks.geojson
+./geojson_data/1routes.geojson
+./geojson_data/1routes.geojson.bak.20260729_212316
+./geojson_data/1routes.geojson.bak.20260729_212800
+./geojson_data/1routes.geojson.bak.20260729_212830
+./geojson_data/1routes.geojson.bak.20260729_215421
+./geojson_data/1routes.geojson.bak.20260729_230103
+./geojson_data/1routes.geojson.bak.20260729_232618
+./geojson_data/1routes.geojson.bak.20260730_154452
+./geojson_data/1routes.geojson.bak.20260730_215552
+./geojson_data/clean_routes.py
+./geojson_data/community_Test_Route_1785467060.geojson
+./geojson_data/full_jeepney_routes.csv
+./geojson_data/inspect_geojson.py
+./geojson_data/POI.geojson.bak
+./geojson_data/POI.qmd
+./geojson_data/prepare_geojson.py
+./geojson_data/routes.geojson.bak.20260730_215552
+./geojson_data/routes.geojson.bak.20260730_220125
+./geojson_data/routes.geojson.duplicate
+./geojson_data/schools.geojson.bak
+./geojson_data/walk_paths.geojson.bak
+./geojson_data/walk_paths.geojson.disabled
+./.gitignore
+./graph_engine.py
+./graph_engine.py.bak.20260731_094001
+./index.html
+./ingest_pois.py
+./knowledge_base.txt
+./llm_engine.py
+./main.py
+./models.py
+./package.json
+./PARA_FULL_AUDIT.txt
+./para_geo_knowledge.db
+./para_ml_data.db
+./para_poi.db
+./public/favicon.ico
+./public/favicon.jpg
+./public/_headers
+./public/logos/caltex.svg
+./public/logos/cleanfuel.svg
+./public/logos/petron.svg
+./public/logos/ptt.svg
+./public/logos/seaoil.svg
+./public/logos/shell.svg
+./public/logos/total.svg
+./public/_redirects
+./README.md
+./render.yaml
+./requirements.txt.backend
+./runtime.txt
+./smart_cache.py
+./src/App.jsx
+./src/assets/images/about-page/image-1.jpeg
+./src/assets/images/about-page/image-2.jpeg
+./src/assets/images/about-page/image-3.jpeg
+./src/assets/images/favicon.jpg
+./src/assets/images/logo1.jpg
+./src/assets/images/loop.gif
+./src/assets/images/Para1P.png
+./src/assets/images/paralogo.png
+./src/assets/images/ParaTeamPhoto.jpg
+./src/assets/inverted_favicon.png
+./src/components/AuthPageLayout.jsx
+./src/components/BottomNav.jsx
+./src/components/ChatPanel.jsx
+./src/components/CommuteTracker.jsx
+./src/components/GasPrice/GasPriceBadge.jsx
+./src/components/GasPrice/GasPricePanel.jsx
+./src/components/GasPrice/GasStationMap.jsx
+./src/components/GasPrice/GasStationMarker.jsx
+./src/components/GasPrice/index.jsx
+./src/components/GasPrice/ReportModal.jsx
+./src/components/GasPrice/StationInfoPanel.jsx
+./src/components/GasPrice/useGasPrices.js
+./src/components/GasPrice/useGasStations.js
+./src/components/GasPrice/usePriceSubmit.js
+./src/components/GpsPrompt.jsx
+./src/components/InlineRecorder.jsx
+./src/components/input_box.jsx
+./src/components/landing_page/components/CountdownDisplay.jsx
+./src/components/landing_page/components/Countdown.jsx
+./src/components/landing_page/components/index.js
+./src/components/landing_page/components/MetroLine.jsx
+./src/components/landing_page/components/MetroMap.jsx
+./src/components/landing_page/components/PillShapes.jsx
+./src/components/landing_page/components/Station.jsx
+./src/components/landing_page/components/Ticket.jsx
+./src/components/landing_page/components/Train.jsx
+./src/components/landing_page/data/config.js
+./src/components/landing_page/data/index.js
+./src/components/landing_page/data/lines.js
+./src/components/landing_page/data/station.js
+./src/components/landing_page/data/trains.js
+./src/components/landingpage-footer.component.jsx
+./src/components/landing_page/hooks/index.js
+./src/components/landing_page/hooks/useCountdown.js
+./src/components/landing_page/index.js
+./src/components/landing_page/MetroCountdown.jsx
+./src/components/LiveRouteRecorder.jsx
+./src/components/map_component.jsx
+./src/components/map_constants.js
+./src/components/Navbar.jsx
+./src/components/OTPInput.jsx
+./src/components/POIForm.jsx
+./src/components/RouteEditor.jsx
+./src/components/RouteEditVoting.jsx
+./src/components/RouteLegend.jsx
+./src/components/RouteLines.jsx
+./src/components/RouteLoadingAnimation.jsx
+./src/components/RouteMarkers.jsx
+./src/components/RouteNameInput.jsx
+./src/components/RouteOptionsPanel.jsx
+./src/components/RouteSteps.jsx
+./src/components/RouteUploader.jsx
+./src/components/SearchInput.jsx
+./src/components/StravaRouteCard.jsx
+./src/components/TrafficOverlay.jsx
+./src/components/TripSummaryCard.jsx
+./src/components/waitList/BubbleButton.jsx
+./src/components/waitList_bubble.jsx
+./src/components/waitList/WaitListForm.jsx
+./src/components/WeatherOverlay.jsx
+./src/components/WeatherPage.jsx
+./src/config/api.js
+./src/config/googleMaps.js
+./src/context/AuthContext.jsx
+./src/context/TrackingConsentContext.jsx
+./src/firebase.js
+./src/hooks/useGoogleMaps.js
+./src/index.css
+./src/main.jsx
+./src/pages/About.jsx
+./src/pages/AdminApproval.jsx
+./src/pages/AdminDashboard.jsx
+./src/pages/AdminDashboard.jsx.old
+./src/pages/ArticlePage.jsx
+./src/pages/Community.jsx
+./src/pages/Contact.jsx
+./src/pages/Contribute.jsx
+./src/pages/GasPricePage.jsx
+./src/pages/GasPrices.jsx
+./src/pages/HomeNew.jsx
+./src/pages/Login.jsx
+./src/pages/POIBrowser.jsx
+./src/pages/PrivacyPolicy.jsx
+./src/pages/Profile.jsx
+./src/pages/RouteOptionsPage.jsx
+./src/pages/RoutesExplorer.jsx
+./src/pages/RouteUploader.jsx
+./src/pages/SignupDetailsStep.jsx
+./src/pages/Signup.jsx
+./src/pages/SignupOTPStep.jsx
+./src/styles/Map.css
+./src/utils/api.js
+./src/utils/queryNormalizer.js
+./supabase.js
+./tailwindcss.css
+./tasks.py
+./telemetry_engine.py
+./test/index (1).css
+./test/main (1).tsx
+./test/package (1).json
+./test/postcss.config (1).js
+./test/src/App.tsx
+./test/src/index (4).css
+./test/src/main (2).tsx
+./test/src/pages/pages/Dashboard.tsx
+./test/src/pages/pages/Search3.tsx
+./test/tsconfig (1).json
+./test/vite.config (1).ts
+./vercel.json
+./vite.config.js
+
+
+=== FRONTEND SRC FILES ===
+
+
+=== BACKEND PYTHON FILES ===
+./admin_routes.py
+./api_routes.py
+./biyahe_score.py
+./config.py
+./database.py
+./debug_snap.py
+./diagnose_paths.py
+./filter_pedestrian_roads.py
+./graph_engine.py
+./ingest_pois.py
+./llm_engine.py
+./main.py
+./models.py
+./smart_cache.py
+./tasks.py
+./telemetry_engine.py
+
+
+=========================================
+=== BACKEND: main.py ===
+=========================================
+"""
+main.py — Para PH v3.0
+Supabase-powered transit routing engine for Metro Manila.
+"""
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import logging
+
+from database import init_db, close_db
+from graph_engine import build_transit_graph
+from api_routes import router as api_router
+from admin_routes import router as admin_router
+from config import ENV, CORS_ORIGINS
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize and clean up resources"""
+    logger.info("🚀 Starting Para PH v3.0...")
+
+    # Database (Supabase PostGIS)
+    await init_db()
+    logger.info("✅ Database connected")
+
+    # Build transit graph from Supabase
+    logger.info("📊 Building transit graph from Supabase...")
+    G = await build_transit_graph()
+    app.state.G = G
+
+    logger.info(f"✅ Graph loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
+    
+    # Pre-compute popular routes for instant responses
+    logger.info("🔥 Pre-warming route cache...")
+    popular_pairs = [
+        (14.6550, 121.0677, 14.6091, 120.9893),  # UPD -> UST
+        (14.6190, 121.0540, 14.5547, 121.0244),  # Cubao -> Makati
+        (14.6404, 121.0772, 14.5649, 120.9930),  # Ateneo -> DLSU
+        (14.5547, 121.0244, 14.5487, 121.0468),  # Makati -> BGC
+        (14.5350, 120.9821, 14.6190, 121.0540),  # MOA -> Cubao
+    ]
+    from api_routes import set_cached_route, get_cached_route
+    from graph_engine import find_k_routes
+    for lat1, lng1, lat2, lng2 in popular_pairs:
+        if not get_cached_route(lat1, lng1, lat2, lng2):
+            routes = find_k_routes(app.state.G, lat1, lng1, lat2, lng2, k=3)
+            if routes:
+                set_cached_route(lat1, lng1, lat2, lng2, routes)
+    logger.info(f"✅ Cache pre-warmed with {len(popular_pairs)} popular routes")
+
+    logger.info("✅ Para PH ready!")
+
+    yield
+
+    # Cleanup
+    await close_db()
+    logger.info("👋 Shutting down...")
+
+
+app = FastAPI(
+    title="Para PH v3.0",
+    description="Transit Routing Engine for Metro Manila",
+    version="3.0.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS.split(",") if CORS_ORIGINS != "*" else ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(api_router)
+app.include_router(admin_router)
+
+
+@app.get("/")
+async def root():
+    return {"status": "online", "service": "Para PH v3.0", "env": ENV}
+
+
+@app.get("/health")
+async def health(req: Request):
+    G = req.app.state.G
+    return {
+        "status": "healthy",
+        "env": ENV,
+        "graph": {
+            "nodes": G.number_of_nodes(),
+            "edges": G.number_of_edges(),
+            "routes": len(G.graph.get("route_nodes", {})),
+        },
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, workers=4, reload=False)
+
+
+=========================================
+=== BACKEND: api_routes.py ===
+=========================================
+"""
+api_routes.py — Core chat and routing endpoints.
+"""
+
+import traceback
+from fastapi import Request, APIRouter
+from database import supabase
+
+
+from functools import lru_cache
+import hashlib
+import json
+import time
+
+# Simple in-memory route cache
+_route_cache = {}
+_cache_hits = 0
+_cache_misses = 0
+
+def get_cached_route(origin_lat, origin_lng, dest_lat, dest_lng):
+    key = f"{round(origin_lat,4)},{round(origin_lng,4)}->{round(dest_lat,4)},{round(dest_lng,4)}"
+    if key in _route_cache:
+        global _cache_hits
+        _cache_hits += 1
+        return _route_cache[key]
+    global _cache_misses
+    _cache_misses += 1
+    return None
+
+def set_cached_route(origin_lat, origin_lng, dest_lat, dest_lng, route):
+    key = f"{round(origin_lat,4)},{round(origin_lng,4)}->{round(dest_lat,4)},{round(dest_lng,4)}"
+    _route_cache[key] = route
+    # Keep cache under 1000 entries
+    if len(_route_cache) > 1000:
+        oldest = next(iter(_route_cache))
+        del _route_cache[oldest]
+
+from graph_engine import find_route, find_k_routes, get_walking_path, haversine
+from llm_engine import parse_chat_intent, normalize_location
+from models import ChatMessage, ChatResponse, RouteRequest, RouteResponse, RouteStep
+from biyahe_score import compute_biyahe_score, rank_routes, get_profile
+
+router = APIRouter()
+
+
+# ── Helpers ────────────────────────────────────────────
+
+def _format_segments(route: dict) -> list[str]:
+    """Format route segments into human-readable lines for chat replies."""
+    lines = []
+    for seg in route.get("segments", []):
+        if seg.get("is_transfer"):
+            time_min = seg.get("time_min", 0)
+            if time_min > 0.5:
+                lines.append(f"  🚶 Walk {time_min:.0f} min")
+        else:
+            route_name = seg.get("route", "")
+            if route_name in ("WALK_TO_ROUTE", "WALK_TO_DEST", "WALK_TRANSFER", ""):
+                continue
+            time_min = seg.get("time_min", 0)
+            fare = seg.get("fare", 0)
+            if time_min > 0.5 or seg.get("distance_m", 0) > 100:
+                lines.append(f"  🚌 {route_name} ({time_min:.0f} min, ₱{fare:.0f})")
+    return lines
+
+
+def _build_chat_reply(origin_raw: str, dest_raw: str, route: dict) -> str:
+    """Build a complete chat reply string from a route result."""
+    lines = [f"📍 {origin_raw} ➡️ {dest_raw}"]
+    lines.append(f"✅ {route['message']}")
+    lines.append("")
+    lines.extend(_format_segments(route))
+    return "\n".join(lines)
+
+
+
+
+
+
+# ── POI ────────────────────────────────────────────────
+
+@router.get("/poi/list")
+async def list_pois():
+    """List all points of interest."""
+    try:
+        res = supabase.table("ph_places").select("*").eq("is_active", True).order("canonical_name").execute()
+        pois = res.data or []
+        for p in pois:
+            loc = p.get("location")
+            if loc and isinstance(loc, str) and "POINT" in loc:
+                parts = loc.replace("POINT(", "").replace(")", "").split()
+                if len(parts) == 2:
+                    p["lng"] = float(parts[0])
+                    p["lat"] = float(parts[1])
+        return {"pois": pois, "total": len(pois)}
+    except Exception as e:
+        return {"pois": [], "total": 0, "error": str(e)}
+
+
+@router.post("/poi/add")
+async def add_poi(request: Request):
+    data = await request.json()
+    """Add a new point of interest."""
+    try:
+        lat = data.get("lat")
+        lng = data.get("lng")
+        name = data.get("canonical_name", "").strip()
+        category = data.get("category", "landmark")
+        if not name or lat is None or lng is None:
+            return {"status": "error", "message": "Name, lat, and lng are required"}
+        supabase.table("ph_places").insert({
+            "canonical_name": name,
+            "category": category,
+            "location": f"POINT({lng} {lat})",
+            "is_active": True,
+        }).execute()
+        return {"status": "success", "message": f"Added {name}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+
+# ── Route Reports ──────────────────────────────────────
+
+@router.post("/routes/report")
+async def report_route(request: Request):
+    data = await request.json()
+    """Report an issue with a route."""
+    try:
+        report = {
+            "route_uuid": data.get("route_uuid", ""),
+            "route_name": data.get("route_name", ""),
+            "reason": data.get("reason", ""),
+            "reported_by": data.get("user_email", "anonymous"),
+            "created_at": "now()"
+        }
+        # Store in a reports table or update route status
+        supabase.table("ph_routes").update({
+            "reviewer_note": f"Reported: {data.get('reason', 'Issue')} by {data.get('user_email', 'anonymous')}"
+        }).eq("route_uuid", data.get("route_uuid", "")).execute()
+        
+        return {"status": "success", "message": "Report submitted. Thank you!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+# ── Feedback Loop ──────────────────────────────────────
+
+@router.get("/user/submissions")
+async def get_user_submissions(user_email: str = None):
+    """Get all submissions by a user with their approval status."""
+    try:
+        if not user_email:
+            return {"submissions": [], "message": "Email required"}
+        
+        res = supabase.table("ph_routes").select("*").eq("submitted_by", user_email).order("created_at", desc=True).execute()
+        subs = res.data or []
+        
+        approved = [s for s in subs if s.get("is_approved")]
+        pending = [s for s in subs if not s.get("is_approved") and s.get("status") != "rejected"]
+        rejected = [s for s in subs if s.get("status") == "rejected"]
+        
+        return {
+            "submissions": subs,
+            "total": len(subs),
+            "approved": len(approved),
+            "pending": len(pending),
+            "rejected": len(rejected),
+            "message": f"You have {len(approved)} approved, {len(pending)} pending, {len(rejected)} rejected routes."
+        }
+    except Exception as e:
+        return {"submissions": [], "error": str(e)}
+
+# ── Commute Tracking ──────────────────────────────────
+
+@router.post("/commute/save")
+async def save_commute(request: Request):
+    data = await request.json()
+    """Save a completed tracked commute with GPS data, ratings, and timings."""
+    try:
+        user_id = data.get("user_id", "anonymous")
+        route_data = data.get("routeData", {})
+        
+        # Build the track record
+        track = {
+            "user_id": data.get("user_email") or user_id,
+            "route_uuid": data.get("route_uuid"),
+            "route_name": route_data.get("message", "Unknown Route"),
+            "total_time_sec": data.get("totalTimeSec", 0),
+            "distance_m": data.get("totalDistanceM", 0),
+            "gps_points": len(data.get("gpsPoints", [])),
+            "gps_track": data.get("gpsPoints"),
+            "raw_payload": data,
+        }
+        
+        res = supabase.table("ph_user_tracks").insert(track).execute()
+        if res.data:
+            return {"status": "success", "track_uuid": res.data[0].get("track_uuid")}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.post("/commute/rate")
+async def rate_commute(request: Request):
+    data = await request.json()
+    """Save a rating for a completed commute."""
+    try:
+        rating_data = {
+            "user_id": data.get("user_email", "anonymous"),
+            "route_id": data.get("route_uuid", ""),
+            "rating": data.get("rating", 0),
+            "comment": data.get("comment", ""),
+            "total_fare": data.get("total_fare"),
+            "total_time": data.get("total_time"),
+            "route_nodes": data.get("route_nodes", []),
+        }
+        # Store rating as part of the track update
+        if data.get("track_uuid"):
+            supabase.table("ph_user_tracks").update({
+                "rating": data.get("rating"),
+            }).eq("track_uuid", data["track_uuid"]).execute()
+        
+        return {"status": "success", "message": "Rating saved"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/commute/logs")
+async def get_commute_logs(user_email: str = None):
+    """Get commute logs, optionally filtered by user."""
+    try:
+        query = supabase.table("ph_user_tracks").select("*").order("created_at", desc=True).limit(50)
+        if user_email:
+            query = query.eq("user_id", user_email)
+        res = query.execute()
+        return {"logs": res.data or [], "total": len(res.data or [])}
+    except Exception as e:
+        return {"logs": [], "error": str(e)}
+
+
+# ── GPS Telemetry ─────────────────────────────────────
+
+@router.post("/telemetry/ping")
+async def save_telemetry_ping(request: Request):
+    data = await request.json()
+    """Save a single GPS ping during active commute."""
+    try:
+        ping = {
+            "device_id": data.get("device_id", "web"),
+            "lat": data.get("lat"),
+            "lng": data.get("lng"),
+            "speed_kmh": data.get("speed", 0),
+            "heading": data.get("heading", 0),
+            "trip_id": data.get("trip_id", ""),
+        }
+        # Store in telemetry table or as part of user_tracks
+        return {"status": "received"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.post("/telemetry/batch")
+async def save_telemetry_batch(request: Request):
+    data = await request.json()
+    """Save a batch of GPS pings."""
+    try:
+        pings = data.get("pings", [])
+        device_id = data.get("device_id", "web")
+        trip_id = data.get("trip_id", "")
+        
+        for ping in pings:
+            ping["device_id"] = device_id
+            ping["trip_id"] = trip_id
+        
+        return {"status": "received", "count": len(pings)}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+# ── Endpoints ──────────────────────────────────────────
+
+
+
+# ── Auth ───────────────────────────────────────────────
+
+@router.post("/auth/signup")
+async def signup(request: Request):
+    """Sign up / login via waitlist."""
+    try:
+        data = await request.json()
+        email = data.get("email", "").strip().lower()
+        name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
+        if not email:
+            return {"status": "error", "message": "Email is required"}
+        
+        # Check if already in waitlist
+        existing = supabase.table("waitlist").select("*").eq("email", email).execute()
+        if existing.data:
+            return {"status": "exists", "message": "Welcome back!", "user": existing.data[0]}
+        
+        # New signup — add to waitlist
+        res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
+        if res.data:
+            return {"status": "success", "message": "Welcome to Para PH! You are on the list.", "user": res.data[0]}
+        return {"status": "error", "message": "Failed to save"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/auth/waitlist/count")
+async def waitlist_count():
+    """Total signups."""
+    try:
+        res = supabase.table("waitlist").select("*", count="exact").execute()
+        return {"count": res.count or 0}
+    except:
+        return {"count": 0}
+
+@router.post("/chat")
+async def chat(request: ChatMessage, req: Request):
+    """Parse a natural-language message and return a route (or helpful reply)."""
+    try:
+        G = req.app.state.G
+        intent = parse_chat_intent(request.message)
+
+        # Handle non-routing intents
+        intent_type = intent.get("intent", "unknown")
+
+        if intent_type == "greeting":
+            return ChatResponse(reply_text=(
+                "Kumusta! 👋 Ako si Para PH, ang iyong commuting assistant.\n\n"
+                "Sabihin mo lang kung saan ka galing at papunta:\n"
+                "• from UPD to UST\n"
+                "• from Cubao to Makati\n"
+                "• from Ateneo to DLSU\n\n"
+                "Ano ang maitutulong ko sa'yo ngayon?"
+            ))
+
+        if intent_type == "help":
+            return ChatResponse(reply_text=(
+                "🚐 Heto ang mga kaya kong gawin:\n\n"
+                "1. **Humanap ng ruta** — Sabihin mo lang: 'from [pinanggalingan] to [pupuntahan]'\n"
+                "2. Kilalanin ang mga lugar — Alam ko ang mga universities, malls, stations, at landmarks sa Metro Manila\n"
+                "3. Magbigay ng oras at pamasahe — Kasama ang estimated travel time at fare\n\n"
+                "Subukan mo: 'from UPD to UST' o 'from Cubao to Makati'"
+            ))
+
+        if intent_type == "about":
+            return ChatResponse(reply_text=(
+                "🚐 Ako si Para PH — ang iyong multi-modal commuting assistant para sa Metro Manila!\n\n"
+                "Alam ko ang mga ruta ng jeep, bus, LRT, MRT, at UV Express. "
+                "Ginagamit ko ang Dijkstra algorithm para mahanap ang pinakamabilis na ruta para sa'yo.\n\n"
+                "Gawa ako ng ParaOrg, isang grupo ng mga estudyante na gustong mapabuti ang commuting experience sa Pilipinas. 🇵🇭"
+            ))
+
+        if intent_type == "unknown":
+            return ChatResponse(reply_text=(
+                "🚐 Para PH — Ang iyong commuting assistant!\n\n"
+                "Pwede mong gawin ang mga sumusunod:\n\n"
+                "1. 🔍 Maghanap ng ruta — I-type: 'from UPD to UST' o 'from Cubao to Makati'\n"
+                "2. 📤 Mag-upload ng bagong ruta — Pumunta sa Community page\n"
+                "3. 💬 Magtanong — I-type ang 'help' para sa tulong\n\n"
+                "Ano ang gusto mong gawin ngayon?"
+            ))
+
+        # ── Route finding ──
+        origin_raw = intent.get("origin", "")
+        dest_raw = intent.get("destination", "")
+
+        # If only destination (no origin), try GPS
+        if dest_raw and not origin_raw and request.user_location:
+            origin_raw = "here"
+        
+        if not origin_raw or not dest_raw:
+            return ChatResponse(reply_text=(
+                "Please specify both origin and destination. Example: 'from UPD to UST'"
+            ))
+
+        # Handle "here" — use GPS coords if available
+        if origin_raw.lower() in ("here", "current location", "my location"):
+            user_loc = request.user_location
+            if user_loc and user_loc.get("lat"):
+                origin_geo = {"lat": user_loc["lat"], "lon": user_loc.get("lng", user_loc.get("lon", 0)), "found": True, "display_name": "Your Location", "source": "gps"}
+            else:
+                return ChatResponse(reply_text="📍 Please enable GPS to route from your location. Tap ⊕ and allow location access.")
+        else:
+            origin_geo = await normalize_location(origin_raw)
+        
+        dest_geo = await normalize_location(dest_raw)
+
+        if not origin_geo or not dest_geo:
+            return ChatResponse(reply_text=(
+                f"Could not find one or both locations.\n"
+                f"Origin: {origin_raw}\n"
+                f"Destination: {dest_raw}"
+            ))
+
+        # Find K candidate routes and rank by Biyahe Score
+        # Check cache first
+        cached = get_cached_route(origin_geo["lat"], origin_geo["lon"], dest_geo["lat"], dest_geo["lon"])
+        if cached:
+            candidates = cached
+        else:
+            candidates = find_k_routes(
+                G,
+                origin_geo["lat"], origin_geo["lon"],
+                dest_geo["lat"], dest_geo["lon"],
+                k=3
+            )
+            if candidates:
+                set_cached_route(origin_geo["lat"], origin_geo["lon"], dest_geo["lat"], dest_geo["lon"], candidates)
+
+        if not candidates:
+            return ChatResponse(reply_text=(
+                f"Walang nakitang ruta from '{origin_raw}' to '{dest_raw}'."
+            ))
+
+        # Score and rank all candidates
+        ranked = rank_routes(candidates)
+        best_route = ranked[0]
+
+        # Simple reply text - route cards show the details
+        reply_text = f"Here are {len(ranked)} routes from {origin_raw} to {dest_raw}." if len(ranked) > 1 else f"Here is the best route from {origin_raw} to {dest_raw}."
+
+
+        route = best_route
+
+        # Deduplicate alternatives
+        ranked_filtered = [a for a in ranked[1:] if [s.get("route","") for s in a.get("segments",[])] != [s.get("route","") for s in best_route.get("segments",[])]]
+        
+        # Enhance walk segments with actual walking paths
+        if route and route.get("segments"):
+            for seg in route["segments"]:
+                if (seg.get("is_transfer") or seg.get("type") == "walk" or "WALK" in str(seg.get("route", ""))) and seg.get("geometry") and len(seg["geometry"]) >= 2:
+                    start = seg["geometry"][0]
+                    end = seg["geometry"][-1]
+                    # start/end are [lng, lat] from backend
+                    walk_path = await get_walking_path(start[1], start[0], end[1], end[0])
+                    if walk_path and len(walk_path) > 2:
+                        # Convert back to [lng, lat] for consistency
+                        seg["geometry"] = [[c[1], c[0]] for c in walk_path]
+                        seg["distance_m"] = sum(
+                            haversine(walk_path[i][0], walk_path[i][1], walk_path[i+1][0], walk_path[i+1][1])
+                            for i in range(len(walk_path)-1)
+                        )
+
+        return ChatResponse(
+            reply_text=reply_text,
+            route_data=route,
+            origin=origin_raw,
+            destination=dest_raw,
+        )
+
+    except Exception:
+        traceback.print_exc()
+        return ChatResponse(reply_text="Sorry, may naging problema sa paghahanap ng ruta. Please try again.")
+
+
+@router.post("/route", response_model=RouteResponse)
+async def calculate_route(request: RouteRequest, req: Request):
+    """Calculate route between two lat/lng points (programmatic endpoint)."""
+    G = req.app.state.G
+
+    route = find_route(
+        G,
+        request.origin_lat, request.origin_lng,
+        request.dest_lat, request.dest_lng,
+    )
+
+    if not route:
+        return RouteResponse(
+            success=False,
+            total_distance_m=0,
+            total_duration_min=0,
+            total_fare=0,
+            steps=[],
+            path_nodes=[],
+            message="No route found",
+        )
+
+    steps = []
+    for seg in route.get("segments", []):
+        steps.append(RouteStep(
+            from_stop=seg.get("from", ""),
+            to_stop=seg.get("to", ""),
+            route_name=seg.get("route", ""),
+            mode=seg.get("type", ""),
+            distance_m=seg.get("distance_m", 0),
+            duration_min=seg.get("time_min", 0),
+            fare=seg.get("fare", 0),
+        ))
+
+    return RouteResponse(
+        success=True,
+        total_distance_m=route.get("total_distance_m", 0),
+        total_duration_min=route.get("total_time_min", 0),
+        total_fare=route.get("total_fare", 0),
+        steps=steps,
+        path_nodes=route.get("path", []),
+        message=route.get("message", "Route found"),
+    )
+# force deploy
+
+
+=========================================
+=== BACKEND: admin_routes.py ===
+=========================================
+"""
+admin_routes.py — Admin endpoints for route management.
+All data via Supabase REST API (table operations). No raw SQL.
+"""
+
+import io
+import csv
+from fastapi import APIRouter, HTTPException, Query, Response
+from typing import Dict, Any
+
+from database import supabase, fetch_all
+
+router = APIRouter(prefix="/admin", tags=["admin"])
+
+
+# ── Helpers ─────────────────────────────────────────────
+
+def _row_to_dict(row: dict) -> dict:
+    return {
+        "route_uuid": str(row.get("route_uuid", "")),
+        "name": row.get("name", ""),
+        "mode": row.get("mode", ""),
+        "is_loop": row.get("is_loop", False),
+        "is_bidirectional": row.get("is_bidirectional", False),
+        "is_oneway": row.get("is_oneway", False),
+        "is_approved": row.get("is_approved", False),
+        "status": row.get("status", "pending"),
+        "created_at": str(row.get("created_at", "")),
+        "length_m": None,
+    }
+
+
+# ── GET /admin/routes ──────────────────────────────────
+
+@router.get("/routes")
+async def list_routes_root():
+    return await list_routes()
+
+
+@router.get("/routes/list")
+async def list_routes():
+    """List all routes from Supabase."""
+    rows = await fetch_all("ph_routes", order="name")
+    routes = [_row_to_dict(r) for r in rows]
+    return {"routes": routes, "total": len(routes)}
+
+
+@router.get("/routes/geojson")
+async def get_route_geojson(route_id: str = Query(..., description="Route UUID")):
+    """Get a single route's geometry as GeoJSON."""
+    # Get route metadata
+    route_res = supabase.table("ph_routes").select("*").eq("route_uuid", route_id).limit(1).execute()
+    if not route_res.data:
+        raise HTTPException(404, f"Route not found: {route_id}")
+    route = route_res.data[0]
+
+    # Get geometry
+    shape_res = supabase.table("ph_route_shapes").select("geom_geojson").eq("route_uuid", route_id).limit(1).execute()
+    if not shape_res.data or not shape_res.data[0].get("geom_geojson"):
+        raise HTTPException(404, f"No geometry for route: {route_id}")
+
+    geometry = shape_res.data[0]["geom_geojson"]
+    if isinstance(geometry, str):
+        import json
+        geometry = json.loads(geometry)
+
+    return {
+        "type": "FeatureCollection",
+        "features": [{
+            "type": "Feature",
+            "properties": {
+                "name": route.get("name"),
+                "mode": route.get("mode"),
+                "is_loop": route.get("is_loop", False),
+                "is_bidirectional": route.get("is_bidirectional", False),
+                "is_oneway": route.get("is_oneway", False),
+            },
+            "geometry": geometry,
+        }],
+    }
+
+
+@router.get("/routes/verified")
+async def list_verified_routes():
+    """List only approved/verified routes."""
+    rows = await fetch_all("ph_routes", eq={"is_approved": True}, order="name")
+    routes = [_row_to_dict(r) for r in rows]
+    return {"routes": routes, "total": len(routes)}
+
+
+@router.get("/routes/csv")
+async def export_routes_csv():
+    """Export all routes as CSV."""
+    res = supabase.table("ph_routes").select("*", count="exact").order("name").range(0, 99999).execute()
+    rows = res.data or []
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["route_uuid", "name", "mode", "is_loop", "is_bidirectional", "is_oneway", "is_approved", "status"])
+    for r in rows:
+        writer.writerow([r["route_uuid"], r.get("name"), r.get("mode"),
+                        r.get("is_loop"), r.get("is_bidirectional"), r.get("is_oneway"),
+                        r.get("is_approved"), r.get("status")])
+    return Response(content=output.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=routes_export.csv"})
+
+
+@router.get("/routes/stats")
+async def get_route_stats():
+    """Get aggregate statistics about all routes."""
+    rows = await fetch_all("ph_routes")
+    total = len(rows)
+    mode_counts = {}
+    approved = 0
+    oneway = 0
+    bidirectional = 0
+    loop = 0
+    for r in rows:
+        mode = r.get("mode", "unknown")
+        mode_counts[mode] = mode_counts.get(mode, 0) + 1
+        if r.get("is_approved"): approved += 1
+        if r.get("is_oneway"): oneway += 1
+        if r.get("is_bidirectional"): bidirectional += 1
+        if r.get("is_loop"): loop += 1
+    return {"total_routes": total, "route_types": mode_counts, "approved_count": approved,
+            "oneway_count": oneway, "bidirectional_count": bidirectional, "loop_count": loop}
+
+
+
+@router.get("/routes/reference")
+async def list_reference_routes():
+    """List unique reference routes from ph_route_reference table (deduplicated by name)."""
+    try:
+        routes = await fetch_all("ph_route_reference", order="route_name")
+        # Deduplicate by route_name — keep first occurrence
+        seen = set()
+        unique = []
+        for r in routes:
+            name = (r.get("route_name") or "").strip().lower()
+            if name and name not in seen:
+                seen.add(name)
+                unique.append(r)
+        return {"routes": unique, "total": len(unique)}
+    except Exception as e:
+        return {"routes": [], "total": 0, "error": str(e)}
+
+@router.get("/graph/stats")
+async def get_graph_stats():
+    """Get database statistics."""
+    routes_res = supabase.table("ph_routes").select("*", count="exact").eq("is_approved", True).execute()
+    shapes_res = supabase.table("ph_route_shapes").select("*", count="exact").execute()
+    return {"status": "ok", "routes_in_db": routes_res.count or 0, "shapes_in_db": shapes_res.count or 0}
+
+
+# ── POST /admin/routes ─────────────────────────────────
+
+@router.post("/routes/rename")
+async def rename_route(route_id: str = Query(...), new_name: str = Query(...)):
+    """Rename a route."""
+    res = supabase.table("ph_routes").update({"name": new_name, "updated_at": "now()"}).eq("route_uuid", route_id).execute()
+    if not res.data:
+        raise HTTPException(404, f"Route not found: {route_id}")
+    return {"status": "success", "message": f"Renamed to '{new_name}'", "route_uuid": route_id}
+
+
+@router.post("/routes/verify")
+async def verify_route(route_id: str = Query(...)):
+    """Mark a route as verified/approved."""
+    res = supabase.table("ph_routes").update({"is_approved": True, "status": "verified", "updated_at": "now()"}).eq("route_uuid", route_id).execute()
+    if not res.data:
+        raise HTTPException(404, f"Route not found: {route_id}")
+    return {"status": "success", "message": "Route verified", "route_uuid": route_id}
+
+
+
+@router.delete("/routes/{route_id}")
+async def delete_route(route_id: str):
+    """Delete a route and its shape."""
+    supabase.table("ph_route_shapes").delete().eq("route_uuid", route_id).execute()
+    supabase.table("ph_routes").delete().eq("route_uuid", route_id).execute()
+    return {"status": "success", "message": "Route deleted", "route_uuid": route_id}
+
+
+@router.post("/routes/reload")
+async def reload_routes():
+    return {"status": "info", "message": "Data is live from Supabase. No cache to reload. Restart server to rebuild graph."}
+
+
+# ── Community / Pending Routes ─────────────────────────
+
+@router.post("/routes/save")
+async def save_community_route(data: Dict[str, Any]):
+    """Save a community-submitted route."""
+    features = data.get("features", [])
+    if not features:
+        raise HTTPException(400, "No features in GeoJSON")
+
+    props = features[0].get("properties", {})
+    geom = features[0].get("geometry", {})
+    route_name = props.get("route_long_name") or props.get("name", "Community Route")
+    mode = props.get("type") or props.get("mode", "jeepney")
+
+    # Insert route
+    route_res = supabase.table("ph_routes").insert({
+        "name": route_name, "mode": mode, "is_approved": False, "status": "pending", "submitted_by": data.get("user_email", data.get("submitted_by", "anonymous"))
+    }).execute()
+    route_uuid = route_res.data[0]["route_uuid"]
+
+    # Insert geometry
+    import json
+    geom_str = json.dumps(geom) if isinstance(geom, dict) else str(geom)
+    supabase.table("ph_route_shapes").insert({
+        "route_uuid": route_uuid, "geom_geojson": geom_str
+    }).execute()
+
+    return {"status": "success", "message": f"Route saved: {route_name}", "route_uuid": route_uuid}
+
+
+@router.get("/pending/list")
+async def list_pending_routes():
+    """List pending community-submitted routes."""
+    rows = await fetch_all("ph_routes", eq={"is_approved": False, "status": "pending"}, order="-created_at")
+    routes = [{ "route_uuid": r["route_uuid"], "name": r.get("name"), "mode": r.get("mode"), "created_at": str(r.get("created_at", "")) } for r in rows]
+    return {"routes": routes, "total": len(routes)}
+
+
+@router.get("/pending/geojson/{route_id}")
+async def get_pending_geojson(route_id: str):
+    """Get a pending route's GeoJSON for review."""
+    route_res = supabase.table("ph_routes").select("*").eq("route_uuid", route_id).limit(1).execute()
+    if not route_res.data: raise HTTPException(404, "Pending route not found")
+    route = route_res.data[0]
+
+    shape_res = supabase.table("ph_route_shapes").select("geom_geojson").eq("route_uuid", route_id).limit(1).execute()
+    geometry = shape_res.data[0].get("geom_geojson") if shape_res.data else None
+    if isinstance(geometry, str):
+        import json
+        geometry = json.loads(geometry)
+
+    return {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": route.get("name"), "mode": route.get("mode")}, "geometry": geometry}]}
+
+
+@router.post("/pending/approve")
+async def approve_route(route_id: str = Query(...)):
+    """Approve a pending community route."""
+    supabase.table("ph_routes").update({"is_approved": True, "status": "verified", "updated_at": "now()"}).eq("route_uuid", route_id).execute()
+    return {"status": "success", "message": "Route approved", "route_uuid": route_id}
+
+
+@router.post("/pending/reject")
+async def reject_route(route_id: str = Query(...), reason: str = Query("")):
+    """Reject a pending community route."""
+    supabase.table("ph_routes").update({"status": "rejected", "reviewer_note": reason, "updated_at": "now()"}).eq("route_uuid", route_id).execute()
+    return {"status": "success", "message": f"Route rejected: {reason}", "route_uuid": route_id}
+
+
+=========================================
+=== BACKEND: models.py ===
+=========================================
+"""
+models.py — Pydantic models for Para PH API.
+"""
+
+from pydantic import BaseModel
+from typing import Optional, List, Dict, Any
+from datetime import datetime
+
+
+# ── Chat ────────────────────────────────────────────────
+
+class ChatMessage(BaseModel):
+    user_id: Optional[str] = "guest"
+    message: str
+    session_id: Optional[str] = None
+    timestamp: Optional[datetime] = None
+    user_location: Optional[Dict[str, Any]] = None
+
+
+class ChatResponse(BaseModel):
+    reply_text: str
+    route_data: Optional[Dict[str, Any]] = None
+    origin: Optional[str] = None
+    destination: Optional[str] = None
+    alternatives: Optional[List[Dict[str, Any]]] = None
+    task_id: Optional[str] = None
+    status: str = "completed"
+
+
+# ── Routing ─────────────────────────────────────────────
+
+class RouteRequest(BaseModel):
+    origin_lat: float
+    origin_lng: float
+    dest_lat: float
+    dest_lng: float
+    user_id: Optional[str] = "guest"
+    mode: Optional[str] = "transit"
+
+
+class RouteStep(BaseModel):
+    from_stop: str
+    to_stop: str
+    route_name: str
+    mode: str
+    distance_m: float
+    duration_min: float
+    fare: float
+
+
+class RouteResponse(BaseModel):
+    success: bool
+    total_distance_m: float
+    total_duration_min: float
+    total_fare: float
+    steps: List[RouteStep]
+    path_nodes: List[str]
+    message: str
+    alternatives: Optional[List[Dict[str, Any]]] = None
+
+
+# ── Feedback ────────────────────────────────────────────
+
+class FeedbackRequest(BaseModel):
+    user_id: str
+    route_id: str
+    rating: int
+    comment: Optional[str] = None
+    route_nodes: Optional[List[str]] = None
+    origin_name: Optional[str] = None
+    destination_name: Optional[str] = None
+    total_fare: Optional[float] = None
+    total_time: Optional[float] = None
+    timestamp: Optional[datetime] = None
+
+
+# ── Telemetry ───────────────────────────────────────────
+
+class TelemetryPing(BaseModel):
+    device_id: str
+    lat: float
+    lng: float
+    speed_kmh: Optional[float] = 0
+    heading: Optional[float] = 0
+    trip_id: Optional[str] = None
+    timestamp: Optional[datetime] = None
+
+
+class TelemetryBatch(BaseModel):
+    pings: List[TelemetryPing]
+    device_id: Optional[str] = None
+
+
+class SimulateRequest(BaseModel):
+    route_name: str
+    count: int = 10
+
+
+# ── Tasks ───────────────────────────────────────────────
+
+class TaskStatusResponse(BaseModel):
+    task_id: str
+    status: str
+    progress: Optional[int] = 0
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    completed_at: Optional[str] = None
+
+
+# ── Geocoding ───────────────────────────────────────────
+
+class GeoRequest(BaseModel):
+    location: str
+    user_id: Optional[str] = "guest"
+    bounds: Optional[Dict[str, float]] = None
+
+
+class GeoResponse(BaseModel):
+    found: bool
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    display_name: Optional[str] = None
+    source: Optional[str] = None
+    confidence: Optional[float] = 0
+
+
+# ── Admin ───────────────────────────────────────────────
+
+class RouteMetadata(BaseModel):
+    name: str
+    mode: str
+    type: str
+    oneway: bool
+    bidirectional: bool
+    file: str
+    source: str
+    edge_count: int = 0
+
+
+class RouteListResponse(BaseModel):
+    routes: List[RouteMetadata]
+    total: int
+
+
+=========================================
+=== BACKEND: database.py ===
+=========================================
+"""
+database.py — Supabase REST client (HTTPS-only, no direct Postgres).
+Network restriction: only port 443 is open. All DB operations go through supabase-py.
+"""
+
+import logging
+from typing import Any, Dict, List, Optional
+
+from supabase import create_client, Client
+
+from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
+
+logger = logging.getLogger(__name__)
+
+# ── Supabase REST client (HTTPS, port 443) ─────────────
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+
+async def init_db():
+    """Verify Supabase connection. No connection pool needed — REST is stateless."""
+    logger.info("🔌 Connecting to Supabase (REST API)...")
+    try:
+        # Simple health check — query the routes table
+        res = supabase.table("ph_routes").select("count", count="exact").limit(0).execute()
+        logger.info(f"✅ Supabase connected (REST). Routes table accessible.")
+    except Exception as e:
+        logger.error(f"❌ Supabase connection failed: {e}")
+        raise
+
+
+
+async def fetch_all(table_name: str, select: str = "*", eq: dict = None, order: str = None) -> list:
+    """Fetch all rows from a Supabase table, bypassing the 1000-row limit via pagination."""
+    all_rows = []
+    page_size = 1000
+    start = 0
+    
+    while True:
+        query = supabase.table(table_name).select(select, count="exact")
+        if eq:
+            for key, val in eq.items():
+                query = query.eq(key, val)
+        if order:
+            is_desc = order.startswith("-")
+            col = order.lstrip("-")
+            query = query.order(col, desc=is_desc)
+        
+        res = query.range(start, start + page_size - 1).execute()
+        rows = res.data or []
+        all_rows.extend(rows)
+        
+        if len(rows) < page_size:
+            break
+        start += page_size
+    
+    return all_rows
+
+async def close_db():
+    """No-op — REST client has no persistent connections to close."""
+    logger.info("👋 Supabase REST client closed (no-op)")
+
+
+# ── Query helpers ──────────────────────────────────────
+
+async def query(sql: str, *args) -> List[Dict[str, Any]]:
+    """
+    Execute a raw SQL query via Supabase RPC.
+    Requires a stored procedure or uses the SQL API.
+    For now, we use supabase.rpc() or direct table access.
+    """
+    # Use Supabase's built-in SQL execution via REST
+    try:
+        res = supabase.rpc("exec_sql", {"query": sql}).execute()
+        return res.data or []
+    except Exception:
+        # Fallback: try raw SQL endpoint if available
+        logger.debug("RPC exec_sql not available, trying direct query")
+        return []
+
+
+async def query_one(sql: str, *args) -> Optional[Dict[str, Any]]:
+    """Execute SQL and return first row."""
+    rows = await query(sql, *args)
+    return rows[0] if rows else None
+
+
+async def query_val(sql: str, *args) -> Any:
+    """Execute SQL and return single value."""
+    row = await query_one(sql, *args)
+    if row:
+        return list(row.values())[0] if isinstance(row, dict) else row
+    return None
+
+
+=========================================
+=== BACKEND: config.py ===
+=========================================
+"""
+config.py — Single source of truth for all environment configuration.
+Every other module imports from here. No scattered os.getenv() calls.
+"""
+
+import os
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env from project root (one directory up from this file)
+ENV_PATH = Path(__file__).resolve().parent / ".env"
+if ENV_PATH.exists():
+    load_dotenv(ENV_PATH)
+else:
+    # Try Render's default environment (env vars set directly, no .env file)
+    load_dotenv()
+
+def _require(name: str) -> str:
+    """Get required env var. Crash early with clear message if missing."""
+    value = os.getenv(name)
+    if not value:
+        print(f"❌ Missing required environment variable: {name}")
+        print(f"   Create a .env file at {ENV_PATH} with:")
+        print(f"   {name}=<your_value>")
+        sys.exit(1)
+    return value
+
+def _optional(name: str, default: str = "") -> str:
+    """Get optional env var with fallback."""
+    return os.getenv(name, default)
+
+
+# ── Supabase ───────────────────────────────────────────
+SUPABASE_URL = _require("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = _require("SUPABASE_SERVICE_KEY")
+
+# Direct Postgres connection (for asyncpg / PostGIS queries)
+# Supabase provides this as: postgresql://postgres:<password>@<host>:5432/postgres
+DATABASE_URL = _require("DATABASE_URL")
+
+# ── Ollama ─────────────────────────────────────────────
+OLLAMA_HOST = _optional("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = _optional("OLLAMA_MODEL", "llama3")
+
+# ── App ────────────────────────────────────────────────
+ENV = _optional("ENV", "development")
+PORT = int(_optional("PORT", "8000"))
+CORS_ORIGINS = _optional("CORS_ORIGINS", "*")
+
+# ── Validation ─────────────────────────────────────────
+def _validate():
+    """Log loaded config (mask secrets)."""
+    masked_key = SUPABASE_SERVICE_KEY[:10] + "..." if len(SUPABASE_SERVICE_KEY) > 10 else "***"
+    print(f"📋 Config loaded:")
+    print(f"   SUPABASE_URL: {SUPABASE_URL}")
+    print(f"   SUPABASE_SERVICE_KEY: {masked_key}")
+    print(f"   DATABASE_URL: {DATABASE_URL[:40]}...")
+    print(f"   OLLAMA_HOST: {OLLAMA_HOST}")
+    print(f"   ENV: {ENV}")
+
+_validate()
+
+
+=========================================
+=== FRONTEND: package.json ===
+=========================================
+{
+  "name": "para-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
+    "@tailwindcss/typography": "^0.5.20",
+    "@vercel/analytics": "^2.0.1",
+    "@vis.gl/react-google-maps": "^1.8.1",
+    "firebase": "^12.11.0",
+    "leaflet": "^1.9.4",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.11.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "4.1.18",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "4.1.18",
+    "vite": "^7.3.6"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "@firebase/util@1.15.1": true,
+    "protobufjs@7.6.5": true
+  }
+}
+
+
+=========================================
+=== FRONTEND: vite.config.js ===
+=========================================
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/chat': 'http://127.0.0.1:8000',
+      '/feedback': 'http://127.0.0.1:8000',
+      '/telemetry': 'http://127.0.0.1:8000',
+      '/traffic': 'http://127.0.0.1:8000',
+      '/admin': 'http://127.0.0.1:8000',
+      '/auth': 'http://127.0.0.1:8000',
+      '/poi': 'http://127.0.0.1:8000',
+      '/commute': 'http://127.0.0.1:8000',
+      '/routes': 'http://127.0.0.1:8000',
+    }
+  }
+})
+
+
+=========================================
+=== FRONTEND: src/utils/api.js ===
+=========================================
+const PRODUCTION_URL = import.meta.env.VITE_API_URL || "https://para-ph-api.onrender.com";
+let authToken = null;
+
+export function setApiToken(token) { authToken = token || null; }
+export function getApiToken() { return authToken; }
+
+export function getApiBaseUrl() {
+  if (import.meta.env.PROD) return PRODUCTION_URL;
+  return "";
+}
+
+async function request(method, path, body = null, options = {}) {
+  const base = getApiBaseUrl();
+  const url = `${base}${path}`;
+  const headers = { ...(options.headers || {}) };
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+  if (!isFormData) headers["Content-Type"] = headers["Content-Type"] || "application/json";
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 20000);
+  try {
+    const response = await fetch(url, { method, headers, body: body ? (isFormData ? body : JSON.stringify(body)) : undefined, signal: controller.signal });
+    const text = await response.text();
+    let data = null;
+    if (text) { try { data = JSON.parse(text); } catch { data = { raw: text }; } }
+    if (!response.ok) { const message = data?.message || data?.detail || data?.error || `HTTP ${response.status}`; const error = new Error(message); error.status = response.status; error.data = data; throw error; }
+    return data;
+  } finally { clearTimeout(timeout); }
+}
+
+export function apiGet(path, options) { return request("GET", path, null, options); }
+export function apiPost(path, body, options) { return request("POST", path, body, options); }
+export function apiPut(path, body, options) { return request("PUT", path, body, options); }
+export function apiPatch(path, body, options) { return request("PATCH", path, body, options); }
+export function apiDelete(path, options) { return request("DELETE", path, null, options); }
+
+
+=========================================
+=== FRONTEND: src/contexts/AuthContext.jsx ===
+=========================================
+cat: src/contexts/AuthContext.jsx: No such file or directory
+
+
+=========================================
+=== FRONTEND: src/contexts/TrackingConsentContext.jsx ===
+=========================================
+cat: src/contexts/TrackingConsentContext.jsx: No such file or directory
+
+
+=========================================
+=== FRONTEND: src/App.jsx ===
+=========================================
+import { Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { TrackingConsentProvider } from "./context/TrackingConsentContext";
+
+import HomeNew from "./pages/HomeNew";
+import RoutesExplorer from "./pages/RoutesExplorer";
+import Community from "./pages/Community";
+import AdminDashboard from "./pages/AdminDashboard";
+import Profile from "./pages/Profile";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import About from "./pages/About";
+import GasPrices from "./pages/GasPrices";
+import POIBrowser from "./pages/POIBrowser";
+import Contribute from "./pages/Contribute";
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" /></div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, isAuthenticated, loading } = useAuth();
+  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" /></div>;
+  if (!isAuthenticated || user?.role !== "admin") return <Navigate to="/login" replace />;
+  return children;
+}
+
+export default function App() {
+  return (
+    <TrackingConsentProvider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<HomeNew />} />
+          <Route path="/explore" element={<RoutesExplorer />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/gas-prices" element={<GasPrices />} />
+          <Route path="/poi" element={<POIBrowser />} />
+          <Route path="/contribute" element={<Contribute />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </TrackingConsentProvider>
+  );
+}
+
+
+=========================================
+=== FRONTEND: src/main.jsx ===
+=========================================
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App.jsx";
+import { Analytics } from "@vercel/analytics/react";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <>
+      <App />
+      <Analytics />
+    </>
+    </BrowserRouter>
+  </React.StrictMode>
+);
+
+
+=========================================
+=== ALL API CALL REFERENCES IN FRONTEND ===
+=========================================
+src/context/AuthContext.jsx:18:      fetch(`${API}/auth/signup`, {
+src/context/AuthContext.jsx:40:    const res = await fetch(`${API}/auth/signup`, {
+src/context/AuthContext.jsx:69:    const res = await fetch(`${API}/auth/signup`, {
+src/App.jsx:42:          <Route path="/poi" element={<POIBrowser />} />
+src/App.jsx:46:          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+src/components/InlineRecorder.jsx:54:      await apiPost("/commute/save", {
+src/components/CommuteTracker.jsx:77:      try { await apiPost("/commute/save", log); } catch { remaining.push(log); }
+src/components/CommuteTracker.jsx:120:    try { await apiPost("/commute/save", log); } catch {
+src/components/RouteEditVoting.jsx:11:    fetch(`${API}/community/route-edits?route_uuid=${routeUuid}`)
+src/components/RouteEditVoting.jsx:20:      await fetch(`${API}/community/route-edits/vote`, {
+src/components/RouteEditVoting.jsx:26:      const res = await fetch(`${API}/community/route-edits?route_uuid=${routeUuid}`);
+src/components/RouteUploader.jsx:23:    fetch(`${API}/routes/public/reference`)
+src/components/RouteUploader.jsx:77:      await apiPost("/commute/save", {
+src/components/Navbar.jsx:12:  { to: '/community', label: 'Community' },
+src/components/BottomNav.jsx:11:  { id: "community", label: "Community", icon: "🌟", to: "/community" },
+src/components/RouteEditor.jsx:101:      const res = await fetch(`${API}/community/route-edits`, {
+src/components/waitList/WaitListForm.jsx:31:      const response = await fetch(`${API_BASE_URL}/api/v1/waitlist`, {
+src/components/GasPrice/ReportModal.jsx:177:      const res = await fetch(`${API_BASE}/api/v1/gas-prices/stations`, {
+src/components/GasPrice/useGasPrices.js:4:const API_URL = `${API_BASE}/api/v1/gas-prices/blended`;
+src/components/GasPrice/usePriceSubmit.js:35:        `${API_BASE}/api/v1/gas-prices/stations/${stationId}/submit`,
+src/components/GasPrice/useGasStations.js:12:      const res = await fetch(`${API_BASE}/api/v1/gas-prices/stations`);
+src/components/landingpage-footer.component.jsx:9:  { to: '/community', label: 'Community', locked: true },
+src/components/RouteNameInput.jsx:12:    fetch(`${API}/routes/public`)
+src/components/POIForm.jsx:55:      const res = await fetch(`${API}/poi/add`, {
+src/components/LiveRouteRecorder.jsx:81:      await apiPost("/commute/save", {
+src/pages/SignupOTPStep.jsx:53:      const res = await fetch(`${API}/auth/signup`, {
+src/pages/SignupOTPStep.jsx:79:      const res = await fetch(`${API}/auth/signup`, {
+src/pages/Contribute.jsx:127:                      await apiPost("/commute/save", {
+src/pages/RouteUploader.jsx:68:      await apiPost("/commute/save", {
+src/pages/SignupDetailsStep.jsx:114:      const res = await fetch(`${API}/auth/signup`, {
+src/pages/POIBrowser.jsx:19:  { id: "community", label: "Community", icon: "🌟", to: "/community" },
+src/pages/POIBrowser.jsx:33:    fetch(`${API}/poi/list`)
+src/pages/POIBrowser.jsx:70:              fetch(`${API}/poi/list`).then(r => r.json()).then(d => setPois(d.pois || []));
+src/pages/HomeNew.jsx:25:  { id: "community", label: "Community", icon: "🌟", to: "/community" },
+src/pages/AdminApproval.jsx:24:    fetch(`${API}/admin/commute/logs`).then(r => r.json()).then(d => setCommuteLogs(d.logs || []));
+src/pages/AdminDashboard.jsx:98:      const res = await fetch(`${API}/admin/routes/list`);
+src/pages/AdminDashboard.jsx:121:        res = await fetch(`${API}/admin/routes/rename?route_id=${routeId}&new_name=${encodeURIComponent(newName)}`, { method: "POST" });
+src/pages/AdminDashboard.jsx:123:        res = await fetch(`${API}/admin/routes/verify?route_id=${routeId}`, { method: "POST" });
+src/pages/AdminDashboard.jsx:126:        res = await fetch(`${API}/admin/routes/${routeId}`, { method: "DELETE" });
+src/pages/AdminDashboard.jsx:261:    fetch(`${API}/admin/routes/list`)
+src/pages/AdminDashboard.jsx:368:    fetch(`${API}/admin/routes/geojson?route_id=${id}`)
+src/pages/AdminDashboard.jsx:383:      const res = await fetch(`${API}/admin/routes/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(geoJson) });
+src/pages/AdminDashboard.jsx:396:      const res = await fetch(`${API}/admin/routes/${selectedId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ [field]: value }) });
+src/pages/RoutesExplorer.jsx:72:          fetch(`${API}/routes/public`),
+src/pages/RoutesExplorer.jsx:73:          fetch(`${API}/routes/public/reference`),
+src/pages/RoutesExplorer.jsx:127:      const res = await fetch(`${API}/routes/public/geojson?route_id=${routeId}`);
+src/pages/RoutesExplorer.jsx:248:                    const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
+src/pages/Community.jsx:23:    fetch(`${API}/community/threads`)
+src/pages/Community.jsx:42:      const res = await fetch(`${API}/community/threads`, {
+src/pages/Community.jsx:64:      await fetch(`${API}/community/threads/delete`, {
+src/pages/Community.jsx:76:    fetch(`${API}/community/comments?thread_uuid=${thread.thread_uuid}`)
+src/pages/Community.jsx:85:      await fetch(`${API}/community/comments`, {
+src/pages/Community.jsx:95:      const res = await fetch(`${API}/community/comments?thread_uuid=${selectedThread.thread_uuid}`);

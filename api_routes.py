@@ -285,23 +285,66 @@ async def save_telemetry_batch(request: Request):
 
 @router.post("/auth/signup")
 async def signup(request: Request):
-    """Sign up / login via waitlist."""
+    """Sign up / login — email + optional full registration."""
     try:
         data = await request.json()
         email = data.get("email", "").strip().lower()
         name = data.get("name", data.get("displayName", email.split("@")[0] if "@" in email else "Commuter"))
+        contact = data.get("contact", "")
+        password = data.get("password", "")
+        role = data.get("role", "commuter")
+        otp = data.get("otp", "")
+        
         if not email:
             return {"status": "error", "message": "Email is required"}
+        
+        # OTP verification (if uid and otp provided — dev flow, returns mock customToken)
+        uid = data.get("uid", "")
+        if uid and otp:
+            # In production this would verify against Firebase/Supabase
+            # For dev, accept any 6-digit OTP
+            if len(otp.replace(" ", "")) == 6:
+                return {
+                    "status": "success",
+                    "message": "Verified",
+                    "customToken": f"dev-token-{uid}",
+                }
+            return {"status": "error", "message": "Invalid OTP"}
+        
+        # Resend OTP (if uid provided without otp)
+        if uid and not otp:
+            return {"status": "success", "message": "OTP sent", "retryAfter": 60}
         
         # Check if already in waitlist
         existing = supabase.table("waitlist").select("*").eq("email", email).execute()
         if existing.data:
-            return {"status": "exists", "message": "Welcome back!", "user": existing.data[0]}
+            user = existing.data[0]
+            if password or contact:
+                # Update with full profile
+                supabase.table("waitlist").update({
+                    "name": name,
+                    "contact": contact,
+                    "role": role,
+                }).eq("email", email).execute()
+                user.update({"name": name, "contact": contact, "role": role})
+            return {"status": "exists", "message": "Welcome back!", "user": user, "uid": str(user.get("id", email))}
         
         # New signup — add to waitlist
-        res = supabase.table("waitlist").insert({"email": email, "name": name, "listed_at": "now()"}).execute()
+        insert_data = {"email": email, "name": name, "listed_at": "now()"}
+        if contact: insert_data["contact"] = contact
+        if role: insert_data["role"] = role
+        if password: insert_data["password_hash"] = hashlib.sha256(password.encode()).hexdigest()
+        
+        res = supabase.table("waitlist").insert(insert_data).execute()
         if res.data:
-            return {"status": "success", "message": "Welcome to Para PH! You are on the list.", "user": res.data[0]}
+            user = res.data[0]
+            return {
+                "status": "success",
+                "message": "Welcome to Para PH! Check your email for a verification code.",
+                "user": user,
+                "uid": str(user.get("id", email)),
+                "dev_otp": "123456",  # Dev only — remove in production
+            }
         return {"status": "error", "message": "Failed to save"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
