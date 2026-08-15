@@ -22,7 +22,7 @@ export default function AuthPageLayout({ children, variant = "center" }) {
         {/* Logo */}
         <img src={paralogo} alt="Para PH" className="h-12 w-auto object-contain" />
         
-        <div className={variant === "split" ? "w-full max-w-md" : "w-full max-w-sm"}>
+        <div className={variant === "split" ? "w-full max-w-lg" : "w-full max-w-md"}>
           <div className="rounded-2xl p-6 md:p-8 shadow-2xl" style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(8px)" }}>
             {children}
           </div>
