@@ -94,7 +94,7 @@ export default function WeatherPage({ onClose }) {
   }, [lat, lng]);
 
   useEffect(() => {
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia/Manila&forecast_days=7`)
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&timezone=auto&forecast_days=7`)
       .then(r => r.json())
       .then(d => {
         if (d.current) { setWeather(d.current); setLastUpdated(new Date()); }
@@ -141,7 +141,6 @@ export default function WeatherPage({ onClose }) {
 
         {/* HERO — purple gradient + weather effects */}
         <div className="relative w-full overflow-hidden rounded-t-3xl" style={{ height: "251px", background: "linear-gradient(180deg, #3A1E86 0%, #5B339C 50%, #7A4BC8 100%)" }}>
-            {cityName && <p className="absolute top-3 left-1/2 -translate-x-1/2 text-white/80 text-sm font-semibold">{cityName}</p>}
           
           {/* Weather effects based on code */}
           {(() => {
@@ -215,7 +214,7 @@ export default function WeatherPage({ onClose }) {
           </div>
           <div className="absolute left-10 top-[126px] z-10">
             <div className="text-white font-medium text-[32px] leading-[48px]">{weather?.temperature_2m || 24}°</div>
-            <div className="text-white text-[16px] leading-[24px]">Manila, Philippines</div>
+            <div className="text-white text-[16px] leading-[24px]">{cityName || "Manila"}, Philippines</div>
             <div className="text-white/80 text-[13px] leading-[18px]">{weather ? getWeatherLabel(weather.weather_code) : "Cloudy-Light Rain"}</div>
             <div className="text-white/70 text-[13px] leading-[18px]">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</div>
           </div>
