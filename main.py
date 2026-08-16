@@ -14,6 +14,7 @@ from api_routes import router as api_router
 from admin_routes import router as admin_router
 from v1_routes import router as v1_router
 from fare_routes import router as fare_router
+from gas_routes import router as gas_router
 from config import ENV, CORS_ORIGINS
 
 logging.basicConfig(
@@ -85,6 +86,7 @@ app.include_router(api_router)
 app.include_router(admin_router)
 app.include_router(v1_router)
 app.include_router(fare_router)
+app.include_router(gas_router)
 
 
 @app.get("/")
