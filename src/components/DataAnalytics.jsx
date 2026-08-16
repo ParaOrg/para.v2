@@ -10,6 +10,7 @@ export default function DataAnalytics() {
   const [unmatched, setUnmatched] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const [funnel, setFunnel] = useState(null);
+  const [timeline, setTimeline] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -37,21 +38,54 @@ export default function DataAnalytics() {
       const commuteLogs = tracks.logs || [];
       const communityThreads = threads.threads || [];
       const poiList = pois.pois || [];
-      const totalSignups = waitlist.count || 0;
 
-      // Calculate funnel
+      // Build timeline from all data — group by day
+      const allEvents = [];
+      fareReports.forEach(f => {
+        const date = (f.created_at || f.reported_at || "").slice(0, 10);
+        if (date) allEvents.push({ date, type: "fare" });
+      });
+      commuteLogs.forEach(l => {
+        const date = (l.created_at || l.raw_payload?.completed_at || "").slice(0, 10);
+        if (date) allEvents.push({ date, type: "track" });
+      });
+      communityThreads.forEach(t => {
+        const date = (t.created_at || "").slice(0, 10);
+        if (date) allEvents.push({ date, type: "thread" });
+      });
+      poiList.forEach(p => {
+        const date = (p.created_at || "").slice(0, 10);
+        if (date) allEvents.push({ date, type: "poi" });
+      });
+
+      // Group by day
+      const byDay = {};
+      allEvents.forEach(e => {
+        if (!byDay[e.date]) byDay[e.date] = { fare: 0, track: 0, thread: 0, poi: 0 };
+        byDay[e.date][e.type]++;
+      });
+
+      const timelineArr = Object.entries(byDay)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .slice(-14) // last 14 days
+        .map(([date, counts]) => ({
+          date: date.slice(5), // MM-DD
+          total: counts.fare + counts.track + counts.thread + counts.poi,
+          ...counts,
+        }));
+      setTimeline(timelineArr);
+
       const activeTrackers = new Set(commuteLogs.map(l => l.user_id || l.raw_payload?.user_email || l.user_email)).size;
       const activeFareReporters = new Set(fareReports.map(f => f.user_email)).size;
       const activeThreadPosters = new Set(communityThreads.map(t => t.user_email)).size;
       const activePoiAdders = new Set(poiList.map(p => p.submitted_by)).size;
 
       setFunnel({
-        totalSignups,
+        totalSignups: waitlist.count || 0,
         trackedRoute: activeTrackers,
         reportedFare: activeFareReporters,
         postedThread: activeThreadPosters,
         addedPoi: activePoiAdders,
-        fullyEngaged: Math.min(activeTrackers, activeFareReporters, activeThreadPosters, activePoiAdders),
       });
 
       setStats({
@@ -64,7 +98,7 @@ export default function DataAnalytics() {
         totalContributions: fareReports.length + commuteLogs.length + communityThreads.length + poiList.length,
       });
 
-      // Fuzzy match
+      // Fuzzy match for progress bar
       const vNames = verifiedRoutes.map(r => (r.name || "").toLowerCase().trim());
       const matchedArr = [];
       const unmatchedArr = [];
@@ -98,15 +132,9 @@ export default function DataAnalytics() {
     return <div className="text-center py-8"><div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" /></div>;
   }
 
-  const funnelSteps = [
-    { label: "Sign Ups", count: funnel?.totalSignups || 0, color: "#7A4BC8" },
-    { label: "Tracked Route", count: funnel?.trackedRoute || 0, color: "#4F00CD" },
-    { label: "Reported Fare", count: funnel?.reportedFare || 0, color: "#F93F74" },
-    { label: "Posted Thread", count: funnel?.postedThread || 0, color: "#FF8827" },
-    { label: "Added POI", count: funnel?.addedPoi || 0, color: "#22c55e" },
-  ];
-
-  const maxFunnel = Math.max(...funnelSteps.map(f => f.count), 1);
+  const maxTimeline = Math.max(...timeline.map(d => d.total), 1);
+  const chartHeight = 80;
+  const chartWidth = 100;
 
   return (
     <div className="space-y-4">
@@ -115,84 +143,111 @@ export default function DataAnalytics() {
         <button onClick={fetchData} className="text-xs text-[#7A4BC8] font-bold">↻</button>
       </div>
 
-      {/* Two-column on desktop, scroll on mobile */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Left column — Pipeline + Funnel */}
-        <div className="space-y-3">
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2">
-            <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-black text-purple-800">{stats?.verifiedRoutes || 0}</p>
-              <p className="text-[10px] text-gray-400">Verified</p>
-            </div>
-            <div className="bg-orange-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-black text-orange-600">{stats?.referenceRoutes || 0}</p>
-              <p className="text-[10px] text-gray-400">Reference</p>
-            </div>
-            <div className="bg-green-50 rounded-xl p-3 text-center">
-              <p className="text-2xl font-black text-green-700">{stats?.totalContributions || 0}</p>
-              <p className="text-[10px] text-gray-400">Contributions</p>
-            </div>
-          </div>
-
-          {/* Funnel */}
-          <div className="bg-white rounded-xl border border-gray-100 p-3">
-            <h4 className="text-xs font-bold text-gray-900 mb-3">User Funnel</h4>
-            <div className="space-y-2">
-              {funnelSteps.map((step) => (
-                <div key={step.label}>
-                  <div className="flex justify-between text-[10px]">
-                    <span className="text-gray-600">{step.label}</span>
-                    <span className="font-bold" style={{ color: step.color }}>{step.count}</span>
-                  </div>
-                  <div className="h-2 bg-gray-100 rounded-full mt-0.5">
-                    <div className="h-2 rounded-full transition-all" style={{ width: `${(step.count / maxFunnel) * 100}%`, background: step.color }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right column — Contributions + Route Matching */}
-        <div className="space-y-3">
-          {/* Contribution breakdown */}
-          <div className="grid grid-cols-4 gap-1">
-            {[
-              ["Fares", stats?.fareReports, "₱", "#F93F74"],
-              ["Tracks", stats?.commuteLogs, "📍", "#4F00CD"],
-              ["Threads", stats?.communityThreads, "💬", "#FF8827"],
-              ["POIs", stats?.pois, "📌", "#22c55e"],
-            ].map(([label, count, icon, color]) => (
-              <div key={label} className="rounded-lg p-2 text-center" style={{ background: `${color}10` }}>
-                <p className="text-sm font-bold" style={{ color }}>{icon} {count || 0}</p>
-                <p className="text-[9px] text-gray-400">{label}</p>
-              </div>
+      {/* Line Graph — Contributions over time */}
+      <div className="bg-white rounded-xl border border-gray-100 p-3">
+        <h4 className="text-xs font-bold text-gray-900 mb-2">Activity (14 days)</h4>
+        <div className="relative" style={{ height: `${chartHeight}px` }}>
+          <svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth * 10} ${chartHeight}`} preserveAspectRatio="none">
+            {/* Grid lines */}
+            {[0.25, 0.5, 0.75].map(frac => (
+              <line key={frac} x1="0" y1={chartHeight * frac} x2={chartWidth * 10} y2={chartHeight * frac} stroke="#f0f0f0" strokeWidth="0.5" />
             ))}
-          </div>
-
-          {/* Route matching */}
-          <div className="bg-white rounded-xl border border-gray-100 p-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold text-gray-900">Route Matching</h4>
-              <span className="text-[10px] text-gray-400">{matched.length} ✅ / {unmatched.length} ❌</span>
-            </div>
-            <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden flex">
-              <div className="bg-green-500 h-full" style={{ width: `${(matched.length / (matched.length + unmatched.length || 1)) * 100}%` }} />
-              <div className="bg-red-400 h-full" style={{ width: `${(unmatched.length / (matched.length + unmatched.length || 1)) * 100}%` }} />
-            </div>
-            <button onClick={() => setExpanded(!expanded)} className="mt-2 text-xs text-[#7A4BC8] font-bold">
-              {expanded ? "Hide" : "Show details"}
-            </button>
-            {expanded && (
-              <div className="mt-2 max-h-48 overflow-y-auto text-[10px]">
-                {unmatched.slice(0, 20).map((name, i) => (
-                  <div key={i} className="py-0.5 text-gray-500 truncate">❌ {name}</div>
-                ))}
-              </div>
+            {/* Area fill */}
+            <path
+              d={`M 0 ${chartHeight} ${timeline.map((d, i) => {
+                const x = (i / Math.max(timeline.length - 1, 1)) * chartWidth * 10;
+                const y = chartHeight - (d.total / maxTimeline) * (chartHeight - 10);
+                return `L ${x} ${y}`;
+              }).join(" ")}`}
+              fill="rgba(122, 75, 200, 0.1)"
+              stroke="none"
+            />
+            {/* Line */}
+            <path
+              d={`M 0 ${chartHeight - (timeline[0]?.total / maxTimeline) * (chartHeight - 10) || chartHeight} ${timeline.map((d, i) => {
+                const x = (i / Math.max(timeline.length - 1, 1)) * chartWidth * 10;
+                const y = chartHeight - (d.total / maxTimeline) * (chartHeight - 10);
+                return `L ${x} ${y}`;
+              }).join(" ")}`}
+              fill="none"
+              stroke="#7A4BC8"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Dots */}
+            {timeline.map((d, i) => {
+              const x = (i / Math.max(timeline.length - 1, 1)) * chartWidth * 10;
+              const y = chartHeight - (d.total / maxTimeline) * (chartHeight - 10);
+              return <circle key={i} cx={x} cy={y} r="3" fill="#7A4BC8" />;
+            })}
+          </svg>
+          {/* X-axis labels */}
+          <div className="flex justify-between mt-1">
+            {timeline.length > 0 && (
+              <>
+                <span className="text-[8px] text-gray-400">{timeline[0]?.date}</span>
+                <span className="text-[8px] text-gray-400">{timeline[Math.floor(timeline.length / 2)]?.date}</span>
+                <span className="text-[8px] text-gray-400">{timeline[timeline.length - 1]?.date}</span>
+              </>
             )}
           </div>
         </div>
+        <p className="text-[10px] text-gray-400 mt-1 text-center">{stats?.totalContributions || 0} total contributions</p>
+      </div>
+
+      {/* Stats grid */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-purple-50 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-purple-800">{stats?.verifiedRoutes || 0}</p>
+          <p className="text-[10px] text-gray-400">Verified</p>
+        </div>
+        <div className="bg-orange-50 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-orange-600">{stats?.referenceRoutes || 0}</p>
+          <p className="text-[10px] text-gray-400">Reference</p>
+        </div>
+        <div className="bg-green-50 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-green-700">{stats?.totalContributions || 0}</p>
+          <p className="text-[10px] text-gray-400">Contributions</p>
+        </div>
+      </div>
+
+      {/* Route Matching — ONLY this is a progress bar */}
+      <div className="bg-white rounded-xl border border-gray-100 p-3">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold text-gray-900">Route Matching</h4>
+          <span className="text-[10px] text-gray-400">{matched.length} ✅ / {unmatched.length} ❌</span>
+        </div>
+        <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden flex">
+          <div className="bg-green-500 h-full" style={{ width: `${(matched.length / (matched.length + unmatched.length || 1)) * 100}%` }} />
+          <div className="bg-red-400 h-full" style={{ width: `${(unmatched.length / (matched.length + unmatched.length || 1)) * 100}%` }} />
+        </div>
+        <button onClick={() => setExpanded(!expanded)} className="mt-2 text-xs text-[#7A4BC8] font-bold">
+          {expanded ? "Hide" : "Show details"}
+        </button>
+        {expanded && (
+          <div className="mt-2 max-h-40 overflow-y-auto text-[10px]">
+            {unmatched.slice(0, 20).map((name, i) => (
+              <div key={i} className="py-0.5 text-gray-500 truncate">❌ {name}</div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Funnel data */}
+      <div className="grid grid-cols-5 gap-1 text-center">
+        {[
+          ["Signups", funnel?.totalSignups],
+          ["Tracked", funnel?.trackedRoute],
+          ["Fares", funnel?.reportedFare],
+          ["Threads", funnel?.postedThread],
+          ["POIs", funnel?.addedPoi],
+        ].map(([label, count]) => (
+          <div key={label} className="bg-gray-50 rounded-lg p-2">
+            <p className="text-sm font-bold text-gray-700">{count || 0}</p>
+            <p className="text-[8px] text-gray-400">{label}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
