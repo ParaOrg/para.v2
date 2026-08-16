@@ -4,6 +4,7 @@ import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
 import { offlineBuffer } from "../utils/offlineBuffer";
+import { startBackgroundTracking, stopBackgroundTracking, notifyRouteSaved } from "../utils/backgroundTracker";
 
 export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel, externalMap, externalLayer }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
@@ -92,6 +93,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     setGpsPoints([]);
     setPois([]);
     startTracking();
+    startBackgroundTracking();
     setPanelOpen(false); // collapse so map is visible
   };
 
