@@ -31,7 +31,7 @@ export default function BottomNav({ onSearchClick }) {
             </button>
           ))}
         </div>
-        <button onClick={onSearchClick} className="-mt-6 flex flex-col items-center">
+        <button onClick={() => onSearchClick ? onSearchClick() : navigate("/")} className="-mt-6 flex flex-col items-center">
           <div className="w-14 h-14 rounded-full bg-[#7A4BC8] text-white flex items-center justify-center shadow-lg text-xl">🔍</div>
           <span className="text-[9px] font-medium text-[#7A4BC8]">Search</span>
         </button>
