@@ -295,6 +295,7 @@ async def set_username(request: Request):
     try:
         data = await request.json()
         email = data.get("email", "").strip().lower()
+        phone = data.get("phone", data.get("contact", "")).strip()
         handle = data.get("handle", "").strip()
         name = data.get("name", "").strip()
         
