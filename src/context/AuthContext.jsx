@@ -23,7 +23,13 @@ export function AuthProvider({ children }) {
         .then(r => r.json())
         .then(d => {
           if (d.user) {
-            const updated = { ...storedUser, ...(d.user.role ? { role: d.user.role } : {}) };
+            // Preserve handle/name from localStorage — backend may not have them
+            const updated = { 
+              ...storedUser, 
+              ...(d.user.role ? { role: d.user.role } : {}),
+              ...(storedUser.handle ? { handle: storedUser.handle } : {}),
+              ...(storedUser.name ? { name: storedUser.name } : {}),
+            };
             localStorage.setItem(USER_KEY, JSON.stringify(updated));
             setUser(updated);
           }
