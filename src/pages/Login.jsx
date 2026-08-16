@@ -34,17 +34,19 @@ export default function Login() {
     if (!phone || phone.length < 10) { setError("Enter a valid phone number."); return; }
     setLoading(true);
     try {
+      // Use pseudo-email — no backend change needed
+      const pseudoEmail = `${phone}@phone.para.ph`;
       const res = await fetch(`${import.meta.env.VITE_API_URL || ""}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ email: pseudoEmail, name: `User ${phone.slice(-4)}` }),
       });
       const data = await res.json();
-      if (data.status === "otp_sent" && data.dev_otp) {
-        setDevOtp(data.dev_otp);
-        setStep("otp");
+      if (data.status === "success" || data.status === "exists") {
+        await login(pseudoEmail, "");
+        navigate("/");
       } else {
-        setError(data.message || "Failed to send code.");
+        setError(data.message || "Failed to log in.");
       }
     } catch {
       setError("Network error.");
@@ -98,17 +100,6 @@ export default function Login() {
             <button onClick={handlePhoneOtp} disabled={loading}
               className="w-full mt-2 py-3 rounded-xl font-bold text-sm text-white bg-green-600 hover:bg-green-500 disabled:opacity-50">
               {loading ? "Sending code…" : "Continue with Phone"}
-            </button>
-          </>
-        ) : (
-          <>
-            <p className="text-sm text-gray-500 mb-4">Your code: <span className="font-black text-purple-800 text-xl">{devOtp}</span></p>
-            <input type="text" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="6-digit code" maxLength={6}
-              className="w-full px-4 py-3 rounded-xl text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center tracking-[0.3em]" />
-            <button onClick={handleOtpVerify} disabled={loading}
-              className="w-full mt-3 py-3 rounded-xl font-bold text-sm text-white bg-green-600 hover:bg-green-500 disabled:opacity-50">
-              {loading ? "Verifying…" : "Verify & Login"}
             </button>
           </>
         )}
