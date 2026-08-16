@@ -12,6 +12,7 @@ import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import PipelineStatus from "../components/PipelineStatus";
+import DataAnalytics from "../components/DataAnalytics";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
@@ -57,6 +58,8 @@ export default function AdminDashboard() {
       <Navbar />
       <div className="max-w-md mx-auto w-full px-4 py-4">
         <PipelineStatus />
+
+        <DataAnalytics />
       </div>
 
       {/* Tab bar */}
