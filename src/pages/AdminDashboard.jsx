@@ -56,10 +56,15 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <div className="max-w-md mx-auto w-full px-4 py-4">
-        <PipelineStatus />
-
-        <DataAnalytics />
+      <div className="w-full px-4 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <PipelineStatus />
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <DataAnalytics />
+          </div>
+        </div>
       </div>
 
       {/* Tab bar */}
