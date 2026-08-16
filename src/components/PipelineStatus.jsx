@@ -5,11 +5,15 @@ const API = getApiBaseUrl();
 
 const CHECKS = [
   { id: "health", label: "Backend Health", endpoint: "/health", method: "GET" },
-  { id: "routes", label: "Public Routes", endpoint: "/routes/public", method: "GET" },
-  { id: "fares", label: "Fare Reports", endpoint: "/fare/reports?limit=1", method: "GET" },
-  { id: "cities", label: "Cities", endpoint: "/cities", method: "GET" },
-  { id: "threads", label: "Community Threads", endpoint: "/community/threads", method: "GET" },
-  { id: "pois", label: "POI List", endpoint: "/poi/list", method: "GET" },
+  { id: "routes", label: "Public Routes (read)", endpoint: "/routes/public", method: "GET" },
+  { id: "fares", label: "Fare Reports (read)", endpoint: "/fare/reports?limit=1", method: "GET" },
+  { id: "cities", label: "Cities (read)", endpoint: "/cities", method: "GET" },
+  { id: "threads", label: "Threads (read)", endpoint: "/community/threads", method: "GET" },
+  { id: "pois", label: "POIs (read)", endpoint: "/poi/list", method: "GET" },
+  { id: "commute_write", label: "Commute Save (write)", endpoint: "/commute/save", method: "POST", body: { client_log_id: `health-${Date.now()}`, route_name: "Health Check", user_email: "system@health.check", total_time_sec: 1 } },
+  { id: "fare_write", label: "Fare Submit (write)", endpoint: "/fare/report", method: "POST", body: { user_email: "system@health.check", mode: "test", fare_amount: 1, city: "Metro Manila" } },
+  { id: "signup", label: "Signup (write)", endpoint: "/auth/signup", method: "POST", body: { email: `health-${Date.now()}@check.com` } },
+  { id: "poi_write", label: "POI Add (write)", endpoint: "/poi/add", method: "POST", body: { canonical_name: `Health ${Date.now()}`, category: "test", lat: 14.5995, lng: 120.9842 } },
 ];
 
 export default function PipelineStatus() {
@@ -23,7 +27,13 @@ export default function PipelineStatus() {
     for (const check of CHECKS) {
       const start = Date.now();
       try {
-        const res = await fetch(`${API}${check.endpoint}`);
+        const options = {};
+        if (check.method === "POST" && check.body) {
+          options.method = "POST";
+          options.headers = { "Content-Type": "application/json" };
+          options.body = JSON.stringify(check.body);
+        }
+        const res = await fetch(`${API}${check.endpoint}`, options);
         newResults[check.id] = {
           ok: res.ok,
           status: res.status,
