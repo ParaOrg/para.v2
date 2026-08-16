@@ -184,13 +184,13 @@ async def save_commute(request: Request):
         
         # Build the track record
         track = {
-            "user_id": data.get("user_email") or user_id,
+            "user_id": None,  # UUID column — email in raw_payload
             "route_uuid": data.get("route_uuid"),
-            "route_name": route_data.get("message", "Unknown Route"),
-            "total_time_sec": data.get("totalTimeSec", 0),
+            "route_name": data.get("route_name") or route_data.get("message", "Unknown Route"),
+            "total_time_sec": data.get("totalTimeSec", data.get("total_time_sec", 0)),
             "distance_m": data.get("totalDistanceM", 0),
-            "gps_points": len(data.get("gpsPoints", [])),
-            "gps_track": data.get("gpsPoints"),
+            "gps_points": len(data.get("gpsPoints", data.get("gps_points", []))),
+            "gps_track": data.get("gpsPoints", data.get("gps_points")),
             "raw_payload": data,
         }
         
