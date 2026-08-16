@@ -15,7 +15,7 @@ const BADGES = [
 const API = getApiBaseUrl();
 
 export default function Profile() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, setUser, isAuthenticated } = useAuth();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
@@ -75,6 +75,7 @@ export default function Profile() {
       existing.name = name;
       existing.bio = bio;
       localStorage.setItem("para_auth_user_v1", JSON.stringify(existing));
+      setUser(existing); // Update React state immediately
     } catch (e) {
       alert("Failed to save. Try again.");
       return;
