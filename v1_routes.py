@@ -130,6 +130,7 @@ async def create_community_thread(data: Dict[str, Any]):
             "content": data.get("content", "").strip(),
             "tag": data.get("tag", "Routes"),
             "user_email": data.get("user_email", "anonymous"),
+            "author_name": data.get("author_name", data.get("handle", "Anonymous")),
             "created_at": "now()",
         }
         if not thread["title"]:
@@ -170,7 +171,7 @@ async def create_community_comment(data: Dict[str, Any]):
         comment = {
             "thread_uuid": data.get("thread_uuid", ""),
             "content": data.get("content", "").strip(),
-            "author_email": data.get("user_email", data.get("author_email", "anonymous")),
+            "author_name": data.get("author_name", data.get("user_email", "Anonymous")),
             "created_at": "now()",
         }
         if not comment["thread_uuid"] or not comment["content"]:
@@ -201,7 +202,7 @@ async def create_route_edit(data: Dict[str, Any]):
             "edit_type": data.get("edit_type", "modify"),
             "description": data.get("description", ""),
             "new_geometry": data.get("new_geometry"),
-            "author_email": data.get("author_email", data.get("user_email", "anonymous")),
+            "author_name": data.get("author_name", data.get("user_email", "Anonymous")),
             "created_at": "now()",
         }
         res = supabase.table("community_route_edits").insert(edit).execute()
