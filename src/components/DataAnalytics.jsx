@@ -143,55 +143,57 @@ export default function DataAnalytics() {
         <button onClick={fetchData} className="text-xs text-[#7A4BC8] font-bold">↻</button>
       </div>
 
-      {/* Line Graph — Contributions over time */}
+      {/* Multi-Line Graph — 4 colored lines */}
       <div className="bg-white rounded-xl border border-gray-100 p-3">
-        <h4 className="text-xs font-bold text-gray-900 mb-2">Activity (14 days)</h4>
-        <div className="relative" style={{ height: `${chartHeight}px` }}>
-          <svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth * 10} ${chartHeight}`} preserveAspectRatio="none">
-            {/* Grid lines */}
-            {[0.25, 0.5, 0.75].map(frac => (
-              <line key={frac} x1="0" y1={chartHeight * frac} x2={chartWidth * 10} y2={chartHeight * frac} stroke="#f0f0f0" strokeWidth="0.5" />
-            ))}
-            {/* Area fill */}
-            <path
-              d={`M 0 ${chartHeight} ${timeline.map((d, i) => {
-                const x = (i / Math.max(timeline.length - 1, 1)) * chartWidth * 10;
-                const y = chartHeight - (d.total / maxTimeline) * (chartHeight - 10);
-                return `L ${x} ${y}`;
-              }).join(" ")}`}
-              fill="rgba(122, 75, 200, 0.1)"
-              stroke="none"
-            />
-            {/* Line */}
-            <path
-              d={`M 0 ${chartHeight - (timeline[0]?.total / maxTimeline) * (chartHeight - 10) || chartHeight} ${timeline.map((d, i) => {
-                const x = (i / Math.max(timeline.length - 1, 1)) * chartWidth * 10;
-                const y = chartHeight - (d.total / maxTimeline) * (chartHeight - 10);
-                return `L ${x} ${y}`;
-              }).join(" ")}`}
-              fill="none"
-              stroke="#7A4BC8"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* Dots */}
-            {timeline.map((d, i) => {
+        <h4 className="text-xs font-bold text-gray-900 mb-1">Activity (14 days)</h4>
+        <div className="flex gap-3 mb-2">
+          {[
+            ["Fares", "#F93F74"],
+            ["Tracks", "#4F00CD"],
+            ["Threads", "#FF8827"],
+            ["POIs", "#22c55e"],
+          ].map(([label, color]) => (
+            <span key={label} className="flex items-center gap-1 text-[8px] text-gray-500">
+              <span className="w-2 h-2 rounded-full" style={{ background: color }} /> {label}
+            </span>
+          ))}
+        </div>
+        <svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth * 10} ${chartHeight}`} preserveAspectRatio="none">
+          {[0.25, 0.5, 0.75].map(frac => (
+            <line key={frac} x1="0" y1={chartHeight * frac} x2={chartWidth * 10} y2={chartHeight * frac} stroke="#f0f0f0" strokeWidth="0.5" />
+          ))}
+          {[
+            ["fare", "#F93F74"],
+            ["track", "#4F00CD"],
+            ["thread", "#FF8827"],
+            ["poi", "#22c55e"],
+          ].map(([type, color]) => {
+            const points = timeline.map((d, i) => {
               const x = (i / Math.max(timeline.length - 1, 1)) * chartWidth * 10;
-              const y = chartHeight - (d.total / maxTimeline) * (chartHeight - 10);
-              return <circle key={i} cx={x} cy={y} r="3" fill="#7A4BC8" />;
-            })}
-          </svg>
-          {/* X-axis labels */}
-          <div className="flex justify-between mt-1">
-            {timeline.length > 0 && (
-              <>
-                <span className="text-[8px] text-gray-400">{timeline[0]?.date}</span>
-                <span className="text-[8px] text-gray-400">{timeline[Math.floor(timeline.length / 2)]?.date}</span>
-                <span className="text-[8px] text-gray-400">{timeline[timeline.length - 1]?.date}</span>
-              </>
-            )}
-          </div>
+              const y = chartHeight - ((d[type] || 0) / maxTimeline) * (chartHeight - 10);
+              return `${x},${y}`;
+            });
+            return (
+              <polyline
+                key={type}
+                points={points.join(" ")}
+                fill="none"
+                stroke={color}
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            );
+          })}
+        </svg>
+        <div className="flex justify-between mt-1">
+          {timeline.length > 0 && (
+            <>
+              <span className="text-[8px] text-gray-400">{timeline[0]?.date}</span>
+              <span className="text-[8px] text-gray-400">{timeline[Math.floor(timeline.length / 2)]?.date}</span>
+              <span className="text-[8px] text-gray-400">{timeline[timeline.length - 1]?.date}</span>
+            </>
+          )}
         </div>
         <p className="text-[10px] text-gray-400 mt-1 text-center">{stats?.totalContributions || 0} total contributions</p>
       </div>
