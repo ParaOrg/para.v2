@@ -22,7 +22,7 @@ async def get_gas_stations(city: str = Query("")):
 async def get_blended_price(city: str = Query("")):
     """Average gas price across all stations."""
     try:
-        res = supabase.table("gas_prices").select("*").order("-created_at").limit(200).execute()
+        res = supabase.table("gas_prices").select("*").order("created_at", desc=True).limit(200).execute()
         prices = res.data or []
         if not prices:
             return {"blended_price": 0, "currency": "PHP", "sample_size": 0}
