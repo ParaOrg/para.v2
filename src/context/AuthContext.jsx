@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { getApiBaseUrl } from "../utils/api";
 
 const AuthContext = createContext(null);
-const USER_KEY = "para_user";
+const USER_KEY = "para_auth_user_v1";
+const TOKEN_KEY = "para_auth_token_v1";
 const API = getApiBaseUrl();
 
 function safeParse(value) { try { return value ? JSON.parse(value) : null; } catch { return null; } }
@@ -11,7 +12,26 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => safeParse(localStorage.getItem(USER_KEY)));
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { setLoading(false); }, []);
+  useEffect(() => {
+    const storedUser = safeParse(localStorage.getItem(USER_KEY));
+    if (storedUser && storedUser.email) {
+      fetch(`${API}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: storedUser.email }),
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.user) {
+            const updated = { ...storedUser, ...(d.user.role ? { role: d.user.role } : {}) };
+            localStorage.setItem(USER_KEY, JSON.stringify(updated));
+            setUser(updated);
+          }
+        })
+        .catch(() => {});
+    }
+    setLoading(false);
+  }, []);
 
   const login = useCallback(async (email) => {
     const normalizedEmail = String(email || "").trim().toLowerCase();
@@ -29,6 +49,9 @@ export function AuthProvider({ children }) {
     if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
     const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
+    // Always trust backend role — it's the source of truth
+    if (data.user?.role) userData.role = data.user.role;
+    if (!userData.role) userData.role = null;
     try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
     setUser(userData);
     return data;
@@ -61,19 +84,19 @@ export function AuthProvider({ children }) {
   }, [login]);
 
   const logout = useCallback(() => {
-    try { localStorage.removeItem(USER_KEY); } catch {}
+    try { localStorage.removeItem(USER_KEY); localStorage.removeItem(TOKEN_KEY); } catch {}
     setUser(null);
   }, []);
 
   const isAuthenticated = Boolean(user);
   const isGuest = !user;
   const checkPermission = useCallback((level) => {
-    if (level === "admin") return user?.role === "admin";
+    if (level === "admin") return user?.role === "admin" || user?.role === "founder";
     return isAuthenticated;
   }, [user, isAuthenticated]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, isGuest, login, signup, logout, checkPermission, loginWithCustomToken }}>
+    <AuthContext.Provider value={{ user, setUser, loading, isAuthenticated, isGuest, login, signup, logout, checkPermission, loginWithCustomToken }}>
       {children}
     </AuthContext.Provider>
   );
