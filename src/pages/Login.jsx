@@ -31,8 +31,8 @@ export default function Login() {
     if (!phone || phone.length < 10) { setError("Enter a valid phone number."); return; }
     setLoading(true);
     try {
-      const pseudoEmail = `${phone}@phone.para.ph`;
-      await login(pseudoEmail, "");
+      // Phone becomes pseudo-email — backend handles it
+      await login(`${phone}@phone.para.ph`, "");
       navigate("/");
     } catch (err) {
       setError(err.message || "Login failed.");
