@@ -130,6 +130,7 @@ async def create_community_thread(data: Dict[str, Any]):
             "content": data.get("content", "").strip(),
             "tag": data.get("tag", "Routes"),
             "user_email": data.get("user_email", "anonymous"),
+            "author_name": data.get("author_name", data.get("handle", "Anonymous")),
             "created_at": "now()",
         }
         if not thread["title"]:
