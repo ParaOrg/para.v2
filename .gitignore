@@ -48,3 +48,4 @@ Thumbs.db
 .idea/backend/
 .vercel
 dist/
+.env*
