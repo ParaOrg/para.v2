@@ -347,6 +347,21 @@ async def signup(request: Request):
         role = data.get("role", "commuter")
         otp = data.get("otp", "")
         
+        if phone and not email:
+            import random
+            otp_code = str(random.randint(100000, 999999))
+            email = f"{phone}@phone.para.ph"
+            name = data.get("name", f"User {phone[-4:]}")
+            existing_phone = supabase.table("waitlist").select("*").eq("email", email).execute()
+            if not existing_phone.data:
+                supabase.table("waitlist").insert({
+                    "email": email, "name": name, "contact": phone,
+                    "otp_code": otp_code, "listed_at": "now()",
+                }).execute()
+            else:
+                supabase.table("waitlist").update({"otp_code": otp_code}).eq("email", email).execute()
+            return {"status": "otp_sent", "dev_otp": otp_code, "email": email}
+        
         if not email:
             return {"status": "error", "message": "Email is required"}
         
