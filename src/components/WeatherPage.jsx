@@ -71,10 +71,27 @@ export default function WeatherPage({ onClose }) {
   const [daily, setDaily] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const [advisories, setAdvisories] = useState([]);
+  const [cityName, setCityName] = useState("");
 
   const { location, consent } = useTrackingConsent();
   const lat = location?.lat || window.__userLocation?.[0] || 14.5995;
   const lng = location?.lng || window.__userLocation?.[1] || 120.9842;
+
+  useEffect(() => {
+    // Reverse geocode to get city name
+    if (lat !== 14.5995 || lng !== 120.9842) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`)
+        .then(r => r.json())
+        .then(d => {
+          const addr = d.address || {};
+          const city = addr.city || addr.town || addr.municipality || addr.county || "Metro Manila";
+          setCityName(city);
+        })
+        .catch(() => {});
+    } else {
+      setCityName("Metro Manila");
+    }
+  }, [lat, lng]);
 
   useEffect(() => {
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia/Manila&forecast_days=7`)
@@ -124,6 +141,7 @@ export default function WeatherPage({ onClose }) {
 
         {/* HERO — purple gradient + weather effects */}
         <div className="relative w-full overflow-hidden rounded-t-3xl" style={{ height: "251px", background: "linear-gradient(180deg, #3A1E86 0%, #5B339C 50%, #7A4BC8 100%)" }}>
+            {cityName && <p className="absolute top-3 left-1/2 -translate-x-1/2 text-white/80 text-sm font-semibold">{cityName}</p>}
           
           {/* Weather effects based on code */}
           {(() => {
