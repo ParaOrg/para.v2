@@ -11,7 +11,6 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import About from "./pages/About";
-import GasPrices from "./pages/GasPrices";
 import POIBrowser from "./pages/POIBrowser";
 import Contribute from "./pages/Contribute";
 import GlobalWeather from "./components/GlobalWeather";
@@ -40,8 +39,7 @@ export default function App() {
           <Route path="/explore" element={<RoutesExplorer />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/about" element={<About />} />
-          <Route path="/gas-prices" element={<GasPrices />} />
-          <Route path="/poi" element={<POIBrowser />} />
+                    <Route path="/poi" element={<POIBrowser />} />
           <Route path="/contribute" element={<Contribute />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
