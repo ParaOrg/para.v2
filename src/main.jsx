@@ -1,6 +1,7 @@
 import React from "react";
 import { startSyncEngine } from "./utils/syncEngine";
 import { startBackgroundTracking } from "./utils/backgroundTracker";
+import { initPwaTracker } from "./utils/pwaTracker";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
@@ -9,6 +10,7 @@ import "./index.css";
 
 startSyncEngine();
 startBackgroundTracking();
+initPwaTracker();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

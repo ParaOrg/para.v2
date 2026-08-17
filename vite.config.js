@@ -6,20 +6,26 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
+      '/health': 'https://para-ph-api.onrender.com',
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        target: 'https://para-ph-api.onrender.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
       },
-      '/chat': 'http://127.0.0.1:8000',
-      '/feedback': 'http://127.0.0.1:8000',
-      '/telemetry': 'http://127.0.0.1:8000',
-      '/traffic': 'http://127.0.0.1:8000',
-      '/admin': 'http://127.0.0.1:8000',
-      '/auth': 'http://127.0.0.1:8000',
-      '/poi': 'http://127.0.0.1:8000',
-      '/commute': 'http://127.0.0.1:8000',
-      '/routes': 'http://127.0.0.1:8000',
+      '/chat': 'https://para-ph-api.onrender.com',
+      '/feedback': 'https://para-ph-api.onrender.com',
+      '/telemetry': 'https://para-ph-api.onrender.com',
+      '/traffic': 'https://para-ph-api.onrender.com',
+      '/auth': 'https://para-ph-api.onrender.com',
+      '/poi': 'https://para-ph-api.onrender.com',
+      '/commute': 'https://para-ph-api.onrender.com',
+      '/routes': 'https://para-ph-api.onrender.com',
+      '/fare': 'https://para-ph-api.onrender.com',
+      '/community': 'https://para-ph-api.onrender.com',
+      '/cities': 'https://para-ph-api.onrender.com',
+      '/articles': 'https://para-ph-api.onrender.com',
+      '/admin/routes': 'https://para-ph-api.onrender.com',
+      '/admin/pending': 'https://para-ph-api.onrender.com',
+      '/admin/graph': 'https://para-ph-api.onrender.com',
     }
   }
 })

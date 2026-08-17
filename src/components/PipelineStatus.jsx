@@ -4,16 +4,13 @@ import { getApiBaseUrl } from "../utils/api";
 const API = getApiBaseUrl();
 
 const CHECKS = [
-  { id: "health", label: "Backend Health", endpoint: "/health", method: "GET" },
-  { id: "routes", label: "Public Routes (read)", endpoint: "/routes/public", method: "GET" },
-  { id: "fares", label: "Fare Reports (read)", endpoint: "/fare/reports?limit=1", method: "GET" },
-  { id: "cities", label: "Cities (read)", endpoint: "/cities", method: "GET" },
-  { id: "threads", label: "Threads (read)", endpoint: "/community/threads", method: "GET" },
-  { id: "pois", label: "POIs (read)", endpoint: "/poi/list", method: "GET" },
-  { id: "commute_write", label: "Commute Save (write)", endpoint: "/commute/save", method: "POST", body: { client_log_id: `health-${Date.now()}`, route_name: "Health Check", user_email: "system@health.check", total_time_sec: 1 } },
-  { id: "fare_write", label: "Fare Submit (write)", endpoint: "/fare/report", method: "POST", body: { user_email: "system@health.check", mode: "test", fare_amount: 1, city: "Metro Manila" } },
-  { id: "signup", label: "Signup (write)", endpoint: "/auth/signup", method: "POST", body: { email: `health-${Date.now()}@check.com` } },
-  { id: "poi_write", label: "POI Add (write)", endpoint: "/poi/add", method: "POST", body: { canonical_name: `Health ${Date.now()}`, category: "test", lat: 14.5995, lng: 120.9842 } },
+  { id: "health", label: "Backend Health", endpoint: "/health" },
+  { id: "routes", label: "Public Routes", endpoint: "/routes/public" },
+  { id: "fares", label: "Fare Reports", endpoint: "/fare/reports?limit=1" },
+  { id: "cities", label: "Cities", endpoint: "/cities" },
+  { id: "threads", label: "Community Threads", endpoint: "/community/threads" },
+  { id: "pois", label: "POI List", endpoint: "/poi/list" },
+  { id: "write_test", label: "DB Write Capability", endpoint: "/health/write-test" },
 ];
 
 export default function PipelineStatus() {
@@ -27,25 +24,15 @@ export default function PipelineStatus() {
     for (const check of CHECKS) {
       const start = Date.now();
       try {
-        const options = {};
-        if (check.method === "POST" && check.body) {
-          options.method = "POST";
-          options.headers = { "Content-Type": "application/json" };
-          options.body = JSON.stringify(check.body);
-        }
-        const res = await fetch(`${API}${check.endpoint}`, options);
+        const res = await fetch(`${API}${check.endpoint}`);
+        const contentType = res.headers.get("content-type") || "";
         newResults[check.id] = {
-          ok: res.ok,
-          status: res.status,
+          ok: res.ok && !contentType.includes("text/html"),
+          status: res.ok ? res.status : 0,
           latency: Date.now() - start,
         };
       } catch (e) {
-        newResults[check.id] = {
-          ok: false,
-          status: 0,
-          latency: Date.now() - start,
-          error: e.message,
-        };
+        newResults[check.id] = { ok: false, status: 0, latency: Date.now() - start };
       }
     }
     setResults(newResults);
@@ -55,18 +42,18 @@ export default function PipelineStatus() {
 
   useEffect(() => {
     runChecks();
-    const interval = setInterval(runChecks, 30000); // every 30s
+    const interval = setInterval(runChecks, 300000); // 5 min
     return () => clearInterval(interval);
   }, []);
 
-  const allOk = Object.values(results).every(r => r.ok);
+  const allOk = Object.values(results).length > 0 && Object.values(results).every(r => r.ok);
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-gray-900">Pipeline Status</h3>
         <button onClick={runChecks} disabled={checking} className="text-xs text-[#7A4BC8] font-bold">
-          {checking ? "Checking…" : "↻ Refresh"}
+          {checking ? "…" : "↻ Refresh"}
         </button>
       </div>
 
@@ -80,9 +67,11 @@ export default function PipelineStatus() {
               {result?.latency != null && (
                 <span className="text-[10px] text-gray-400">{result.latency}ms</span>
               )}
-              {result?.status && (
+              {result?.status ? (
                 <span className={`text-[10px] font-bold ${result.ok ? "text-green-600" : "text-red-500"}`}>{result.status}</span>
-              )}
+              ) : result?.ok ? (
+                <span className="text-[10px] font-bold text-green-600">OK</span>
+              ) : null}
             </div>
           );
         })}
