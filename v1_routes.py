@@ -116,7 +116,7 @@ async def get_public_route_geojson(route_id: str = Query(..., description="Route
 @router.get("/community/threads")
 async def get_community_threads():
     try:
-        rows = await fetch_all("community_threads", order="-created_at")
+        rows = await fetch_all("community_threads", order="created_at", desc=True)
         return {"threads": rows or [], "total": len(rows or [])}
     except Exception:
         return {"threads": [], "total": 0}
@@ -185,7 +185,7 @@ async def create_community_comment(data: Dict[str, Any]):
 @router.get("/community/route-edits")
 async def get_route_edits(route_uuid: str = Query("")):
     try:
-        query = supabase.table("community_route_edits").select("*").order("-created_at")
+        query = supabase.table("community_route_edits").select("*").order("created_at", desc=True)
         if route_uuid:
             query = query.eq("route_uuid", route_uuid)
         res = query.execute()
@@ -231,7 +231,7 @@ async def vote_route_edit(data: Dict[str, Any]):
 @router.get("/api/v1/gas-prices/blended")
 async def get_blended_gas_price():
     try:
-        res = supabase.table("gas_prices").select("*").order("-created_at").limit(50).execute()
+        res = supabase.table("gas_prices").select("*").order("created_at", desc=True).limit(50).execute()
         prices = res.data or []
         if not prices:
             return {"blended_price": 0, "currency": "PHP", "sample_size": 0}
@@ -324,7 +324,7 @@ async def get_article(slug: str):
 @router.get("/admin/commute/logs")
 async def get_admin_commute_logs(user_email: str = Query("")):
     try:
-        query = supabase.table("ph_user_tracks").select("*").order("-created_at").limit(100)
+        query = supabase.table("ph_user_tracks").select("*").order("created_at", desc=True).limit(100)
         if user_email:
             query = query.eq("user_id", user_email)
         res = query.execute()
