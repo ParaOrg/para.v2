@@ -1,6 +1,6 @@
 """
-pattern_learner.py — Nightly job to learn route patterns from user tracks.
-Runs every 24 hours via Render cron or manually.
+pattern_learner.py — Route pattern learning, discovery, and congestion detection.
+Runs nightly to learn from user tracks and suggest smarter routes.
 """
 
 import asyncio
@@ -8,139 +8,182 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from database import supabase, fetch_all
 
-async def learn_route_patterns():
-    """Analyze last 24h of tracks and update route_patterns."""
-    print(f"[{datetime.now().isoformat()}] Starting pattern learning...")
+async def learn_patterns():
+    """Full pattern learning pipeline."""
+    print(f"[{datetime.now().isoformat()}] Pattern learning...")
     
-    # Fetch last 24h of tracks
-    since = (datetime.now() - timedelta(hours=24)).isoformat()
-    tracks = await fetch_all("ph_user_tracks", order="-created_at")
+    tracks = await fetch_all("ph_user_tracks")
+    routes = await fetch_all("ph_routes", eq={"is_approved": True})
     
-    # Filter to last 24h (fetch_all returns all, filter locally)
-    recent = []
-    for t in tracks:
-        created = t.get("created_at", "")
-        if created >= since:
-            recent.append(t)
+    # 1. Learn OD patterns (counting)
+    await learn_od_patterns(tracks)
     
-    print(f"Found {len(recent)} tracks from last 24h")
+    # 2. Discover new routes (OD pairs with no official route)
+    await discover_new_routes(tracks, routes)
     
-    if not recent:
-        print("No tracks to analyze.")
-        return
+    # 3. Detect congestion (time spikes)
+    await detect_congestion(tracks, routes)
     
-    # Group by OD pair + hour
-    patterns = defaultdict(lambda: {
-        "count": 0,
-        "total_duration": 0,
-        "total_fare": 0,
-        "gps_samples": [],
-    })
+    # 4. Find alternatives (multiple paths for same OD)
+    await find_alternatives(tracks)
     
-    for track in recent:
+    print(f"[{datetime.now().isoformat()}] Complete.")
+
+
+async def learn_od_patterns(tracks):
+    """Count OD pairs by hour and day."""
+    patterns = defaultdict(lambda: {"count": 0, "durations": [], "fares": [], "gps_samples": []})
+    
+    for track in tracks:
         raw = track.get("raw_payload") or {}
-        gps_points = raw.get("gps_points") or raw.get("gpsPoints") or []
+        gps = raw.get("gps_points") or raw.get("gpsPoints") or []
+        if len(gps) < 2: continue
         
-        if len(gps_points) < 2:
+        o = gps[0]
+        d = gps[-1]
+        if not o.get("lat") or not d.get("lat"): continue
+        
+        o_lat, o_lng = round(o["lat"], 3), round(o["lng"], 3)
+        d_lat, d_lng = round(d["lat"], 3), round(d["lng"], 3)
+        
+        created = track.get("created_at", "")
+        try:
+            dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            hour, dow = dt.hour, dt.weekday()
+        except:
             continue
-        
-        origin = gps_points[0]
-        dest = gps_points[-1]
-        
-        if not origin.get("lat") or not dest.get("lat"):
-            continue
-        
-        # Round to ~100m precision
-        o_lat = round(origin["lat"], 3)
-        o_lng = round(origin["lng"], 3)
-        d_lat = round(dest["lat"], 3)
-        d_lng = round(dest["lng"], 3)
-        
-        created_dt = datetime.fromisoformat(track.get("created_at", "").replace("Z", "+00:00"))
-        hour = created_dt.hour
-        dow = created_dt.weekday()
         
         key = (o_lat, o_lng, d_lat, d_lng, hour, dow)
-        
         patterns[key]["count"] += 1
-        patterns[key]["total_duration"] += track.get("total_time_sec", 0) or 0
-        
-        # Extract fare from raw_payload
-        fare = raw.get("total_fare", 0) or 0
-        patterns[key]["total_fare"] += fare
-        
-        # Sample GPS for path averaging
-        if len(patterns[key]["gps_samples"]) < 50:
-            patterns[key]["gps_samples"].extend(gps_points[:20])
+        patterns[key]["durations"].append(track.get("total_time_sec", 0) or 0)
+        patterns[key]["fares"].append(raw.get("total_fare", 0) or 0)
+        patterns[key]["gps_samples"].extend(gps[:20])
     
-    print(f"Found {len(patterns)} unique OD patterns")
+    print(f"  OD patterns: {len(patterns)}")
     
-    # Upsert to route_patterns
     for key, data in patterns.items():
         o_lat, o_lng, d_lat, d_lng, hour, dow = key
+        avg_dur = sum(data["durations"]) / len(data["durations"]) if data["durations"] else 0
+        avg_fare = sum(data["fares"]) / len(data["fares"]) if data["fares"] else 0
         
-        avg_duration = data["total_duration"] / data["count"] if data["count"] > 0 else 0
-        avg_fare = data["total_fare"] / data["count"] if data["count"] > 0 else 0
+        existing = supabase.table("route_patterns").select("id").eq(
+            "origin_lat", o_lat).eq("origin_lng", o_lng).eq(
+            "dest_lat", d_lat).eq("dest_lng", d_lng).eq(
+            "hour_of_day", hour).eq("day_of_week", dow).execute()
         
-        pattern = {
-            "origin_lat": o_lat,
-            "origin_lng": o_lng,
-            "dest_lat": d_lat,
-            "dest_lng": d_lng,
-            "hour_of_day": hour,
-            "day_of_week": dow,
+        data_payload = {
             "frequency": data["count"],
-            "avg_duration_sec": int(avg_duration),
+            "avg_duration_sec": int(avg_dur),
             "avg_fare": round(avg_fare, 2),
             "last_seen": "now()",
         }
         
-        try:
-            # Check if exists
-            existing = supabase.table("route_patterns").select("id").eq(
-                "origin_lat", o_lat
-            ).eq("origin_lng", o_lng).eq(
-                "dest_lat", d_lat
-            ).eq("dest_lng", d_lng).eq(
-                "hour_of_day", hour
-            ).eq("day_of_week", dow).execute()
-            
-            if existing.data:
-                # Update
-                supabase.table("route_patterns").update({
-                    "frequency": data["count"],
-                    "avg_duration_sec": int(avg_duration),
-                    "avg_fare": round(avg_fare, 2),
-                    "last_seen": "now()",
-                }).eq("id", existing.data[0]["id"]).execute()
-            else:
-                # Insert
-                supabase.table("route_patterns").insert(pattern).execute()
-        except Exception as e:
-            print(f"Failed to upsert pattern: {e}")
-    
-    print(f"[{datetime.now().isoformat()}] Pattern learning complete.")
+        if existing.data:
+            supabase.table("route_patterns").update(data_payload).eq("id", existing.data[0]["id"]).execute()
+        else:
+            data_payload.update({
+                "origin_lat": o_lat, "origin_lng": o_lng,
+                "dest_lat": d_lat, "dest_lng": d_lng,
+                "hour_of_day": hour, "day_of_week": dow,
+            })
+            supabase.table("route_patterns").insert(data_payload).execute()
 
 
-async def get_route_suggestion(origin_lat, origin_lng, dest_lat, dest_lng, hour=None):
-    """Get most common route for OD pair at given hour."""
-    if hour is None:
-        hour = datetime.now().hour
+async def discover_new_routes(tracks, routes):
+    """Find OD pairs people travel but have no official route."""
+    official_od = set()
+    for r in routes:
+        if r.get("origin_lat") and r.get("dest_lat"):
+            official_od.add((
+                round(r["origin_lat"], 2), round(r["origin_lng"], 2),
+                round(r["dest_lat"], 2), round(r["dest_lng"], 2),
+            ))
     
-    o_lat = round(origin_lat, 3)
-    o_lng = round(origin_lng, 3)
-    d_lat = round(dest_lat, 3)
-    d_lng = round(dest_lng, 3)
+    tracked_od = defaultdict(int)
+    for track in tracks:
+        raw = track.get("raw_payload") or {}
+        gps = raw.get("gps_points") or raw.get("gpsPoints") or []
+        if len(gps) < 2: continue
+        o, d = gps[0], gps[-1]
+        if not o.get("lat") or not d.get("lat"): continue
+        key = (round(o["lat"], 2), round(o["lng"], 2), round(d["lat"], 2), round(d["lng"], 2))
+        tracked_od[key] += 1
     
-    res = supabase.table("route_patterns").select("*").eq(
-        "origin_lat", o_lat
-    ).eq("origin_lng", o_lng).eq(
-        "dest_lat", d_lat
-    ).eq("dest_lng", d_lng).order("frequency", desc=True).limit(5).execute()
+    undiscovered = []
+    for od, count in tracked_od.items():
+        if od not in official_od and count >= 3:
+            undiscovered.append({"od": od, "count": count})
     
-    return res.data or []
+    print(f"  New routes discovered: {len(undiscovered)}")
+    
+    for item in undiscovered:
+        o_lat, o_lng, d_lat, d_lng = item["od"]
+        supabase.table("discovered_routes").upsert({
+            "origin_lat": o_lat, "origin_lng": o_lng,
+            "dest_lat": d_lat, "dest_lng": d_lng,
+            "frequency": item["count"],
+            "last_seen": "now()",
+        }, on_conflict="origin_lat,origin_lng,dest_lat,dest_lng").execute()
 
 
-# Run via: python pattern_learner.py
+async def detect_congestion(tracks, routes):
+    """Compare this week vs last week to find congestion."""
+    now = datetime.now()
+    
+    for route in routes:
+        route_id = route.get("route_uuid")
+        route_tracks = [t for t in tracks if (t.get("raw_payload") or {}).get("route_uuid") == str(route_id)]
+        
+        if len(route_tracks) < 5:
+            continue
+        
+        this_week = [t for t in route_tracks if datetime.fromisoformat(t.get("created_at", "").replace("Z", "+00:00")) > now - timedelta(days=3)]
+        last_week = [t for t in route_tracks if datetime.fromisoformat(t.get("created_at", "").replace("Z", "+00:00")) > now - timedelta(days=10) and datetime.fromisoformat(t.get("created_at", "").replace("Z", "+00:00")) <= now - timedelta(days=3)]
+        
+        if not this_week or not last_week:
+            continue
+        
+        this_avg = sum(t.get("total_time_sec", 0) or 0 for t in this_week) / len(this_week)
+        last_avg = sum(t.get("total_time_sec", 0) or 0 for t in last_week) / len(last_week)
+        
+        if this_avg > last_avg * 1.3:
+            print(f"  CONGESTED: {route.get('name')} ({last_avg:.0f}s → {this_avg:.0f}s)")
+            supabase.table("ph_routes").update({
+                "congestion_status": "high",
+                "avg_duration_sec": int(this_avg),
+            }).eq("route_uuid", route_id).execute()
+
+
+async def find_alternatives(tracks):
+    """Find multiple distinct paths for same OD."""
+    od_groups = defaultdict(list)
+    
+    for track in tracks:
+        raw = track.get("raw_payload") or {}
+        gps = raw.get("gps_points") or raw.get("gpsPoints") or []
+        if len(gps) < 5: continue
+        o, d = gps[0], gps[-1]
+        key = (round(o.get("lat", 0), 2), round(o.get("lng", 0), 2), round(d.get("lat", 0), 2), round(d.get("lng", 0), 2))
+        od_groups[key].append(gps)
+    
+    alternatives_found = 0
+    for od, trails in od_groups.items():
+        if len(trails) < 3:
+            continue
+        
+        # Simple clustering: compare midpoints to find distinct paths
+        midpoints = defaultdict(list)
+        for trail in trails:
+            mid = trail[len(trail) // 2]
+            mid_key = (round(mid["lat"], 2), round(mid["lng"], 2))
+            midpoints[mid_key].append(trail)
+        
+        if len(midpoints) >= 2:
+            alternatives_found += 1
+            print(f"  Alternative found: {len(midpoints)} paths for OD {od}")
+    
+    print(f"  Alternatives found: {alternatives_found}")
+
+
 if __name__ == "__main__":
-    asyncio.run(learn_route_patterns())
+    asyncio.run(learn_patterns())
