@@ -37,6 +37,7 @@ def set_cached_route(origin_lat, origin_lng, dest_lat, dest_lng, route):
         del _route_cache[oldest]
 
 from graph_engine import find_route, find_k_routes, get_walking_path, haversine
+from smart_router import smart_chat_reply
 from llm_engine import parse_chat_intent, normalize_location
 from models import ChatMessage, ChatResponse, RouteRequest, RouteResponse, RouteStep
 from biyahe_score import compute_biyahe_score, rank_routes, get_profile
@@ -546,6 +547,14 @@ async def chat(request: ChatMessage, req: Request):
                 f"Origin: {origin_raw}\n"
                 f"Destination: {dest_raw}"
             ))
+
+        # Try smart router first (learned patterns)
+        try:
+            smart_reply = await smart_chat_reply(origin_raw, dest_raw, G)
+            if smart_reply and "no route" not in smart_reply.lower():
+                return ChatResponse(reply_text=smart_reply, origin=origin_raw, destination=dest_raw)
+        except Exception:
+            pass
 
         # Find K candidate routes and rank by Biyahe Score
         # Check cache first
