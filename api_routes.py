@@ -1,4 +1,5 @@
 """
+# DEPLOY_MARKER: 2026-08-17-v2
 api_routes.py — Core chat and routing endpoints.
 """
 
