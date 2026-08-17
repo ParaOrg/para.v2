@@ -24,24 +24,23 @@ const VEHICLES = [
   { id: "tricycle", label: "Trike", icon: "🛺" },
   { id: "walk", label: "Walk", icon: "🚶" },
   { id: "uv_express", label: "UV", icon: "🚐" },
-  { id: "grab", label: "Grab", icon: "🚗" },
-  { id: "angkas", label: "Angkas", icon: "🏍️" },
 ];
 
 const POI_TYPES = [
-  { id: "sari_sari", label: "Sari-sari Store", icon: "🏪" },
+  { id: "sari_sari", label: "Sari-sari", icon: "🏪" },
   { id: "lugawan", label: "Lugawan", icon: "🍜" },
-  { id: "resto", label: "Restaurant", icon: "🍽️" },
+  { id: "resto", label: "Resto", icon: "🍽️" },
   { id: "cafe", label: "Cafe", icon: "☕" },
   { id: "landmark", label: "Landmark", icon: "📍" },
   { id: "terminal", label: "Terminal", icon: "🚏" },
-  { id: "waiting_spot", label: "Waiting Spot", icon: "⏳" },
-  { id: "other", label: "Other", icon: "📌" },
 ];
 
 export default function Contribute() {
-  // Tabs
-  const [tab, setTab] = useState("my_routes"); // my_routes | stops | pois | shapes
+  // Actions — not tabs
+  const [action, setAction] = useState(null); // null | recording | waiting_spot | poi | route_shape
+  const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+  const [showPoiPicker, setShowPoiPicker] = useState(false);
+  const [nameInput, setNameInput] = useState("");
   
   // GPS
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
@@ -53,27 +52,16 @@ export default function Contribute() {
   const drawLayerRef = useRef(null);
   const liveMarkerRef = useRef(null);
   
-  // Route recording
+  // Recording
   const [recording, setRecording] = useState(false);
   const [gpsPoints, setGpsPoints] = useState([]);
   const [elapsed, setElapsed] = useState(0);
   const [vehicle, setVehicle] = useState("jeepney");
-  const [routeLabel, setRouteLabel] = useState("");
   const [savedRoutes, setSavedRoutes] = useState([]);
+  const [savedStops, setSavedStops] = useState([]);
+  const [savedPois, setSavedPois] = useState([]);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
-
-  // POI dropping
-  const [poiMode, setPoiMode] = useState(false);
-  const [poiType, setPoiType] = useState("sari_sari");
-  const [poiName, setPoiName] = useState("");
-  const [savedPois, setSavedPois] = useState([]);
-
-  // Stops
-  const [stopMode, setStopMode] = useState(false);
-  const [stopName, setStopName] = useState("");
-  const [isFormalStop, setIsFormalStop] = useState(false);
-  const [savedStops, setSavedStops] = useState([]);
 
   // Map init
   useEffect(() => {
@@ -84,15 +72,13 @@ export default function Contribute() {
     drawLayerRef.current = L.layerGroup().addTo(map);
     mapInst.current = map;
 
-    // Click to drop pin
     map.on("click", (e) => {
-      const { lat, lng } = e.latlng;
-      if (poiMode) addPoiAt(lat, lng);
-      if (stopMode) addStopAt(lat, lng);
+      if (action === "waiting_spot") dropWaitingSpot(e.latlng);
+      if (action === "poi") dropPoi(e.latlng);
     });
-  }, [poiMode, stopMode, poiType, poiName, stopName, isFormalStop]);
+  }, [action, nameInput, vehicle]);
 
-  // Live GPS
+  // GPS live dot
   useEffect(() => {
     const map = mapInst.current;
     if (!map || !consent || !location) return;
@@ -115,8 +101,7 @@ export default function Contribute() {
       const newPoints = [...prev, { lat: location.lat, lng: location.lng, timestamp: Date.now() }];
       if (drawLayerRef.current && newPoints.length > 1) {
         drawLayerRef.current.clearLayers();
-        const coords = newPoints.map(p => [p.lat, p.lng]);
-        L.polyline(coords, { color: "#7A4BC8", weight: 5, opacity: 0.8 }).addTo(drawLayerRef.current);
+        L.polyline(newPoints.map(p => [p.lat, p.lng]), { color: "#7A4BC8", weight: 5, opacity: 0.8 }).addTo(drawLayerRef.current);
       }
       return newPoints;
     });
@@ -132,48 +117,37 @@ export default function Contribute() {
     return () => clearInterval(timerRef.current);
   }, [recording]);
 
-  // Load saved data
+  // Load saved
   useEffect(() => {
     try {
       setSavedRoutes(JSON.parse(localStorage.getItem("para_my_routes") || "[]"));
-      setSavedPois(JSON.parse(localStorage.getItem("para_my_pois") || "[]"));
       setSavedStops(JSON.parse(localStorage.getItem("para_my_stops") || "[]"));
+      setSavedPois(JSON.parse(localStorage.getItem("para_my_pois") || "[]"));
     } catch {}
   }, []);
 
-  const addPoiAt = async (lat, lng) => {
-    if (!poiName.trim()) return;
-    const poi = {
-      name: poiName,
-      type: poiType,
-      lat, lng,
-      saved_at: new Date().toISOString(),
-      user_email: auth?.user?.email,
-    };
-    setSavedPois(prev => [...prev, poi]);
-    localStorage.setItem("para_my_pois", JSON.stringify([...savedPois, poi]));
-    L.circleMarker([lat, lng], {
-      radius: 8, fillColor: "#22c55e", color: "#fff", weight: 2, fillOpacity: 1,
-    }).addTo(drawLayerRef.current).bindTooltip(`${poiType}: ${poiName}`, { permanent: true, direction: "top" });
-    setPoiMode(false);
-    setPoiName("");
-  };
-
-  const addStopAt = async (lat, lng) => {
-    if (!stopName.trim()) return;
-    const stop = {
-      name: stopName,
-      lat, lng,
-      formal: isFormalStop,
-      saved_at: new Date().toISOString(),
-    };
+  const dropWaitingSpot = (latlng) => {
+    if (!nameInput.trim()) { setAction(null); return; }
+    const stop = { name: nameInput, lat: latlng.lat, lng: latlng.lng };
     setSavedStops(prev => [...prev, stop]);
     localStorage.setItem("para_my_stops", JSON.stringify([...savedStops, stop]));
-    L.circleMarker([lat, lng], {
-      radius: 7, fillColor: "#f59e0b", color: "#fff", weight: 2, fillOpacity: 1,
-    }).addTo(drawLayerRef.current).bindTooltip(`⏳ ${stopName}`, { permanent: true, direction: "top" });
-    setStopMode(false);
-    setStopName("");
+    L.circleMarker([latlng.lat, latlng.lng], { radius: 7, fillColor: "#f59e0b", color: "#fff", weight: 2, fillOpacity: 1 })
+      .addTo(drawLayerRef.current).bindTooltip(`⏳ ${nameInput}`, { permanent: true, direction: "top" });
+    setNameInput("");
+    setAction(null);
+  };
+
+  const dropPoi = (latlng) => {
+    if (!nameInput.trim()) { setAction(null); return; }
+    const poi = { name: nameInput, type: vehicle, lat: latlng.lat, lng: latlng.lng };
+    setSavedPois(prev => [...prev, poi]);
+    localStorage.setItem("para_my_pois", JSON.stringify([...savedPois, poi]));
+    const typeLabel = POI_TYPES.find(t => t.id === vehicle)?.label || "POI";
+    const typeIcon = POI_TYPES.find(t => t.id === vehicle)?.icon || "📍";
+    L.circleMarker([latlng.lat, latlng.lng], { radius: 8, fillColor: "#22c55e", color: "#fff", weight: 2, fillOpacity: 1 })
+      .addTo(drawLayerRef.current).bindTooltip(`${typeIcon} ${nameInput}`, { permanent: true, direction: "top" });
+    setNameInput("");
+    setAction(null);
   };
 
   const startRoute = () => {
@@ -182,6 +156,7 @@ export default function Contribute() {
     setGpsPoints([]);
     setElapsed(0);
     startTracking();
+    setAction("recording");
   };
 
   const stopRoute = async () => {
@@ -189,7 +164,7 @@ export default function Contribute() {
     stopTracking();
     setRecording(false);
     const route = {
-      label: routeLabel || `${VEHICLES.find(v => v.id === vehicle)?.label} Route`,
+      label: nameInput || `${VEHICLES.find(v => v.id === vehicle)?.label} Route`,
       vehicle,
       gps_points: gpsPoints,
       total_time_sec: elapsed,
@@ -197,8 +172,9 @@ export default function Contribute() {
     };
     setSavedRoutes(prev => [...prev, route]);
     localStorage.setItem("para_my_routes", JSON.stringify([...savedRoutes, route]));
-    setRouteLabel("");
+    setNameInput("");
     setGpsPoints([]);
+    setAction(null);
   };
 
   const formatTime = (s) => {
@@ -207,37 +183,40 @@ export default function Contribute() {
     return `${m}:${String(sec).padStart(2, "0")}`;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-20 lg:pb-0">
-      <Navbar />
-
-      {/* Tabs */}
-      <div className="bg-white border-b border-gray-100 px-3 py-2 flex gap-1 overflow-x-auto z-10">
-        {[
-          { id: "my_routes", label: "My Routes", icon: "🗺️" },
-          { id: "stops", label: "My Stops", icon: "⏳" },
-          { id: "pois", label: "POI Pins", icon: "📍" },
-          { id: "shapes", label: "Add Route Shape", icon: "✏️" },
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap flex items-center gap-1 ${tab === t.id ? "bg-[#7A4BC8] text-white" : "bg-gray-100 text-gray-500"}`}>
-            <span>{t.icon}</span> {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Map */}
-      <div className="relative flex-1 min-h-[35vh] z-0">
-        <div ref={mapRef} className="absolute inset-0" />
-
-        {recording && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-red-500 text-white rounded-full px-5 py-2 flex items-center gap-2 shadow-2xl">
-            <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse" />
-            <span className="font-black text-lg tabular-nums">{formatTime(elapsed)}</span>
+  // If recording, show minimal UI
+  if (recording) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <div className="relative flex-1 z-0">
+          <div ref={mapRef} className="absolute inset-0" />
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-red-500 text-white rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl">
+            <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+            <span className="font-black text-xl tabular-nums">{formatTime(elapsed)}</span>
             <span className="text-xs font-bold">{VEHICLES.find(v => v.id === vehicle)?.icon} {gpsPoints.length} pts</span>
           </div>
-        )}
+        </div>
+        <div className="bg-white border-t border-gray-100 p-4 pb-28 z-10">
+          <p className="text-center text-sm text-gray-600 mb-3">
+            <span className="font-black text-[#7A4BC8]">{gpsPoints.length}</span> points • Purple line = your path
+          </p>
+          <button onClick={stopRoute}
+            className="w-full py-4 bg-red-500 text-white rounded-xl font-black text-lg shadow-lg hover:bg-red-600">
+            ⏹ STOP & SAVE
+          </button>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+
+      {/* Map */}
+      <div className="relative flex-1 min-h-[30vh] z-0">
+        <div ref={mapRef} className="absolute inset-0" />
         <button onClick={() => window.dispatchEvent(new Event("para-show-weather"))}
           className="absolute top-4 right-16 z-30 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
           <span className="text-lg">🌤️</span>
@@ -248,138 +227,134 @@ export default function Contribute() {
         </button>
       </div>
 
-      {/* Bottom panel */}
-      <div className="bg-white border-t border-gray-100 p-4 pb-28 z-10 max-h-[45vh] overflow-y-auto">
-        {/* MY ROUTES */}
-        {tab === "my_routes" && (
-          <div className="space-y-3">
-            {!recording ? (
-              <>
-                <input
-                  value={routeLabel}
-                  onChange={(e) => setRouteLabel(e.target.value)}
-                  placeholder="Name this route (e.g. Bahay to Trabaho)"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
-                />
-                <div className="grid grid-cols-4 gap-1">
-                  {VEHICLES.map(v => (
-                    <button key={v.id} onClick={() => setVehicle(v.id)}
-                      className={`p-2 rounded-lg text-center ${vehicle === v.id ? "bg-purple-100 border border-purple-300" : "bg-gray-50 border border-transparent"}`}>
-                      <span className="text-lg">{v.icon}</span>
-                      <span className={`block text-[9px] font-bold ${vehicle === v.id ? "text-purple-800" : "text-gray-500"}`}>{v.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <button onClick={startRoute}
-                  className="w-full py-4 bg-[#7A4BC8] text-white rounded-xl font-black text-lg shadow-lg">
-                  {consent ? "📍 START MY ROUTE" : "📍 ENABLE GPS & START"}
-                </button>
-              </>
-            ) : (
-              <button onClick={stopRoute}
-                className="w-full py-4 bg-red-500 text-white rounded-xl font-black text-lg shadow-lg">
-                ⏹ STOP & SAVE
-              </button>
-            )}
-
-            {savedRoutes.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-gray-500">My Saved Routes ({savedRoutes.length})</p>
-                {savedRoutes.map((r, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-gray-50 rounded-lg">
-                    <span>{VEHICLES.find(v => v.id === r.vehicle)?.icon}</span>
-                    <span className="text-xs text-gray-700 flex-1 truncate">{r.label}</span>
-                    <span className="text-[10px] text-gray-400">{Math.floor(r.total_time_sec / 60)} min</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* MY STOPS */}
-        {tab === "stops" && (
-          <div className="space-y-3">
-            <button onClick={() => { setStopMode(true); setTab("stops"); }}
-              className="w-full py-3 bg-orange-500 text-white rounded-xl font-bold text-sm">
-              ⏳ Tap Map to Add Waiting Spot
+      {/* Action cards */}
+      <div className="bg-white border-t border-gray-100 p-4 pb-28 z-10">
+        {!action && (
+          <div className="space-y-2">
+            <p className="text-sm font-bold text-gray-900 text-center mb-3">What do you want to do?</p>
+            
+            {/* Big record button */}
+            <button onClick={() => { setAction("recording"); setShowVehiclePicker(true); }}
+              className="w-full py-4 bg-[#7A4BC8] text-white rounded-xl font-black text-lg shadow-lg flex items-center justify-center gap-2">
+              <span>📍</span> Record Ride
             </button>
-            {stopMode && (
-              <div className="space-y-2">
-                <input value={stopName} onChange={(e) => setStopName(e.target.value)}
-                  placeholder="Name (e.g. Sa may Jollibee, Bus Stop sa kanto)"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={isFormalStop} onChange={(e) => setIsFormalStop(e.target.checked)} />
-                  Formal stop (bus stop / terminal)
-                </label>
-              </div>
-            )}
-            {savedStops.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-gray-500">My Stops ({savedStops.length})</p>
-                {savedStops.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-gray-50 rounded-lg">
-                    <span>⏳</span>
-                    <span className="text-xs text-gray-700 flex-1 truncate">{s.name}</span>
-                    <span className="text-[10px] text-gray-400">{s.formal ? "Formal" : "Informal"}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => { setAction("waiting_spot"); setNameInput(""); }}
+                className="py-3 bg-orange-500 text-white rounded-xl font-bold text-sm">
+                ⏳ My Stop
+              </button>
+              <button onClick={() => { setAction("poi"); setNameInput(""); }}
+                className="py-3 bg-green-500 text-white rounded-xl font-bold text-sm">
+                📌 Add Place
+              </button>
+            </div>
+
+            <button onClick={() => { setAction("route_shape"); setShowVehiclePicker(true); }}
+              className="w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm">
+              ✏️ Add Route
+            </button>
           </div>
         )}
 
-        {/* POI PINS */}
-        {tab === "pois" && (
+        {/* Vehicle picker for recording */}
+        {action === "recording" && showVehiclePicker && (
           <div className="space-y-3">
-            <div className="grid grid-cols-4 gap-1">
-              {POI_TYPES.map(p => (
-                <button key={p.id} onClick={() => setPoiType(p.id)}
-                  className={`p-2 rounded-lg text-center ${poiType === p.id ? "bg-green-100 border border-green-300" : "bg-gray-50 border border-transparent"}`}>
-                  <span className="text-lg">{p.icon}</span>
-                  <span className={`block text-[8px] font-bold ${poiType === p.id ? "text-green-800" : "text-gray-500"}`}>{p.label}</span>
+            <p className="text-sm font-bold text-gray-900 text-center">What are you riding?</p>
+            <div className="grid grid-cols-3 gap-1">
+              {VEHICLES.map(v => (
+                <button key={v.id} onClick={() => setVehicle(v.id)}
+                  className={`p-3 rounded-xl text-center ${vehicle === v.id ? "bg-purple-100 border-2 border-purple-300" : "bg-gray-50 border-2 border-transparent"}`}>
+                  <span className="text-2xl">{v.icon}</span>
+                  <span className={`block text-[10px] font-bold ${vehicle === v.id ? "text-purple-800" : "text-gray-500"}`}>{v.label}</span>
                 </button>
               ))}
             </div>
-            <button onClick={() => setPoiMode(true)}
-              className="w-full py-3 bg-green-500 text-white rounded-xl font-bold text-sm">
-              📍 Tap Map to Drop Pin
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="Route name (optional)"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
+            />
+            <button onClick={startRoute}
+              className="w-full py-4 bg-[#7A4BC8] text-white rounded-xl font-black text-lg">
+              {consent ? "START" : "ON GPS + START"}
             </button>
-            {poiMode && (
-              <input value={poiName} onChange={(e) => setPoiName(e.target.value)}
-                placeholder="Name (e.g. Aling Nena's Lugawan)"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
-            )}
-            {savedPois.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-gray-500">My POIs ({savedPois.length})</p>
-                {savedPois.map((p, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-gray-50 rounded-lg">
-                    <span>{POI_TYPES.find(t => t.id === p.type)?.icon}</span>
-                    <span className="text-xs text-gray-700 flex-1 truncate">{p.name}</span>
-                    <span className="text-[9px] text-gray-400">{POI_TYPES.find(t => t.id === p.type)?.label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
-        {/* ADD ROUTE SHAPE */}
-        {tab === "shapes" && (
+        {/* Waiting spot input */}
+        {action === "waiting_spot" && (
+          <div className="space-y-2">
+            <p className="text-sm font-bold text-gray-900 text-center">Tap the map where you wait</p>
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="e.g. Near Jollibee, at the corner"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
+              autoFocus
+            />
+            <button onClick={() => setAction(null)}
+              className="w-full py-2 text-gray-400 text-sm">Back</button>
+          </div>
+        )}
+
+        {/* POI input */}
+        {action === "poi" && (
+          <div className="space-y-2">
+            <p className="text-sm font-bold text-gray-900 text-center">Tap the map to drop a pin</p>
+            <div className="grid grid-cols-3 gap-1">
+              {POI_TYPES.map(p => (
+                <button key={p.id} onClick={() => setVehicle(p.id)}
+                  className={`p-2 rounded-lg text-center ${vehicle === p.id ? "bg-green-100 border-2 border-green-300" : "bg-gray-50 border-2 border-transparent"}`}>
+                  <span className="text-lg">{p.icon}</span>
+                  <span className={`block text-[9px] font-bold ${vehicle === p.id ? "text-green-800" : "text-gray-500"}`}>{p.label}</span>
+                </button>
+              ))}
+            </div>
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="Name (e.g. Lugawan)"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
+              autoFocus
+            />
+            <button onClick={() => setAction(null)}
+              className="w-full py-2 text-gray-400 text-sm">Back</button>
+          </div>
+        )}
+
+        {/* Route shape */}
+        {action === "route_shape" && (
           <div className="space-y-3">
             <p className="text-sm text-gray-600 text-center">
-              Draw or record a route shape for the reference database.
-              This helps other commuters discover new routes.
+              Ride it once, we save it for others.
             </p>
             <button onClick={startRoute}
               className="w-full py-4 bg-purple-800 text-white rounded-xl font-black text-lg">
-              {consent ? "✏️ RECORD ROUTE SHAPE" : "📍 ENABLE GPS & RECORD"}
+              {consent ? "RECORD ROUTE" : "ENABLE GPS & RECORD"}
             </button>
-            <p className="text-xs text-gray-400 text-center">
-              Ride/drive the route once and we'll save the shape.
-            </p>
+          </div>
+        )}
+
+        {/* Saved data */}
+        {(savedRoutes.length > 0 || savedStops.length > 0 || savedPois.length > 0) && !action && (
+          <div className="mt-4 space-y-2">
+            <p className="text-xs font-bold text-gray-500">Your Saved</p>
+            <div className="grid grid-cols-3 gap-1 text-center">
+              <div className="bg-purple-50 rounded-lg p-2">
+                <p className="text-lg font-black text-purple-800">{savedRoutes.length}</p>
+                <p className="text-[9px] text-gray-400">Routes</p>
+              </div>
+              <div className="bg-orange-50 rounded-lg p-2">
+                <p className="text-lg font-black text-orange-600">{savedStops.length}</p>
+                <p className="text-[9px] text-gray-400">Stops</p>
+              </div>
+              <div className="bg-green-50 rounded-lg p-2">
+                <p className="text-lg font-black text-green-700">{savedPois.length}</p>
+                <p className="text-[9px] text-gray-400">Places</p>
+              </div>
+            </div>
           </div>
         )}
       </div>
