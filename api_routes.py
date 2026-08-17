@@ -353,6 +353,14 @@ async def health_write_test():
         return {"status": "error", "write_capable": False, "message": str(e)}
 
 
+@router.get("/patterns/suggest")
+async def suggest_route(origin_lat: float, origin_lng: float, dest_lat: float, dest_lng: float):
+    """Get learned route patterns for OD pair."""
+    from pattern_learner import get_route_suggestion
+    patterns = await get_route_suggestion(origin_lat, origin_lng, dest_lat, dest_lng)
+    return {"patterns": patterns, "total": len(patterns)}
+
+
 # ── Endpoints ──────────────────────────────────────────
 
 
