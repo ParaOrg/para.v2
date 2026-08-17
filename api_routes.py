@@ -1,5 +1,4 @@
 """
-# DEPLOY_MARKER: 2026-08-17-v2
 api_routes.py — Core chat and routing endpoints.
 """
 
@@ -354,6 +353,14 @@ async def health_write_test():
         return {"status": "error", "write_capable": False, "message": str(e)}
 
 
+@router.get("/patterns/suggest")
+async def suggest_route(origin_lat: float, origin_lng: float, dest_lat: float, dest_lng: float):
+    """Get learned route patterns for OD pair."""
+    from pattern_learner import get_route_suggestion
+    patterns = await get_route_suggestion(origin_lat, origin_lng, dest_lat, dest_lng)
+    return {"patterns": patterns, "total": len(patterns)}
+
+
 # ── Endpoints ──────────────────────────────────────────
 
 
@@ -371,7 +378,6 @@ async def signup(request: Request):
         # Override role for known admin emails
         if email in ADMIN_EMAILS:
             role = "admin"
-        phone = data.get("phone", data.get("contact", "")).strip()
         contact = data.get("contact", "")
         password = data.get("password", "")
         role = data.get("role", "commuter")
@@ -646,4 +652,3 @@ async def calculate_route(request: RouteRequest, req: Request):
         message=route.get("message", "Route found"),
     )
 # force deploy
-# force deploy 1786938292
