@@ -11,6 +11,7 @@ export default function DataAnalytics() {
   const [expanded, setExpanded] = useState(false);
   const [funnel, setFunnel] = useState(null);
   const [timeline, setTimeline] = useState([]);
+  const [pwaStats, setPwaStats] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -23,6 +24,15 @@ export default function DataAnalytics() {
         fetch(`${API}/poi/list`),
         fetch(`${API}/auth/waitlist/count`),
       ]);
+      
+      // PWA stats from localStorage
+      try {
+        const pwaEvents = JSON.parse(localStorage.getItem("para_pwa_events") || "[]");
+        const installed = pwaEvents.filter(e => e.event === "pwa_installed").length;
+        const openedHomescreen = pwaEvents.filter(e => e.event === "pwa_opened_from_homescreen").length;
+        const iosHomescreen = pwaEvents.filter(e => e.event === "pwa_opened_ios_homescreen").length;
+        setPwaStats({ installed, openedHomescreen, iosHomescreen, total: pwaEvents.length });
+      } catch {}
 
       const routes = await routesRes.json();
       const refs = await refRes.json();
@@ -235,6 +245,27 @@ export default function DataAnalytics() {
           </div>
         )}
       </div>
+
+      {/* PWA Stats */}
+      {pwaStats && (
+        <div className="bg-white rounded-xl border border-gray-100 p-3">
+          <h4 className="text-xs font-bold text-gray-900 mb-2">PWA Installs</h4>
+          <div className="grid grid-cols-3 gap-1 text-center">
+            <div className="bg-blue-50 rounded-lg p-2">
+              <p className="text-sm font-bold text-blue-700">{pwaStats.installed}</p>
+              <p className="text-[8px] text-gray-400">Android Installs</p>
+            </div>
+            <div className="bg-purple-50 rounded-lg p-2">
+              <p className="text-sm font-bold text-purple-700">{pwaStats.openedHomescreen}</p>
+              <p className="text-[8px] text-gray-400">Home Screen Opens</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-sm font-bold text-gray-700">{pwaStats.iosHomescreen}</p>
+              <p className="text-[8px] text-gray-400">iOS Opens</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Funnel data */}
       <div className="grid grid-cols-5 gap-1 text-center">

@@ -326,6 +326,33 @@ async def set_username(request: Request):
         return {"status": "error", "message": str(e)}
 
 
+@router.post("/telemetry/pwa-event")
+async def track_pwa_event(request: Request):
+    """Track PWA install/home screen usage."""
+    try:
+        data = await request.json()
+        event_data = {
+            "event": data.get("event", "unknown"),
+            "source": "pwa",
+            "created_at": "now()",
+        }
+        supabase.table("pwa_events").insert(event_data).execute()
+        return {"status": "received"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.get("/health/write-test")
+async def health_write_test():
+    """Test DB write capability without saving data."""
+    try:
+        # Try a rollback-safe insert
+        res = supabase.table("waitlist").select("*", count="exact").limit(0).execute()
+        return {"status": "ok", "write_capable": True, "count": res.count or 0}
+    except Exception as e:
+        return {"status": "error", "write_capable": False, "message": str(e)}
+
+
 # ── Endpoints ──────────────────────────────────────────
 
 
