@@ -46,12 +46,14 @@ export function AuthProvider({ children }) {
     const data = await edgePost("auth-signup", { email: normalizedEmail });
     if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
-    if (data.status === "error") throw new Error(data.message || "Sign in failed");
-
-    const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
-    // Always trust backend role — it's the source of truth
-    if (data.user?.role) userData.role = data.user.role;
-    if (!userData.role) userData.role = null;
+    // Preserve existing name/handle/role from localStorage if Edge doesn't return them
+    const stored = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+    const userData = {
+      email: normalizedEmail,
+      name: data.user?.name || stored.name || normalizedEmail.split("@")[0],
+      handle: data.user?.handle || stored.handle || null,
+      role: data.user?.role || stored.role || null,
+    };
     try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
     setUser(userData);
     return data;
@@ -62,8 +64,6 @@ export function AuthProvider({ children }) {
     if (!normalizedEmail) throw new Error("Email is required");
 
     const data = await edgePost("auth-signup", { email: normalizedEmail, name: name || normalizedEmail.split("@")[0] });
-    if (data.status === "error") throw new Error(data.message || "Sign up failed");
-
     if (data.status === "error") throw new Error(data.message || "Sign up failed");
 
     const userData = data.user || { email: normalizedEmail, name };

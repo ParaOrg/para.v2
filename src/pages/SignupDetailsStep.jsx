@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthPageLayout from '../components/AuthPageLayout';
-import { getApiBaseUrl } from '../utils/api';
+import { getApiBaseUrl, edgePost } from '../utils/api';
 
 const API = getApiBaseUrl();
 
@@ -35,15 +35,23 @@ export default function SignupDetailsStep({ onSuccess }) {
     setLoading(true);
     try {
       const normalizedContact = contact.startsWith('0') ? contact : `0${contact}`;
-      const res = await fetch(`${API}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, contact: normalizedContact, role, coop_name: coopName, affiliation }),
+      const data = await edgePost('auth-signup', {
+        name,
+        email,
+        contact: normalizedContact,
+        role,
+        coop_name: coopName,
+        affiliation,
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message ?? 'Registration failed.');
+      if (data.status === 'error') {
+        setError(data.message || 'Registration failed.');
+        return;
+      }
+
+      if (data.status === 'exists') {
+        // Existing user — redirect to login
+        setError('Account already exists. Please log in.');
         return;
       }
 
