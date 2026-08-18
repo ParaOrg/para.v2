@@ -108,25 +108,19 @@ export default function DataAnalytics() {
         totalContributions: fareReports.length + commuteLogs.length + communityThreads.length + poiList.length,
       });
 
-      // Fuzzy match for progress bar
-      const vNames = verifiedRoutes.map(r => (r.name || "").toLowerCase().trim());
+      // Exact match for progress bar
+      const vNames = new Set(verifiedRoutes.map(r => (r.name || "").toLowerCase().trim()));
       const matchedArr = [];
       const unmatchedArr = [];
       for (const ref of referenceRoutes) {
         const refName = (ref.route_name || "").toLowerCase().trim();
-        const cleanRef = refName.replace(/^\([^)]+\)\s*/, '').trim();
-        let found = false;
-        for (const vName of vNames) {
-          if (!vName) continue;
-          if (refName === vName || cleanRef === vName || 
-              refName.includes(vName) || vName.includes(refName) ||
-              cleanRef.includes(vName) || vName.includes(cleanRef)) {
-            matchedArr.push({ reference: ref.route_name, verified: vName });
-            found = true;
-            break;
-          }
+        if (!refName) continue;
+        // Exact matching only
+        if (vNames.has(refName)) {
+          matchedArr.push({ reference: ref.route_name, verified: refName });
+        } else {
+          unmatchedArr.push(ref.route_name);
         }
-        if (!found) unmatchedArr.push(ref.route_name);
       }
       setMatched(matchedArr);
       setUnmatched(unmatchedArr);
