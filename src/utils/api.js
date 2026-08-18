@@ -33,3 +33,18 @@ export function apiPost(path, body, options) { return request("POST", path, body
 export function apiPut(path, body, options) { return request("PUT", path, body, options); }
 export function apiPatch(path, body, options) { return request("PATCH", path, body, options); }
 export function apiDelete(path, options) { return request("DELETE", path, null, options); }
+
+// Supabase Edge Functions for migrated CRUD
+export async function edgePost(functionName, body, options = {}) {
+  const SUPABASE_EDGE = "https://tcvomrkytxnetzijwqad.supabase.co/functions/v1";
+  const url = `${SUPABASE_EDGE}/${functionName}`;
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 20000);
+  try {
+    const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body), signal: controller.signal });
+    return await res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
