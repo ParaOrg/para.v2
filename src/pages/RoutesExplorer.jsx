@@ -113,11 +113,8 @@ export default function RoutesExplorer() {
           if (!lower || seen.has(lower)) return;
           seen.add(lower);
           
-          // Check if matches any verified name
-          let matched = false;
-          vNames.forEach(vName => {
-            if (lower.includes(vName) || vName.includes(lower)) matched = true;
-          });
+          // Check if matches any verified name (exact match only)
+          const matched = vNames.has(lower);
           
           uniqueRef.push({ ...r, name: name, route_name: name, is_matched: matched });
         });
