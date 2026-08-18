@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
-import { getApiBaseUrl } from "../utils/api";
 
-const API = getApiBaseUrl();
+const EDGE = "https://tcvomrkytxnetzijwqad.supabase.co/functions/v1";
+const RENDER = "https://para-ph-api.onrender.com";
 
 const CHECKS = [
-  { id: "health", label: "Backend Health", endpoint: "/health" },
-  { id: "routes", label: "Public Routes", endpoint: "/routes/public" },
-  { id: "fares", label: "Fare Reports", endpoint: "/fare/reports?limit=1" },
-  { id: "cities", label: "Cities", endpoint: "/cities" },
-  { id: "threads", label: "Community Threads", endpoint: "/community/threads" },
-  { id: "pois", label: "POI List", endpoint: "/poi/list" },
-  { id: "write_test", label: "DB Write Capability", endpoint: "/health/write-test" },
+  { id: "auth", label: "Auth (Edge)", url: `${EDGE}/auth-signup`, method: "POST" },
+  { id: "routes", label: "Routes (Edge)", url: `${EDGE}/routes-public`, method: "POST" },
+  { id: "fare", label: "Fare (Edge)", url: `${EDGE}/fare-report`, method: "POST" },
+  { id: "commute", label: "Commute (Edge)", url: `${EDGE}/commute-save`, method: "POST" },
+  { id: "poi", label: "POI (Edge)", url: `${EDGE}/poi-add`, method: "POST" },
+  { id: "render", label: "Render Graph", url: `${RENDER}/health`, method: "GET" },
 ];
 
 export default function PipelineStatus() {
@@ -24,11 +23,15 @@ export default function PipelineStatus() {
     for (const check of CHECKS) {
       const start = Date.now();
       try {
-        const res = await fetch(`${API}${check.endpoint}`);
-        const contentType = res.headers.get("content-type") || "";
+        const options = { method: check.method };
+        if (check.method === "POST") {
+          options.headers = { "Content-Type": "application/json" };
+          options.body = JSON.stringify({});
+        }
+        const res = await fetch(check.url, options);
         newResults[check.id] = {
-          ok: res.ok && !contentType.includes("text/html"),
-          status: res.ok ? res.status : 0,
+          ok: res.ok,
+          status: res.status,
           latency: Date.now() - start,
         };
       } catch (e) {
