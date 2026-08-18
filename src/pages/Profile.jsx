@@ -158,6 +158,25 @@ export default function Profile() {
           <AnalyticsDashboard />
         </div>
 
+        {/* Saved Routes */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+          <h3 className="text-sm font-bold text-gray-900 mb-3">Saved Routes</h3>
+          {(() => {
+            try {
+              const saved = JSON.parse(localStorage.getItem("para_saved_routes") || "[]");
+              if (saved.length === 0) return <p className="text-xs text-gray-400 text-center">No saved routes yet. Track one!</p>;
+              return saved.slice(-5).map((r, i) => (
+                <div key={i} className="flex items-center gap-2 py-1.5 px-2 bg-gray-50 rounded-lg mb-1">
+                  <span>🚐</span>
+                  <span className="text-xs text-gray-700 flex-1 truncate">{r.destination_goal || r.label || "Route"}</span>
+                  <span className="text-[10px] text-gray-400">{r.stats?.total_km || "?"} km</span>
+                  <span className="text-[10px] text-gray-400">{new Date(r.saved_at).toLocaleDateString()}</span>
+                </div>
+              ));
+            } catch { return <p className="text-xs text-gray-400">No saved routes.</p>; }
+          })()}
+        </div>
+
         {/* Saved Commutes */}
         <div>
           <h3 className="font-bold text-[#381D65] mb-3">Saved Commutes</h3>
