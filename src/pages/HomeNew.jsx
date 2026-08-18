@@ -10,6 +10,7 @@ import { normalizeQuery } from "../utils/queryNormalizer";
 import paralogo from "../assets/images/Para1P.png";
 import GpsPrompt from "../components/GpsPrompt";
 import GpsIcon from "../components/GpsIcon";
+import BottomNav from "../components/BottomNav";
 import Navbar from "../components/Navbar";
 import ChatPanel from "../components/ChatPanel";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
@@ -192,7 +193,7 @@ export default function HomeNew() {
         {showStravaCard && activeRouteData && <StravaRouteCard routeData={activeRouteData} onClose={() => setShowStravaCard(false)} onStartCommute={(route) => { setShowStravaCard(false); setShowTracker(true); }} />}
         {showTracker && activeRouteData && trackerMinimized && <div className="absolute left-2 right-2 z-20 bg-[#7A4BC8] text-white rounded-2xl px-4 py-3 shadow-lg cursor-pointer" style={{ bottom: `calc(84px + ${kbOffset}px)`, transition: "bottom 120ms ease-out" }} onClick={() => setTrackerMinimized(false)}><div className="flex items-center gap-2"><span>🚀</span><div className="flex-1 flex gap-1">{(activeRouteData?.segments || []).map((seg, i) => (<div key={i} className="flex-1 h-1 rounded-full" style={{ background: i === currentTrackSegment ? "white" : i < currentTrackSegment ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.3)" }} />))}</div><span className="text-xs font-bold">{activeRouteData?.total_time_min || 0} min</span><button onClick={(e) => { e.stopPropagation(); setShowTracker(false); setActiveRouteData(null); setTrackerMinimized(false); }} className="text-white/70 hover:text-white text-sm">✕</button></div></div>}
         {showTracker && activeRouteData && !trackerMinimized && <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[45vh] overflow-y-auto"><CommuteTracker routeData={activeRouteData} onMinimize={() => setTrackerMinimized(true)} onProgress={(seg) => setCurrentTrackSegment(seg)} onComplete={() => { setShowTracker(false); setActiveRouteData(null); setTrackerMinimized(false); }} onCancel={() => { setShowTracker(false); setTrackerMinimized(false); }} /></div>}
-        <div className="absolute bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3" style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))", transform: kbOffset > 0 ? `translateY(${kbOffset}px)` : "none", transition: "transform 120ms ease-out" }}><div className="flex items-end justify-center gap-7 px-4 py-2">{BOTTOM_NAV.map((item) => (<button key={item.id} onClick={() => { if (item.id === "search") { if (input.trim()) send(); } else if (item.to) navigate(item.to); }} className="flex flex-col items-center gap-0.5">{item.primary ? <div className={`px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-1.5 ${chatOpen ? "bg-[#381D65] text-white" : "bg-[#7A4BC8] text-white"}`}><span>{item.icon}</span><span>{item.label}</span></div> : <><span className="text-lg">{item.icon}</span><span className="text-[9px] font-medium text-gray-400">{item.label}</span></>}</button>))}</div></div>
+        <BottomNav onSearchClick={() => { if (input.trim()) send(); }} />
       </div>
     </div>
   );

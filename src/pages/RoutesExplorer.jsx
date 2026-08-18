@@ -88,7 +88,7 @@ export default function RoutesExplorer() {
     (async () => {
       try {
         const [routesRes, refRes] = await Promise.all([
-          fetch(`${API}/routes/public`),
+          fetch(`https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/routes-public`),
           fetch(`${API}/routes/public/reference`),
         ]);
         const routesData = await routesRes.json();
