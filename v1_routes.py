@@ -31,6 +31,22 @@ def _row_to_route_dict(row: dict) -> dict:
     }
 
 
+@router.get("/stops")
+async def get_transit_stops(vehicle_type: str = Query(""), route_name: str = Query("")):
+    """Get transit stops from database."""
+    try:
+        query = supabase.table("transit_stops").select("*")
+        if vehicle_type:
+            query = query.eq("vehicle_type", vehicle_type)
+        if route_name:
+            query = query.eq("route_name", route_name)
+        res = query.execute()
+        stops = [r["name"] for r in (res.data or [])]
+        return {"stops": stops, "total": len(stops)}
+    except Exception as e:
+        return {"stops": [], "total": 0, "error": str(e)}
+
+
 # ── /routes/public ──────────────────────────────────────
 
 @router.get("/routes/public")

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiPost } from "../utils/api";
+import { edgePost } from "../utils/api";
 import { offlineBuffer } from "../utils/offlineBuffer";
 import { useAuth } from "../context/AuthContext";
 
@@ -50,7 +50,7 @@ export default function FareReporter({ onSaved }) {
       await offlineBuffer.addFareReport(data);
     } else {
       try {
-        await apiPost("/fare/report", data);
+        await edgePost("fare-report", data);
       } catch {
         await offlineBuffer.addFareReport(data);
       }

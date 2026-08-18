@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
 import BottomNav from "../components/BottomNav";
 import GpsIcon from "../components/GpsIcon";
+import RouteSummaryReport from "../components/RouteSummaryReport";
+import { getStopsForVehicle, filterStops } from "../utils/stopDatabase";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
@@ -38,9 +40,18 @@ export default function Contribute() {
   const [routeNameInput, setRouteNameInput] = useState("");
   const [destinationGoal, setDestinationGoal] = useState("");
   const [showVehiclePick, setShowVehiclePick] = useState(false);
+  const [currentFare, setCurrentFare] = useState(0);
+  const [currentBoardingStop, setCurrentBoardingStop] = useState("");
+  const [currentAlightingStop, setCurrentAlightingStop] = useState("");
+  const [vehicle, setVehicle] = useState("jeepney");
+  const [boardingStop, setBoardingStop] = useState("");
+  const [alightingStop, setAlightingStop] = useState("");
   const [previousMode, setPreviousMode] = useState(null);
   const [showFareReport, setShowFareReport] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+  const [lastRouteData, setLastRouteData] = useState(null);
   const [fareAmount, setFareAmount] = useState("");
+  const [allStops, setAllStops] = useState([]);
   const [routeSuggestions, setRouteSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   
@@ -126,6 +137,15 @@ export default function Contribute() {
       .catch(() => {});
   }, []);
 
+  // Fetch stops when vehicle changes
+  useEffect(() => {
+    if (["bus", "train", "uv_express", "ferry"].includes(vehicle)) {
+      getStopsForVehicle(vehicle).then(stops => setAllStops(stops));
+    } else {
+      setAllStops([]);
+    }
+  }, [vehicle]);
+
   // Load saved POIs
   useEffect(() => {
     try {
@@ -175,7 +195,19 @@ export default function Contribute() {
       route_name: currentVehicle || "Personal Route",
       city: "Metro Manila",
       reported_at: new Date().toISOString(),
+      segment_fare: parseFloat(fareAmount),
     };
+    // Attach fare to current segment
+    setSegments(prev => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          fare: parseFloat(fareAmount),
+        };
+      }
+      return updated;
+    });
     if (!navigator.onLine) {
       await offlineBuffer.addFareReport(fareData);
     } else {
@@ -193,23 +225,38 @@ export default function Contribute() {
   };
 
   const confirmVehicle = () => {
+    if (!fareAmount || parseFloat(fareAmount) <= 0) {
+      alert("Please enter the fare for this ride.");
+      return;
+    }
     // Save walking segment
-    const segment = {
+    const walkSegment = {
       type: "walking",
       start_time: segments.length === 0 ? startTimeRef.current : segments[segments.length - 1]?.end_time,
       end_time: Date.now(),
       gps_points: gpsPoints,
     };
-    setSegments(prev => [...prev, segment]);
+    setSegments(prev => [...prev, walkSegment]);
     setGpsPoints([]);
-    setCurrentVehicle(routeNameInput || "Transit");
+    const formalVehicles = ["bus", "train", "uv_express", "ferry"];
+    const vehicleLabel = vehicle === "jeepney" ? "Jeep" : vehicle === "bus" ? "Bus" : vehicle === "train" ? "Train" : vehicle === "tricycle" ? "Trike" : vehicle === "uv_express" ? "UV Express" : vehicle === "ferry" ? "Ferry" : vehicle === "grab" ? "Grab" : vehicle === "angkas" ? "Angkas" : "Transit";
+    setCurrentVehicle(formalVehicles.includes(vehicle) ? vehicleLabel : (routeNameInput || vehicleLabel));
+    setCurrentFare(parseFloat(fareAmount) || 0);
+    setCurrentBoardingStop(boardingStop);
+    setCurrentAlightingStop(alightingStop);
     setShowVehiclePick(false);
+    setFareAmount("");
+    setBoardingStop("");
+    setAlightingStop("");
   };
 
   const hopOff = () => {
     const segment = {
       type: "riding",
       vehicle: currentVehicle,
+      fare: currentFare || 0,
+      boarding_stop: currentBoardingStop,
+      alighting_stop: currentAlightingStop,
       start_time: segments.length === 0 ? startTimeRef.current : segments[segments.length - 1]?.end_time,
       end_time: Date.now(),
       gps_points: gpsPoints,
@@ -217,6 +264,7 @@ export default function Contribute() {
     setSegments(prev => [...prev, segment]);
     setGpsPoints([]);
     setCurrentVehicle("");
+    setCurrentFare(0);
     setTransitState("walking");
   };
 
@@ -255,6 +303,18 @@ export default function Contribute() {
       }
     }
     
+    // Save to personal routes
+    try {
+      const savedRoutes = JSON.parse(localStorage.getItem("para_saved_routes") || "[]");
+      savedRoutes.push({
+        ...routeData,
+        saved_at: new Date().toISOString(),
+      });
+      localStorage.setItem("para_saved_routes", JSON.stringify(savedRoutes));
+    } catch {}
+    
+    setLastRouteData(routeData);
+    setShowSummary(true);
     setMode(null);
     setDestinationGoal("");
     setGpsPoints([]);
@@ -362,16 +422,97 @@ export default function Contribute() {
 
             {/* Vehicle picker when hopping on */}
             {showVehiclePick && (
-              <div className="space-y-2">
+              <div className="space-y-2 bg-gray-50 p-3 rounded-lg">
+                <p className="text-xs font-bold text-gray-700">What are you riding?</p>
+                <div className="grid grid-cols-4 gap-1">
+                  {[
+                    { id: "jeepney", label: "Jeep", icon: "🚐" },
+                    { id: "bus", label: "Bus", icon: "🚌" },
+                    { id: "train", label: "Train", icon: "🚆" },
+                    { id: "tricycle", label: "Trike", icon: "🛺" },
+                    { id: "uv_express", label: "UV", icon: "🚐" },
+                    { id: "grab", label: "Grab", icon: "🚗" },
+                    { id: "angkas", label: "Angkas", icon: "🏍️" },
+                    { id: "ferry", label: "Ferry", icon: "⛴️" },
+                  ].map(v => (
+                    <button key={v.id} onClick={() => setVehicle(v.id)}
+                      className={`p-2 rounded-lg text-center ${vehicle === v.id ? "bg-purple-100 border-2 border-purple-300" : "bg-white border-2 border-transparent"}`}>
+                      <span className="text-lg">{v.icon}</span>
+                      <span className={`block text-[8px] font-bold ${vehicle === v.id ? "text-purple-800" : "text-gray-500"}`}>{v.label}</span>
+                    </button>
+                  ))}
+                </div>
+                {!["bus", "train", "uv_express", "ferry"].includes(vehicle) && (
+                  <div className="relative">
+                    <input
+                      value={routeNameInput}
+                      onChange={(e) => {
+                        setRouteNameInput(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => {
+                        setShowSuggestions(true);
+                        if (routeSuggestions.length === 0) {
+                          fetch(`${import.meta.env.VITE_API_URL || "https://para-ph-api.onrender.com"}/routes/public/reference`)
+                            .then(r => r.json())
+                            .then(d => setRouteSuggestions(d.routes || []))
+                            .catch(() => {});
+                        }
+                      }}
+                      placeholder="Route name (e.g. UP Ikot, Cubao-Divisoria)"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
+                    />
+                    {showSuggestions && (
+                      <div className="absolute z-50 top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                        {routeSuggestions
+                          .filter(r => (r.route_name || "").toLowerCase().includes(routeNameInput.toLowerCase()))
+                          .slice(0, 8)
+                          .map((r, i) => (
+                            <button key={i} onClick={() => {
+                              setRouteNameInput(r.route_name);
+                              setShowSuggestions(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-purple-50">
+                              {r.route_name}
+                            </button>
+                          ))}
+                        {routeSuggestions.filter(r => (r.route_name || "").toLowerCase().includes(routeNameInput.toLowerCase())).length === 0 && (
+                          <button onClick={() => setShowSuggestions(false)}
+                            className="w-full text-left px-3 py-2 text-sm text-green-600 font-bold hover:bg-green-50">
+                            + Add new: "{routeNameInput}"
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <input
-                  value={routeNameInput}
-                  onChange={(e) => setRouteNameInput(e.target.value)}
-                  placeholder="Route name (e.g. UP Ikot, or new route)"
+                  type="number"
+                  value={fareAmount}
+                  onChange={(e) => setFareAmount(e.target.value)}
+                  placeholder="Fare (₱) *"
+                  required
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
                 />
+                {["bus", "train", "uv_express", "ferry"].includes(vehicle) && (
+                  <>
+                    <input
+                      value={boardingStop}
+                      onChange={(e) => setBoardingStop(e.target.value)}
+                      placeholder="Saan ka sumakay? (e.g. Cubao)"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
+                    />
+                    <input
+                      value={alightingStop}
+                      onChange={(e) => setAlightingStop(e.target.value)}
+                      placeholder="Saan ka bumaba? (e.g. Buendia)"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm"
+                    />
+                  </>
+                )}
                 <button onClick={confirmVehicle}
-                  className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-sm">
-                  Confirm
+                  className="w-full py-2.5 bg-purple-800 text-white rounded-xl font-bold text-sm">
+                  Confirm Ride
                 </button>
               </div>
             )}
@@ -432,6 +573,24 @@ export default function Contribute() {
         {mode === "route_setup" && (
           <div className="space-y-3">
             <p className="text-sm font-bold text-gray-900 text-center">Record Transit Route</p>
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { id: "jeepney", label: "Jeep", icon: "🚐" },
+                { id: "bus", label: "Bus", icon: "🚌" },
+                { id: "train", label: "Train", icon: "🚆" },
+                { id: "tricycle", label: "Trike", icon: "🛺" },
+                { id: "walk", label: "Walk", icon: "🚶" },
+                { id: "uv_express", label: "UV", icon: "🚐" },
+                { id: "grab", label: "Grab", icon: "🚗" },
+                { id: "angkas", label: "Angkas", icon: "🏍️" },
+              ].map(v => (
+                <button key={v.id} onClick={() => setVehicle(v.id)}
+                  className={`p-2 rounded-lg text-center ${vehicle === v.id ? "bg-purple-100 border-2 border-purple-300" : "bg-gray-50 border-2 border-transparent"}`}>
+                  <span className="text-lg">{v.icon}</span>
+                  <span className={`block text-[8px] font-bold ${vehicle === v.id ? "text-purple-800" : "text-gray-500"}`}>{v.label}</span>
+                </button>
+              ))}
+            </div>
             <div className="relative">
               <input
                 value={routeNameInput}
@@ -542,6 +701,13 @@ export default function Contribute() {
           </div>
         )}
       </div>
+
+      {showSummary && lastRouteData && (
+        <RouteSummaryReport
+          routeData={lastRouteData}
+          onClose={() => { setShowSummary(false); setLastRouteData(null); }}
+        />
+      )}
 
       <BottomNav />
     </div>

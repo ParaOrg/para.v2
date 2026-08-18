@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import L from "leaflet";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
-import { apiPost } from "../utils/api";
+import { edgePost } from "../utils/api";
 import { offlineBuffer } from "../utils/offlineBuffer";
 import { startBackgroundTracking, stopBackgroundTracking, notifyRouteSaved } from "../utils/backgroundTracker";
 
@@ -147,7 +147,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     }
 
     try {
-      await apiPost("/commute/save", trackData);
+      await edgePost("commute-save", trackData);
       setSaved(true);
       if (onComplete) setTimeout(onComplete, 1500);
     } catch (e) {

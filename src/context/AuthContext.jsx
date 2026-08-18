@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { getApiBaseUrl } from "../utils/api";
+import { getApiBaseUrl, edgePost } from "../utils/api";
 
 const AuthContext = createContext(null);
 const USER_KEY = "para_auth_user_v1";
@@ -43,14 +43,8 @@ export function AuthProvider({ children }) {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) throw new Error("Email is required");
 
-    const res = await fetch(`${API}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalizedEmail }),
-    });
-
-    if (!res.ok) throw new Error("Sign in failed");
-    const data = await res.json();
+    const data = await edgePost("auth-signup", { email: normalizedEmail });
+    if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
     if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
@@ -67,14 +61,8 @@ export function AuthProvider({ children }) {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) throw new Error("Email is required");
 
-    const res = await fetch(`${API}/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalizedEmail, name: name || normalizedEmail.split("@")[0] }),
-    });
-
-    if (!res.ok) throw new Error("Sign up failed");
-    const data = await res.json();
+    const data = await edgePost("auth-signup", { email: normalizedEmail, name: name || normalizedEmail.split("@")[0] });
+    if (data.status === "error") throw new Error(data.message || "Sign up failed");
 
     if (data.status === "error") throw new Error(data.message || "Sign up failed");
 
