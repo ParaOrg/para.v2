@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
+import pagasaData from "../utils/pagasaAdvisories.json";
+import trafficData from "../utils/trafficAdvisories.json";
 
 function RainCloudIcon({ stroke = "#F93F74" }) {
   return (
@@ -70,7 +72,8 @@ export default function WeatherPage({ onClose }) {
   const [loading, setLoading] = useState(false);
   const [daily, setDaily] = useState([]);
   const [expanded, setExpanded] = useState(false);
-  const [advisories, setAdvisories] = useState([]);
+  const [advisories, setAdvisories] = useState(DEFAULT_ADVISORIES);
+  const [advisoriesRefreshing, setAdvisoriesRefreshing] = useState(false);
   const [cityName, setCityName] = useState("");
 
   const { location, consent } = useTrackingConsent();
@@ -94,7 +97,7 @@ export default function WeatherPage({ onClose }) {
   }, [lat, lng]);
 
   useEffect(() => {
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&timezone=auto&forecast_days=7`)
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,visibility&hourly=temperature_2m,weather_code&timezone=auto&forecast_days=7`)
       .then(r => r.json())
       .then(d => {
         if (d.current) { setWeather(d.current); setLastUpdated(new Date()); }
@@ -121,7 +124,39 @@ export default function WeatherPage({ onClose }) {
       .catch((e) => { console.error("Weather fetch failed:", e); setError("Unable to load weather"); });
     
     // Use default advisories (backend fetch removed for stability)
-    setAdvisories(DEFAULT_ADVISORIES);
+    // Try to fetch live advisories, fall back to defaults
+    // Fetch PAGASA advisories from scraped JSON
+    // Direct JSON import — no fetch needed
+    console.log('PAGASA data loaded:', pagasaData?.advisories?.length, 'advisories');
+    if (pagasaData?.advisories?.length > 0) {
+      const now = new Date();
+      const cutoff = new Date(now.getTime() - 2 * 86400000);
+      
+      const recent = pagasaData.advisories.filter(adv => {
+        const searchText = `${adv.title || ''} ${adv.description || ''}`;
+        const dateMatch = searchText.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})/);
+        if (dateMatch) {
+          const advDate = new Date(`${dateMatch[2]} ${dateMatch[1]}, ${dateMatch[3]}`);
+          return advDate >= cutoff;
+        }
+        // Check for year-only patterns (e.g., "Undas 2025")
+        const yearMatch = searchText.match(/\b(20\d{2})\b/);
+        if (yearMatch) {
+          const year = parseInt(yearMatch[1]);
+          const currentYear = now.getFullYear();
+          if (year < currentYear) return false; // Last year = too old
+        }
+        return true; // No date = include
+      });
+      
+      console.log('Filtered advisories:', recent.length);
+      const trafficItems = (trafficData?.advisories || [])
+        .sort((a, b) => new Date(b.updated) - new Date(a.updated))
+        .slice(0, 5); // Sort by most recent date, take top 5
+      const combined = [...recent, ...trafficItems];
+      console.log('Weather:', recent.length, 'Traffic:', trafficItems.length, 'Total:', combined.length);
+      setAdvisories(combined.length > 0 ? combined : DEFAULT_ADVISORIES);
+    }
   }, [lat, lng, consent, location]);
 
   const getIconType = (code) => {
@@ -255,17 +290,44 @@ export default function WeatherPage({ onClose }) {
             </div>
           )}
 
+          <div className="px-[30px] pt-4">
+            <div className="text-[16px] leading-[24px] text-[#0B122C] mb-2">Details</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="bg-white rounded-[10px] p-3">
+                <p className="text-[10px] text-gray-400">Feels like</p>
+                <p className="text-[14px] font-medium text-[#381D65]">{weather?.apparent_temperature || "—"}°</p>
+              </div>
+              <div className="bg-white rounded-[10px] p-3">
+                <p className="text-[10px] text-gray-400">Humidity</p>
+                <p className="text-[14px] font-medium text-[#381D65]">{weather?.relative_humidity_2m || "—"}%</p>
+              </div>
+              <div className="bg-white rounded-[10px] p-3">
+                <p className="text-[10px] text-gray-400">Wind</p>
+                <p className="text-[14px] font-medium text-[#381D65]">{weather?.wind_speed_10m || "—"} km/h</p>
+              </div>
+              <div className="bg-white rounded-[10px] p-3">
+                <p className="text-[10px] text-gray-400">Visibility</p>
+                <p className="text-[14px] font-medium text-[#381D65]">{weather?.visibility ? (weather.visibility / 1000).toFixed(1) : "—"} km</p>
+              </div>
+            </div>
+          </div>
+
           <div className="px-[30px] pt-[33px] pb-8">
             <div className="text-[16px] leading-[24px] text-[#0B122C] mb-4">Active Advisories ({advisories.length || DEFAULT_ADVISORIES.length})</div>
             <div className="flex flex-col gap-4">
-              {(advisories.length > 0 ? advisories : DEFAULT_ADVISORIES).map((item) => (
+              {advisories.map((item) => (
                 <div key={item.id} className="relative rounded-[15px] p-4" style={{ background: item.bg, border: `1px solid ${item.accent}` }}>
                   <div className="flex gap-3">
-                    <div className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white"><item.Icon stroke={item.accent} /></div>
+                    <div className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white">{item.Icon ? <item.Icon stroke={item.accent} /> : <RainCloudIcon stroke={item.accent} />}</div>
                     <div className="flex-1 min-w-0 pr-14">
                       <h4 className="text-[14px] font-medium leading-[21px] text-[#381D65]">{item.title}</h4>
                       <p className="text-[12px] leading-[18px] text-[#381D65] mt-1">{item.description}</p>
                       <p className="text-[10px] leading-[15px] text-[#381D65] mt-2">{item.updated}</p>
+{item.source_url && (
+  <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-[#7A4BC8] hover:underline mt-1 inline-block">
+    Source: {item.source_name || "PAGASA"} ↗
+  </a>
+)}
                     </div>
                   </div>
                   <span className="absolute top-3 right-3 text-[10px] leading-[15px] text-[#F4F4F3] rounded-[5px] px-2 py-[1px] text-center" style={{ background: item.accent }}>{item.type}</span>

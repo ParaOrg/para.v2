@@ -1,0 +1,31 @@
+name: Scrape PAGASA Advisories
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 6 AM PHT (10 PM UTC)
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      
+      - name: Run scraper
+        run: python3 scripts/scrape_pagasa.py
+      
+      - name: Commit updated advisories
+        run: |
+          git config --global user.name 'PAGASA Bot'
+          git config --global user.email 'bot@para.ph'
+          git add src/utils/pagasaAdvisories.json
+          git diff --cached --quiet || git commit -m "Auto-update PAGASA advisories [skip ci]"
+          git push

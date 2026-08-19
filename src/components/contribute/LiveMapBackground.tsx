@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import GpsIcon from '../GpsIcon';
-import WeatherOverlay from '../WeatherOverlay';
 import { useTrackingConsent } from '../../context/TrackingConsentContext';
 
 interface LiveMapBackgroundProps {
@@ -26,7 +25,6 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   const trailLayerRef = useRef<L.Polyline | null>(null);
   const [currentPos, setCurrentPos] = useState<[number, number]>(DEFAULT_CENTER);
   const [hasLocation, setHasLocation] = useState(false);
-  const [showWeather, setShowWeather] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [pinMode, setPinMode] = useState(false);
@@ -195,10 +193,10 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
         </button>
         )}
 
-        {/* Weather Button */}
+        {/* Weather Button — opens full WeatherPage */}
         {!navbarOpen && (
         <button
-          onClick={() => setShowWeather(!showWeather)}
+          onClick={() => window.dispatchEvent(new Event("para-show-weather"))}
           className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"
         >
           <span className="text-base">🌤️</span>
@@ -222,12 +220,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
 
       </div>
 
-      {/* Weather Popup */}
-      {showWeather && (
-        <div className="absolute top-20 right-16 z-[9999] bg-white rounded-2xl shadow-xl p-3 w-48">
-          <WeatherOverlay lat={currentPos[0]} lng={currentPos[1]} />
-        </div>
-      )}
+
 
 
       {/* Pin Mode Prompt */}

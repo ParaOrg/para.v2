@@ -13,7 +13,7 @@ export default function GlobalWeather() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999]">
+    <div className="fixed inset-0 z-[99999]">
       <WeatherPage onClose={() => setShow(false)} />
     </div>
   );

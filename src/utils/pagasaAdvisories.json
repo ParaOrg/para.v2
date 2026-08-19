@@ -1,0 +1,116 @@
+{
+  "advisories": [
+    {
+      "id": "pagasa-1",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "TROPICAL STORM MAYMAY, ENHANCED HABAGAT BROUGHT HEAVY RAINS",
+      "description": "TROPICAL STORM MAYMAY (International Name Kujira), ENHANCED HABAGAT BROUGHT HEAVY RAINS, TRIGGERED FLOODING AND LANDSLIDES IN LUZON.On August 4, 2026, a low-pressure area west of Luzon developed into Tropical Cyclone Maymay and intensified into a tropical storm on August 5. When TS Maymay made landf",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/article/222",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-2",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "SPECIAL WEATHER OUTLOOK FOR STATE OF THE NATION ADDRESS (SONA) 2026",
+      "description": "Special Weather Outlook for the 2026 State of the Nation Address (SONA)(27 July 2026)The Southwest Monsoon or \"Habagat\" will be the dominant weather system affecting the country during the State of the Nation Address (SONA) of President Ferdinand R. Marcos Jr.On Monday (27 July), the Southwest Monso",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/article/220",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-3",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "SPECIAL WEATHER OUTLOOK FOR INDEPENDENCE DAY 2026",
+      "description": "SPECIAL WEATHER OUTLOOK FOR INDEPENDENCE DAY 2026(12 June 2026)The weather systems expected to affect the country on Independence Day are the Southwest Monsoon and the Easterlies.The Southwest Monsoon will bring cloudy skies with scattered rains and thunderstorms over Batanes, Babuyan Islands, Iloco",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/article/218",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-4",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "SPECIAL WEATHER OUTLOOK FOR UNDAS 2025",
+      "description": "Tropical Cyclone (TC) DAnika and its trough will be the dominant weather systems that will affect the entire archipelago during “Undas”.On Wednesday until Thursday(October 30-31),Tropical Cyclone LEON will bring stormy weather over Cagayan Valley and Apayao, and rains with gusty winds over Ilocos re",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/article/212",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-5",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "SPECIAL WEATHER OUTLOOK ON LABOR DAY 2026",
+      "description": "SPECIAL WEATHER OUTLOOK ON LABOR DAY 2026(01 May 2026)The Easterlies will be the dominant weather system to affect the country on Labor Day.It will bring cloudy skies with scattered rains and thunderstorms over Zamboanga Peninsula, Northern Mindanao, Caraga, Davao Region, Palawan, Southern Leyte, an",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/article/210",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-6",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "DOST-PAGASA Marks Typhoon and Flood Awareness Week Observance",
+      "description": "PRESS RELEASE15 June 2026DOST-PAGASA Marks Typhoon and Flood Awareness Week ObservanceAs the country observesTyphoon and Flood Awareness Week (TFAW) from June 14 to 20, 2026, DOST-PAGASA calls on all Filipinos to strengthen preparedness against hazards brought by tropical cyclones and other extreme ",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/press-release/219",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-7",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "SPECIAL WEATHER OUTLOOK FOR INDEPENDENCE DAY 2026",
+      "description": "SPECIAL WEATHER OUTLOOK FOR INDEPENDENCE DAY 2026(12 June 2026)The weather systems expected to affect the country on Independence Day are the Southwest Monsoon and the Easterlies.The Southwest Monsoon will bring cloudy skies with scattered rains and thunderstorms over Batanes, Babuyan Islands, Iloco",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/press-release/217",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-8",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "El Nino Advisory",
+      "description": "PRESS RELEASEDOST-PAGASA S&T Media ServicesQuezon City, 09 June 2026EL NIÑO ADVISORYDOST-PAGASA reports that El Niño conditions are now present in the tropical Pacific.In May 2026, the observed relative sea surface temperature anomaly (rSSTA) reached the +0.5°C threshold. Additionally, most climate ",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/press-release/216",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-9",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "ONSET OF THE RAINY SEASON",
+      "description": "PRESS RELEASEDOST-PAGASA S&T Media ServiceQuezonCity, 04 June 2026ONSET OF THE RAINY SEASONBased on the weather observations and analyses, occasional to frequent rains associated with the Southwest Monsoon (Habagat) have been observed over the past five days. This signifies the onset of the rainy se",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/press-release/214",
+      "source_name": "PAGASA"
+    },
+    {
+      "id": "pagasa-10",
+      "type": "Weather",
+      "accent": "#F93F74",
+      "bg": "rgba(249, 63, 116, 0.1)",
+      "title": "Start of Southwest Monsoon",
+      "description": "PRESS RELEASEDOST-PAGASA S&T Media ServiceQuezonCity, 30 May 2026START OF THE SOUTHWEST MONSOONRecent analyses over the past days have shown the presence of southwesterly winds over the western section of the country, and may continue due to the recent development of a Tropical Cyclone over the Phil",
+      "updated": "PAGASA Official",
+      "source_url": "https://pagasa.dost.gov.ph/press-release/213",
+      "source_name": "PAGASA"
+    }
+  ],
+  "scraped_at": "2026-08-19T11:48:51.536042",
+  "source": "PAGASA Articles"
+}
