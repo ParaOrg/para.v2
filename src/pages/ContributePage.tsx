@@ -26,6 +26,7 @@ const ContributePage: React.FC = () => {
   const [awaitingRouteSelection, setAwaitingRouteSelection] = useState(false);
   const [routeDrawingMode, setRouteDrawingMode] = useState(false);
   const [uiVersion, setUiVersion] = useState<'chat' | 'buttons'>('chat');
+  const [navbarOpen, setNavbarOpen] = useState(false);
   const segmentStartTime = useRef<number | null>(null);
   const segmentsRef = useRef<Array<{ mode: string; routeName: string | null; startTime: number; endTime: number | null; durationSec: number | null }>>([]);
 
@@ -73,6 +74,16 @@ const ContributePage: React.FC = () => {
       window.removeEventListener('set-fare-report', handleAwaitingFare as EventListener);
       window.removeEventListener('location-prompt', handleLocationPrompt as EventListener);
       window.removeEventListener('off-course-alert', handleOffCourse as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleNavToggle = (e: CustomEvent) => {
+      setNavbarOpen(e.detail?.open || false);
+    };
+    window.addEventListener('navbar-toggle', handleNavToggle as EventListener);
+    return () => {
+      window.removeEventListener('navbar-toggle', handleNavToggle as EventListener);
     };
   }, []);
 
@@ -578,7 +589,8 @@ const ContributePage: React.FC = () => {
       <Navbar />
 
       {/* Version Toggle — testing only */}
-      <div className="fixed top-20 left-4 z-[9999] flex items-center gap-1 bg-white rounded-full shadow-lg px-2 py-1">
+      {!navbarOpen && (
+      <div className="fixed top-20 left-4 z-[5000] flex items-center gap-1 bg-white rounded-full shadow-lg px-2 py-1">
         <button
           onClick={() => setUiVersion('chat')}
           className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
@@ -596,6 +608,7 @@ const ContributePage: React.FC = () => {
           Buttons
         </button>
       </div>
+      )}
 
       {/* Map Area — full screen behind chat */}
       <div className="absolute inset-0 z-0">
