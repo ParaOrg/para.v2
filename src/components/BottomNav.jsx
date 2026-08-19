@@ -22,7 +22,7 @@ export default function BottomNav({ onSearchClick }) {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md rounded-t-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] px-2 py-2"
       style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))" }}>
-      <div className="flex items-end justify-between px-4">
+      <div className="flex items-end justify-between px-3">
         <div className="flex gap-6">
           {LEFT_NAV.map((item) => (
             <button key={item.id} onClick={() => navigate(item.to)} className="flex flex-col items-center gap-0.5 min-w-[48px]">
@@ -31,8 +31,8 @@ export default function BottomNav({ onSearchClick }) {
             </button>
           ))}
         </div>
-        <button onClick={() => onSearchClick ? onSearchClick() : navigate("/")} className="-mt-6 flex flex-col items-center">
-          <div className="w-14 h-14 rounded-full bg-[#7A4BC8] text-white flex items-center justify-center shadow-lg text-xl">🔍</div>
+        <button onClick={() => onSearchClick ? onSearchClick() : navigate("/")} className="-mt-4 flex flex-col items-center">
+          <div className="w-14 h-8 rounded-full bg-[#7A4BC8] text-white flex items-center justify-center shadow-lg text-lg px-3">🔍</div>
           <span className="text-[9px] font-medium text-[#7A4BC8]">Search</span>
         </button>
         <div className="flex gap-6">

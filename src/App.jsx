@@ -11,7 +11,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import About from "./pages/About";
-import Contribute from "./pages/Contribute";
+import Contribute from "./pages/ContributePage";
+import ContributeOriginal from "./pages/Contribute";
 import GlobalWeather from "./components/GlobalWeather";
 
 function ProtectedRoute({ children }) {
