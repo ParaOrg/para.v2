@@ -44,6 +44,10 @@ export default function Navbar() {
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('navbar-toggle', { detail: { open: mobileOpen } }));
+  }, [mobileOpen]);
+
+  useEffect(() => {
     if (!mobileOpen) return;
     const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false); };
     document.addEventListener('keydown', onKey);

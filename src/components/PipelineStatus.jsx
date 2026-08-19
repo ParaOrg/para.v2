@@ -3,13 +3,11 @@ import { useState, useEffect } from "react";
 const EDGE = "https://tcvomrkytxnetzijwqad.supabase.co/functions/v1";
 const RENDER = "https://para-ph-api.onrender.com";
 
+// READ-ONLY CHECKS — no POST, no data mutation
 const CHECKS = [
-  { id: "auth", label: "Auth (Edge)", url: `${EDGE}/auth-signup`, method: "POST" },
-  { id: "routes", label: "Routes (Edge)", url: `${EDGE}/routes-public`, method: "POST" },
-  { id: "fare", label: "Fare (Edge)", url: `${EDGE}/fare-report`, method: "POST" },
-  { id: "commute", label: "Commute (Edge)", url: `${EDGE}/commute-save`, method: "POST" },
-  { id: "poi", label: "POI (Edge)", url: `${EDGE}/poi-add`, method: "POST" },
+  { id: "routes", label: "Routes (Edge)", url: `${EDGE}/routes-public`, method: "POST", body: {} },
   { id: "render", label: "Render Graph", url: `${RENDER}/health`, method: "GET" },
+  { id: "edge-status", label: "Edge Functions", url: `${EDGE}/routes-public`, method: "POST", body: {} },
 ];
 
 export default function PipelineStatus() {
@@ -24,9 +22,9 @@ export default function PipelineStatus() {
       const start = Date.now();
       try {
         const options = { method: check.method };
-        if (check.method === "POST") {
+        if (check.method === "POST" && check.body) {
           options.headers = { "Content-Type": "application/json" };
-          options.body = JSON.stringify({});
+          options.body = JSON.stringify(check.body);
         }
         const res = await fetch(check.url, options);
         newResults[check.id] = {

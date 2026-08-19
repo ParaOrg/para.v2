@@ -7,6 +7,8 @@ import { getStopsForVehicle, filterStops } from "../utils/stopDatabase";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
+import { useGeofencedAutoDropOff } from "../hooks/useGeofencedAutoDropOff";
+import { useTrajectoryRouteRanking } from "../hooks/useTrajectoryRouteRanking";
 import { offlineBuffer } from "../utils/offlineBuffer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -74,21 +76,7 @@ export default function Contribute() {
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
 
-  // Map init
-  useEffect(() => {
-    if (!mapRef.current || mapInst.current) return;
-    const map = L.map(mapRef.current, { zoomControl: false }).setView(CENTER, 14);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png", { maxZoom: 19 }).addTo(map);
-    L.control.zoom({ position: "bottomright" }).addTo(map);
-    trailLayerRef.current = L.layerGroup().addTo(map);
-    mapInst.current = map;
 
-    map.on("click", (e) => {
-      if (mode === "poi" && poiName.trim()) {
-        dropPoi(e.latlng);
-      }
-    });
-  }, [mode, poiName, poiType, poiBusinessType]);
 
   // GPS live
   useEffect(() => {
@@ -329,33 +317,44 @@ export default function Contribute() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 flex flex-col pb-[80px]">
 
       {/* Map */}
       <div className="relative flex-1 min-h-[30vh] z-0">
         <div ref={mapRef} className="absolute inset-0" />
         
-        {recording && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[999] bg-red-500 text-white rounded-full px-5 py-2 flex items-center gap-2 shadow-2xl">
-            <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse" />
-            <span className="font-black text-lg tabular-nums">{formatTime(elapsed)}</span>
-            <span className="text-xs font-bold">{transitState === "walking" ? "🚶 Walking" : `🚐 ${currentVehicle}`}</span>
-          </div>
-        )}
-
-        <button onClick={() => window.dispatchEvent(new Event("para-show-weather"))}
-          className="absolute top-4 right-16 z-[999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
-          <span className="text-lg">🌤️</span>
-        </button>
-        <button onClick={() => requestConsentAndLocation()}
-          className="absolute top-4 right-4 z-[999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
-          <GpsIcon size={20} />
-        </button>
       </div>
 
       {/* Bottom panel */}
-      <div className="bg-white border-t border-gray-100 p-4 pb-28 z-10 max-h-[50vh] overflow-y-auto">
+
+
+
+      {recording && (
+        <div className="fixed bottom-[calc(70px+150px)] left-1/2 transform -translate-x-1/2 bg-red-500 text-white rounded-full px-5 py-2 flex items-center gap-2 shadow-2xl z-50 whitespace-nowrap">
+          <div className="w-2.5 h-2.5 bg-white rounded-full animate-pulse" />
+          <span className="font-black text-lg tabular-nums">{formatTime(elapsed)}</span>
+          <span className="text-xs font-bold">{transitState === "walking" ? "🚶 Walking" : `🚐 ${currentVehicle}`}</span>
+        </div>
+      )}
+
+      <div className="fixed bottom-[70px] left-3 right-3 z-45 bg-white border border-gray-100 rounded-[20px] p-4 shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)]">
+
+        {/* SOS Emergency Button */}
+        <button
+          onClick={() => {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition((pos) => {
+                window.dispatchEvent(new CustomEvent('emergency-sos', {
+                  detail: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+                }));
+              });
+            }
+          }}
+          className="w-full py-3 bg-red-600 text-white rounded-2xl font-bold text-sm mb-2"
+        >
+          🆘 Emergency SOS
+        </button>
+
         {/* HOME — mode selection */}
         {!mode && !recording && (
           <div className="space-y-3">
@@ -709,7 +708,6 @@ export default function Contribute() {
         />
       )}
 
-      <BottomNav />
     </div>
   );
 }
