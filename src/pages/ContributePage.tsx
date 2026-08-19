@@ -94,7 +94,7 @@ const ContributePage: React.FC = () => {
     const greeting = createMessage(
       'bot',
       'text',
-      'Welcome to Contribute! Here you can help improve Para PH by sharing your commute data.\n\nYou can either:\n📱 TAP the buttons above\n⌨️ TYPE the equivalent text\n\nTransport modes (type or tap):\n🚐 "jeep" | 🚌 "bus" | 🚆 "train" | 🚐 "uv" | 🛺 "trike" | 🏍️ "angkas" | 🚗 "grab"\n\nActions (type or tap):\n"hop on" | "hop off" | "end route" | "add pin" | "log fare" | "my stop" | "record route" | "upload"\n\nOr just type naturally — "help" for emergency.'
+      'Welcome to Contribute! Here you can help improve Para PH by sharing your commute data.\n\nYou can either:\n📱 TAP the buttons above\n⌨️ TYPE the equivalent text\n\nTransport modes (type or tap):\n🚐 "jeep" | 🚌 "bus" | 🚆 "train" | 🚐 "uv" | 🛺 "trike" | 🏍️ "angkas" | 🚗 "grab"\n\nActions (type or tap):\n"hop on" | "hop off" | "end route" | "add pin" | "log fare" | "my stop" | "record route" | "upload"\n\nOr just type naturally — "help" for emergency.\n\n🔒 Your location data is only collected with consent and anonymized for community insights. Type "privacy" for more info.'
     );
     dispatch({ type: 'ADD_MESSAGE', payload: greeting });
   }, []);
@@ -500,6 +500,15 @@ const ContributePage: React.FC = () => {
     const hasLocation = window.__paraMap ? true : false;
     
     setTimeout(() => {
+      // Privacy policy
+      if (/(privacy|data privacy|how is my data)/.test(lower)) {
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: createMessage('bot', 'text', '🔒 Your location data is only collected with explicit consent (DPA 2012). GPS points are downsampled to 1 per 3 seconds and anonymized. We never sell your data. Full policy: https://www.para-commute.org/privacy-policy'),
+        });
+        return;
+      }
+
       // Emergency / safety keywords
       if (/(emergency|help|sos|unsafe|danger|scared|lost|stray|wrong way|off course|off route)/.test(lower)) {
         dispatch({

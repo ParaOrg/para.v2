@@ -28,7 +28,11 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         {/* Bot message content */}
         {isBot && (
           <p className="text-[14px] leading-[20px] text-[#381D65] font-poppins whitespace-pre-line">
-            {message.content}
+            {message.content.split(/(https?:\/\/[^\s]+)/g).map((part, i) => 
+  part.startsWith('http') ? (
+    <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-[#7A4BC8] underline">{part}</a>
+  ) : part
+)}
           </p>
         )}
 

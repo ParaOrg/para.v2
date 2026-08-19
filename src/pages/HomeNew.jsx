@@ -184,10 +184,14 @@ export default function HomeNew() {
           <div className="absolute left-2 right-2 z-20 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style={{ bottom: `calc(70px + ${kbOffset}px)`, maxHeight: showChat ? "50vh" : "auto", transition: "bottom 120ms ease-out" }}>
             {showChat && <><div className="flex items-center justify-end px-2 py-1 bg-white shrink-0"><button onClick={closeChatPanel} className="text-gray-400 hover:text-gray-600 text-sm leading-none w-5 h-5 flex items-center justify-center">✕</button></div><div className="overflow-y-auto px-3 pb-2 space-y-2" style={{ maxHeight: "calc(50vh - 80px)" }}>{messages.map((m, i) => (<div key={i}>{m.routeData ? <div className="mb-2"><div onClick={() => { setActiveRouteData(m.routeData); setShowStravaCard(true); }} className="cursor-pointer"><RouteCardList routeData={m.routeData} alternatives={m.alternatives || []} /></div>{!showTracker && <button onClick={() => { setShowTracker(true); setChatOpen(false); }} className="w-full mt-1.5 py-1.5 bg-green-500 text-white rounded-lg text-[11px] font-bold">🚀 Start Tracked Commute</button>}</div> : <div className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"}`}><div className={`max-w-[85%] px-2.5 py-1.5 text-[12px] leading-snug ${m.sender === "user" ? "bg-[#7A4BC8] text-white rounded-2xl rounded-br-sm" : "bg-gray-100 text-[#381D65] rounded-2xl rounded-bl-sm"}`}><div className="whitespace-pre-wrap">{m.text}</div></div></div>}</div>))}{loading && <RouteLoadingAnimation loading={loading} />}<div ref={messagesEndRef} /></div></>}
             <div className="flex items-center gap-2 px-3 py-2.5"><input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} placeholder={placeholder}
-                title="Type like: from Cubao to Makati, or just: Makati"
+                title="Type like: from Cubao to Makati, or just: Makati. 🔒 Your location data is only collected with consent. Privacy: https://www.para-commute.org/privacy-policy"
                 enterKeyHint="search"
+                title="🔒 Location only with consent"
                 autoComplete="off"
-                autoCapitalize="sentences" className="flex-1 text-base outline-none text-[#381D65] placeholder-gray-400" /><button onClick={send} disabled={loading} className="bg-[#7A4BC8] text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0"><span className="text-xs">➤</span></button></div>
+                autoCapitalize="sentences" className="flex-1 text-base outline-none text-[#381D65] placeholder-gray-400" />
+                <p className="text-[9px] text-gray-400 mt-1 text-center">
+                  {!gpsActive && <>🔒 Location only with consent • <a href="https://www.para-commute.org/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[#7A4BC8] underline">Data Privacy</a></>}
+                </p><button onClick={send} disabled={loading} className="bg-[#7A4BC8] text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0"><span className="text-xs">➤</span></button></div>
           </div>
         )}
         {showStravaCard && activeRouteData && <StravaRouteCard routeData={activeRouteData} onClose={() => setShowStravaCard(false)} onStartCommute={(route) => { setShowStravaCard(false); setShowTracker(true); }} />}

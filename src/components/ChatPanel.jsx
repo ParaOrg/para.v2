@@ -293,19 +293,26 @@ export default function ChatPanel() {
         )}
 
         {/* Input */}
-        <div className="p-3 border-t border-gray-100 bg-white flex gap-2 shrink-0">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && send()}
-            placeholder="Reply..."
-            className="flex-1 text-[16px] leading-[24px] text-[#381D65] placeholder-gray-400 outline-none"
-          />
-          <button onClick={send} disabled={loading} className="shrink-0">
-            <SendIcon />
-          </button>
+        <div className="p-3 border-t border-gray-100 bg-white shrink-0">
+          <div className="flex gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && send()}
+              placeholder="Reply..."
+              className="flex-1 text-[16px] leading-[24px] text-[#381D65] placeholder-gray-400 outline-none"
+            />
+            <button onClick={send} disabled={loading} className="shrink-0">
+              <SendIcon />
+            </button>
+          </div>
+          <div className="text-center leading-none">
+            <a href="https://www.para-commute.org/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[#7A4BC8] underline">
+              Data Privacy
+            </a>
+          </div>
+        </div>
         </div>
       </div>
-    </div>
   );
 }
