@@ -37,7 +37,6 @@ async def lifespan(app: FastAPI):
     logger.info("📊 Building transit graph from Supabase...")
     G = await build_transit_graph()
     app.state.G = G
-
     logger.info(f"✅ Graph loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
     
     # Pre-compute popular routes for instant responses
