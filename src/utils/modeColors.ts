@@ -11,7 +11,8 @@ export const MODE_COLORS: Record<string, string> = {
   default: "#7A4BC8",
 };
 
-export function getModeColor(mode: string): string {
+export function getModeColor(mode?: string): string {
+  if (!mode) return MODE_COLORS.default;
   return MODE_COLORS[mode] || MODE_COLORS.default;
 }
 

@@ -154,6 +154,19 @@ export default function RoutesExplorer() {
       if (!res.ok) throw new Error("No geometry");
       const geo = await res.json();
       layerRef.current?.clearLayers();
+
+      // Normalize coordinates — ensure [lng, lat] order for Leaflet
+      if (geo.type === "FeatureCollection" && geo.features) {
+        geo.features = geo.features.map(f => {
+          if (f.geometry?.type === "LineString") {
+            f.geometry.coordinates = f.geometry.coordinates.map(c => 
+              Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
+            );
+          }
+          return f;
+        });
+      }
+
       L.geoJSON(geo, { style: { color: getModeColor(selected?.mode || "default"), weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
       const bounds = L.geoJSON(geo).getBounds();
       if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
@@ -252,6 +265,16 @@ export default function RoutesExplorer() {
                 const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
                 if (!res.ok) continue;
                 const geo = await res.json();
+                if (geo.type === "FeatureCollection" && geo.features) {
+                  geo.features = geo.features.map(f => {
+                    if (f.geometry?.type === "LineString") {
+                      f.geometry.coordinates = f.geometry.coordinates.map(c => 
+                        Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
+                      );
+                    }
+                    return f;
+                  });
+                }
                 const layer = L.geoJSON(geo, { style: { color: getModeColor(route.mode || "default"), weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
                 layer.bindTooltip(route.name, { sticky: true });
                 const b = layer.getBounds();
