@@ -201,9 +201,19 @@ class TransitGraph:
 
     async def _load_all_routes(self):
         """Load all approved routes and their geometries from Supabase REST API."""
-        # Step 1: Get ALL routes (verified + unverified with shapes)
-        routes_res = supabase.table("ph_routes").select("*").order("name").execute()
-        routes = routes_res.data or []
+        # Step 1: Get ALL routes with pagination (Supabase caps at 1000/query)
+        routes = []
+        route_offset = 0
+        route_batch_size = 1000
+        while True:
+            routes_res = supabase.table("ph_routes").select("*").order("name").range(route_offset, route_offset + route_batch_size - 1).execute()
+            route_batch = routes_res.data or []
+            if not route_batch:
+                break
+            routes.extend(route_batch)
+            route_offset += len(route_batch)
+            if len(route_batch) < route_batch_size:
+                break
         
         if not routes:
             logger.warning("⚠️ No routes found in Supabase")
@@ -211,16 +221,30 @@ class TransitGraph:
         
         logger.info(f"📂 Fetched {len(routes)} routes from Supabase (verified + unverified)")
         
-        # Step 2: For each route, fetch its geometry
+        # Step 2: Fetch ALL shapes in ONE batch query
+        all_shapes = []
+        shape_offset = 0
+        shape_batch_size = 1000
+        while True:
+            shape_res = supabase.table("ph_route_shapes").select("route_uuid, geom, length_m, geom_geojson").range(shape_offset, shape_offset + shape_batch_size - 1).execute()
+            shape_batch = shape_res.data or []
+            if not shape_batch:
+                break
+            all_shapes.extend(shape_batch)
+            shape_offset += len(shape_batch)
+            if len(shape_batch) < shape_batch_size:
+                break
+        
+        # Build lookup: route_uuid -> shape
+        shape_map = {s["route_uuid"]: s for s in all_shapes}
+        logger.info(f"📂 Fetched {len(all_shapes)} shapes in batch")
+        
+        # Step 3: Process each route using the shape_map
         for route in routes:
             route_uuid = route["route_uuid"]
-            shape_res = supabase.table("ph_route_shapes").select("geom, length_m, geom_geojson").eq("route_uuid", route_uuid).limit(1).execute()
-            shapes = shape_res.data or []
-            
-            if not shapes:
+            shape = shape_map.get(route_uuid)
+            if not shape:
                 continue
-            
-            shape = shapes[0]
             
             # Build route_data dict matching the old SQL output
             route_data = {
@@ -285,7 +309,8 @@ class TransitGraph:
         for line_coords in coords_list:
             if len(line_coords) >= 2:
                 self._process_line_string(line_coords, route_name, vehicle_type,
-                                          oneway=is_oneway, is_bidirectional=is_bidirectional)
+                                          oneway=is_oneway, is_bidirectional=is_bidirectional,
+                                          confidence_multiplier=confidence_multiplier)
 
     def _extract_coords_from_geojson(self, geometry_json: dict) -> List[List[List[float]]]:
         """Extract coordinate arrays from a GeoJSON geometry object"""
@@ -307,7 +332,8 @@ class TransitGraph:
 
     def _process_line_string(self, coords: List[List[float]],
                              route_name: str, vehicle_type: str,
-                             oneway: bool, is_bidirectional: bool):
+                             oneway: bool, is_bidirectional: bool,
+                             confidence_multiplier: float = 1.0):
         """Convert a line string of coordinates into graph nodes and edges"""
         prev_node = None
 
