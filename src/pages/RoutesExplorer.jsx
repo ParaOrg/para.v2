@@ -240,6 +240,30 @@ export default function RoutesExplorer() {
             <button onClick={() => { setBuildQueue([]); layerRef.current?.clearLayers(); }} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200">Clear All</button>
           </div>
           <p className="text-[11px] text-gray-400">Click routes below to build a custom trip chain on the map.</p>
+
+          {/* Show Combined Route — always visible, above queue */}
+          <button onClick={async () => {
+            if (buildQueue.length < 1) return;
+            setLoading(true);
+            layerRef.current?.clearLayers();
+            const bounds = L.latLngBounds([]);
+            for (const route of buildQueue) {
+              try {
+                const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
+                if (!res.ok) continue;
+                const geo = await res.json();
+                const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
+                layer.bindTooltip(route.name, { sticky: true });
+                const b = layer.getBounds();
+                if (b.isValid()) bounds.extend(b);
+              } catch {}
+            }
+            if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
+            setLoading(false);
+          }} disabled={buildQueue.length < 1} className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-xs mb-2 disabled:opacity-40 disabled:cursor-not-allowed">
+            🚀 Show Combined Route
+          </button>
+
           {buildQueue.length > 0 && (
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-gray-500 uppercase">Trip Queue ({buildQueue.length})</p>
@@ -250,27 +274,6 @@ export default function RoutesExplorer() {
                   <button onClick={() => setBuildQueue(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-400 text-lg shrink-0">×</button>
                 </div>
               ))}
-              <button onClick={async () => {
-                if (buildQueue.length < 1) return;
-                setLoading(true);
-                layerRef.current?.clearLayers();
-                const bounds = L.latLngBounds([]);
-                for (const route of buildQueue) {
-                  try {
-                    const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
-                    if (!res.ok) continue;
-                    const geo = await res.json();
-                    const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
-                    layer.bindTooltip(route.name, { sticky: true });
-                    const b = layer.getBounds();
-                    if (b.isValid()) bounds.extend(b);
-                  } catch {}
-                }
-                if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
-                setLoading(false);
-              }} className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-xs mt-2">
-                🚀 Show Combined Route
-              </button>
             </div>
           )}
           <div className="border-t border-gray-100 pt-2 max-h-60 overflow-y-auto">
