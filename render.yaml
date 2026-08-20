@@ -7,4 +7,10 @@ services:
     envVars:
       - key: ENVIRONMENT
         value: production
+      - key: SUPABASE_URL
+        value: https://tcvomrkytxnetzijwqad.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQzNjc0OCwiZXhwIjoyMDczMDEyNzQ4fQ.ozETr9jLQU3KcUY1c_dTLySOqzHS4f45KPwS-fBrx7E
+      - key: DATABASE_URL
+        value: postgresql://postgres:1122G%26c1122@db.tcvomrkytxnetzijwqad.supabase.co:5432/postgres
 
