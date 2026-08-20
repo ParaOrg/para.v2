@@ -8,7 +8,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl, edgePost } from "../utils/api";
 import { getModeColor, getModeEmoji } from "../utils/modeColors";
-import { getModeColor, getModeEmoji } from "../utils/modeColors";
 import { RouteVerificationBadge } from "../components/RouteVerificationBadge";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
