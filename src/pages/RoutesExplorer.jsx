@@ -236,7 +236,7 @@ export default function RoutesExplorer() {
       {tab === "build" && (
         <div className="p-3 space-y-3 flex-1 overflow-y-auto">
           <div className="flex gap-2">
-            <button onClick={() => setBuildQueue([...verified])} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-purple-100 text-purple-800 hover:bg-purple-200">See All Routes ({verified.length})</button>
+            <button onClick={() => setBuildQueue([...verified, ...unverified])} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-purple-100 text-purple-800 hover:bg-purple-200">See All Routes ({verified.length})</button>
             <button onClick={() => { setBuildQueue([]); layerRef.current?.clearLayers(); }} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200">Clear All</button>
           </div>
           <p className="text-[11px] text-gray-400">Click routes below to build a custom trip chain on the map.</p>
@@ -274,7 +274,7 @@ export default function RoutesExplorer() {
             </div>
           )}
           <div className="border-t border-gray-100 pt-2 max-h-60 overflow-y-auto">
-            {verified.map((item) => {
+            {[...verified, ...unverified].map((item) => {
               const inQueue = buildQueue.find(q => q.route_uuid === item.route_uuid);
               return (
                 <button key={item.route_uuid} onClick={() => {
