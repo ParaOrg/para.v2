@@ -7,4 +7,10 @@ services:
     envVars:
       - key: ENVIRONMENT
         value: production
+      - key: SUPABASE_URL
+        value: https://tcvomrkytxnetzijwqad.supabase.co
+      - key: SUPABASE_SERVICE_KEY
+        value: ***REMOVED***
+      - key: DATABASE_URL
+        value: postgresql://postgres:***REMOVED***@db.tcvomrkytxnetzijwqad.supabase.co:5432/postgres
 
