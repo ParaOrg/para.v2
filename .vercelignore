@@ -1,0 +1,6 @@
+*.py
+*.pkl
+graph_cache.pkl
+backend/
+scripts/
+geojson_data/
