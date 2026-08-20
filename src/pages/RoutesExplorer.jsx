@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl, edgePost } from "../utils/api";
+import { getModeColor, getModeEmoji } from "../utils/modeColors";
 import { RouteVerificationBadge } from "../components/RouteVerificationBadge";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
@@ -85,60 +86,65 @@ export default function RoutesExplorer() {
     mapInst.current = map;
   }, []);
 
-  // Load routes
+  // Load routes — Edge FIRST, then reference independently
   useEffect(() => {
     (async () => {
+      let routesData = null;
       try {
-        const [routesRes, refRes] = await Promise.all([
-          edgePost('routes-public', {}),
-          fetch(`${API}/routes/public/reference`),
-        ]);
-        const routesData = routesRes; // edgePost already returns parsed JSON
-        const refData = await refRes.json();
+        // Load Edge routes (doesn't depend on Render)
+        routesData = await edgePost('routes-public', {});
         const all = routesData.routes || [];
-        setVerified(all.filter((r) => r.is_approved === true && !/test|demo|dummy|staging/i.test(r.name || '')));
-        setUnverified(all.filter((r) => r.is_approved !== true && !/test|demo|dummy|staging/i.test(r.name || '')));
-        console.log(`Loaded ${routesData.verified_count} verified, ${routesData.unverified_count} unverified`);
         
-        // Build verified names set for comparison
+        const verifiedArr = all.filter((r) => r.is_approved === true && !/test|demo|dummy|staging/i.test(r.name || ''));
+        const unverifiedArr = all.filter((r) => r.is_approved !== true && !/test|demo|dummy|staging/i.test(r.name || ''));
+        
+        setVerified(verifiedArr);
+        setUnverified(unverifiedArr);
+        setFiltered(verifiedArr);
+        console.log(`Loaded ${verifiedArr.length} verified, ${unverifiedArr.length} unverified`);
+        
+        // Build verified names set
         const vNames = new Set();
-        all.filter(r => r.is_approved).forEach(r => {
+        verifiedArr.forEach(r => {
           if (r.name) vNames.add(r.name.toLowerCase().trim());
         });
         setVerifiedNames(vNames);
-        
-        // Deduplicate reference routes by UNIQUE name
-        const seen = new Set();
-        const uniqueRef = [];
-        (refData.routes || []).forEach(r => {
-          const name = (r.route_name || r.name || "").trim();
-          const lower = name.toLowerCase();
-          if (!name) return;
-          if (!lower || seen.has(lower)) return;
-          seen.add(lower);
-          
-          // Check if matches any verified name (exact match only)
-          const matched = vNames.has(lower);
-          
-          uniqueRef.push({ ...r, name: name, route_name: name, is_matched: matched });
-        });
-        setReferenceRoutes(uniqueRef);
-        setFiltered(all);
       } catch (e) {
-        console.error("Failed to load routes:", e);
+        console.error("Failed to load Edge routes:", e);
       } finally {
         setListLoading(false);
+      }
+
+      // Load reference routes separately (Render may be down)
+      try {
+        const refData = routesData.reference || [];
+        const seen = new Set();
+        const uniqueRef = [];
+        refData.forEach(r => {
+          const name = (r.route_name || r.name || "").trim();
+          const lower = name.toLowerCase();
+          if (!name || seen.has(lower)) return;
+          seen.add(lower);
+          uniqueRef.push({ ...r, name, route_name: name, is_matched: false });
+        });
+        setReferenceRoutes(uniqueRef);
+      } catch (refErr) {
+        console.warn("Reference unavailable:", refErr.message);
       }
     })();
   }, []);
 
-  // Filter by search
+  // Update filtered when tab/search/verified/unverified changes
   useEffect(() => {
-    const source = tab === "verified" ? verified : tab === "unverified" ? unverified : referenceRoutes;
+    const source = tab === "all" ? [...verified, ...unverified] 
+    : tab === "verified" ? verified 
+    : tab === "reference" ? [...verified, ...unverified] 
+    : tab === "build" ? [...verified, ...unverified] 
+    : referenceRoutes;
     if (!search.trim()) { setFiltered(source); return; }
     const q = search.toLowerCase();
     setFiltered(source.filter((r) => (r.name || r.route_name || "").toLowerCase().includes(q)));
-  }, [search, tab, verified, referenceRoutes]);
+  }, [search, tab, verified, unverified, referenceRoutes]);
 
   useEffect(() => { if (!isMobile && mobileOpen) setMobileOpen(false); }, [isMobile, mobileOpen]);
 
@@ -200,15 +206,19 @@ export default function RoutesExplorer() {
             <div className="text-[10px] text-purple-200">Verified</div>
           </div>
           <div className="flex-1 bg-white/15 rounded-lg py-1.5 px-2.5 text-center">
-            <div className="text-[15px] font-extrabold text-white">{referenceRoutes.filter(r => r.is_matched).length}/{referenceRoutes.length}</div>
-            <div className="text-[10px] text-purple-200">Mapped</div>
+            <div className="text-[15px] font-extrabold text-white">{unverified.length}</div>
+            <div className="text-[10px] text-purple-200">Unverified</div>
+          </div>
+          <div className="flex-1 bg-white/15 rounded-lg py-1.5 px-2.5 text-center">
+            <div className="text-[15px] font-extrabold text-white">{referenceRoutes.length}</div>
+            <div className="text-[10px] text-purple-200">Reference</div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-100 shrink-0">
-        {[["verified", "✅ Verified"], ["unverified", "📝 Unverified"], ["reference", "📋 Reference"], ["build", "🔧 Build"]].map(([id, label]) => (
+        {[["all", "🗺️ All"], ["verified", "✅ Verified"], ["reference", "📋 Reference"], ["build", "🔧 Build"]].map(([id, label]) => (
           <button key={id} onClick={() => { setTab(id); clearSelection(); }}
             className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors ${tab === id ? "text-purple-800 border-purple-800" : "text-gray-400 border-transparent hover:text-gray-500"}`}>
             {label}
@@ -258,7 +268,9 @@ export default function RoutesExplorer() {
                 }
                 if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
                 setLoading(false);
-              }} className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-xs mt-2">🚀 Show Combined Route</button>
+              }} className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-xs mt-2">
+                🚀 Show Combined Route
+              </button>
             </div>
           )}
           <div className="border-t border-gray-100 pt-2 max-h-60 overflow-y-auto">
@@ -270,7 +282,14 @@ export default function RoutesExplorer() {
                   else { setBuildQueue(prev => [...prev, item]); }
                 }} className={`w-full text-left p-2 rounded-lg flex items-start gap-2 mb-0.5 text-xs ${inQueue ? "bg-purple-100" : "hover:bg-gray-50"}`}>
                   <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold shrink-0 mt-0.5 ${inQueue ? "bg-purple-800 text-white" : "bg-gray-200 text-gray-500"}`}>{inQueue ? "✓" : "+"}</span>
-                  <span className="truncate text-gray-700">{item.name}</span>
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: getModeColor(item.mode) }} />
+                  <span className="truncate text-gray-700 flex-1">{item.name}</span>
+                  {!item.is_approved && (
+                    <span className="text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
+                      UNVERIFIED
+                    </span>
+                  )}
+                  <span className="text-[9px] text-gray-400 shrink-0">{getModeEmoji(item.mode)}</span>
                 </button>
               );
             })}
@@ -292,6 +311,7 @@ export default function RoutesExplorer() {
               {filtered.map((route) => {
                 const id = route.route_uuid || route.id;
                 const name = route.name || route.route_name || "Unknown";
+                const isUnverified = tab === "all" && !route.is_approved;
                 const mode = route.mode || route.agency || "";
                 const active = selected && (
                   (id && (selected?.route_uuid || selected?.id) === id) ||
