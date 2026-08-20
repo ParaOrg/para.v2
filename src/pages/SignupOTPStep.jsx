@@ -50,7 +50,7 @@ export default function SignupOTPStep({ uid, email, onBack, onSuccess }) {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API}/auth/signup`, {
+      const res = await edgePost("auth-signup", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid, otp }),
@@ -80,7 +80,7 @@ export default function SignupOTPStep({ uid, email, onBack, onSuccess }) {
     setError('');
 
     try {
-      const res = await fetch(`${API}/auth/signup`, {
+      const res = await edgePost("auth-signup", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid }),

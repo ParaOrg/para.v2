@@ -74,7 +74,7 @@ export default function RouteUploader({ onDone, onCancel }) {
     setRecording(false);
     setSaving(true);
     try {
-      await apiPost("/commute/save", {
+      await edgePost("commute-save", {
         client_log_id: `route-upload-${Date.now()}`,
         consent_granted: consent,
         route_name: routeName,
