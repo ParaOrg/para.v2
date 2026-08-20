@@ -286,7 +286,7 @@ export default function Contribute() {
     if (!navigator.onLine) {
       await offlineBuffer.addCommute(routeData);
     } else {
-      try { await apiPost("/commute/save", routeData); } catch {
+      try { await edgePost("commute-save", routeData); } catch {
         await offlineBuffer.addCommute(routeData);
       }
     }

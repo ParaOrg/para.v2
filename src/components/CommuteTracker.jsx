@@ -72,7 +72,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
     if (!queue.length) return;
     const remaining = [];
     for (const log of queue) {
-      try { await apiPost("/commute/save", log); } catch { remaining.push(log); }
+      try { await edgePost("commute-save", log); } catch { remaining.push(log); }
     }
     writeQueue(remaining);
   }, []);
@@ -115,7 +115,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
       comment,
       completed_at: new Date().toISOString(),
     };
-    try { await apiPost("/commute/save", log); } catch {
+    try { await edgePost("commute-save", log); } catch {
       const queue = readQueue();
       queue.push(log);
       writeQueue(queue);

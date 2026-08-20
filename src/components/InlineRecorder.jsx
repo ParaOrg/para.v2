@@ -51,7 +51,7 @@ export default function InlineRecorder({ onDone, onCancel }) {
     stopTracking();
     setStep("saving");
     try {
-      await apiPost("/commute/save", {
+      await edgePost("commute-save", {
         client_log_id: `inline-${Date.now()}`,
         consent_granted: consent,
         total_time_sec: elapsed,

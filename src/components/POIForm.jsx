@@ -52,7 +52,7 @@ export default function POIForm({ onSuccess }) {
     }
     setSaving(true);
     try {
-      const res = await fetch(`${API}/poi/add`, {
+      const res = await edgePost("poi-add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ canonical_name: name.trim(), category, lat: parseFloat(pin.lat), lng: parseFloat(pin.lng) }),
