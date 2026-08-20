@@ -91,7 +91,7 @@ export default function RoutesExplorer() {
           edgePost('routes-public', {}),
           fetch(`${API}/routes/public/reference`),
         ]);
-        const routesData = await routesRes.json();
+        const routesData = routesRes; // edgePost already returns parsed JSON
         const refData = await refRes.json();
         const all = routesData.routes || [];
         setVerified(all.filter((r) => r.is_approved && !r.is_test && !/test|demo|dummy|staging/i.test(r.name || '')));
