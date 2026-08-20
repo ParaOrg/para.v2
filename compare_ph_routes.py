@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Compare ph_routes with ph_route_reference to find missing routes."""
+
+from supabase import create_client
+from config import SUPABASE_URL, SUPABASE_SERVICE_KEY
+
+supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+
+def compare_tables():
+    print("🔍 COMPARING ph_routes vs ph_route_reference\n")
+    
+    # Get all routes from ph_routes (verified with GPS)
+    print("📥 Fetching ph_routes...")
+    ph_routes = {}
+    page_size = 1000
+    start = 0
+    
+    while True:
+        res = supabase.table("ph_routes").select("route_uuid, name, route_name, mode, is_approved, status").range(start, start + page_size - 1).execute()
+        if not res.data:
+            break
+        
+        for route in res.data:
+            # Try both name and route_name fields
+            name = route.get("name") or route.get("route_name") or ""
+            if name:
+                ph_routes[name] = {
+                    "route_uuid": route.get("route_uuid"),
+                    "mode": route.get("mode"),
+                    "is_approved": route.get("is_approved"),
+                    "status": route.get("status"),
+                }
+        
+        if len(res.data) < page_size:
+            break
+        start += page_size
+    
+    print(f"   ph_routes: {len(ph_routes)} routes")
+    
+    # Get all routes from ph_route_reference
+    print("📥 Fetching ph_route_reference...")
+    reference_routes = {}
+    start = 0
+    
+    while True:
+        res = supabase.table("ph_route_reference").select("id, route_name, mode").range(start, start + page_size - 1).execute()
+        if not res.data:
+            break
+        
+        for route in res.data:
+            name = route.get("route_name", "")
+            if name:
+                reference_routes[name] = {
+                    "id": route.get("id"),
+                    "mode": route.get("mode"),
+                }
+        
+        if len(res.data) < page_size:
+            break
+        start += page_size
+    
+    print(f"   ph_route_reference: {len(reference_routes)} routes")
+    
+    # Find routes in ph_routes but NOT in ph_route_reference
+    missing_from_reference = set(ph_routes.keys()) - set(reference_routes.keys())
+    print(f"\n❌ Routes in ph_routes but MISSING from ph_route_reference: {len(missing_from_reference)}")
+    
+    if missing_from_reference:
+        for name in sorted(missing_from_reference)[:50]:
+            route_info = ph_routes[name]
+            print(f"   • {name} (mode: {route_info['mode']}, status: {route_info['status']})")
+    
+    # Find routes in ph_route_reference but NOT in ph_routes
+    missing_from_ph_routes = set(reference_routes.keys()) - set(ph_routes.keys())
+    print(f"\n⚠️ Routes in ph_route_reference but NOT in ph_routes: {len(missing_from_ph_routes)}")
+    
+    # Mode comparison for matching routes
+    print(f"\n📊 Mode comparison for matching routes:")
+    mode_mismatches = []
+    matching = 0
+    
+    for name in set(ph_routes.keys()) & set(reference_routes.keys()):
+        matching += 1
+        ph_mode = ph_routes[name]["mode"]
+        ref_mode = reference_routes[name]["mode"]
+        
+        if ph_mode != ref_mode:
+            mode_mismatches.append((name, ph_mode, ref_mode))
+    
+    print(f"   Matching routes: {matching}")
+    print(f"   Mode mismatches: {len(mode_mismatches)}")
+    
+    if mode_mismatches:
+        print(f"\n   Mode mismatches (first 20):")
+        for name, ph_mode, ref_mode in mode_mismatches[:20]:
+            print(f"   • {name}: ph_routes={ph_mode}, reference={ref_mode}")
+    
+    # Summary
+    print(f"\n📋 SUMMARY:")
+    print(f"   ph_routes total: {len(ph_routes)}")
+    print(f"   ph_route_reference total: {len(reference_routes)}")
+    print(f"   Missing from reference: {len(missing_from_reference)}")
+    print(f"   Mode mismatches: {len(mode_mismatches)}")
+
+if __name__ == "__main__":
+    compare_tables()
