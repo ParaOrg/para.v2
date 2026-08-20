@@ -37,7 +37,7 @@ def _row_to_route_dict(row: dict) -> dict:
 async def list_public_routes():
     """List approved non-test public routes."""
     try:
-        rows = await fetch_all("ph_routes", eq={"is_approved": True}, order="name")
+        rows = await fetch_all("ph_routes", order="name")
         routes = []
         for r in rows:
             name = (r.get("name") or "").strip()
