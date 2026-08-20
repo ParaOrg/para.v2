@@ -4,6 +4,7 @@ import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
 import InlineRecorder from "./InlineRecorder";
+import WeatherPage from "./WeatherPage";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 
 const API = getApiBaseUrl();
@@ -15,8 +16,6 @@ function TypewriterText({ text, speed = 18 }) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    setDisplayed("");
-    setDone(false);
     let i = 0;
     const timer = setInterval(() => {
       setDisplayed(text.slice(0, i));
@@ -65,7 +64,6 @@ export default function ChatPanel() {
   const [polylines, setPolylines] = useState([]);
   const [showTracker, setShowTracker] = useState(false);
   const [activeRouteData, setActiveRouteData] = useState(null);
-  const [showRecorder, setShowRecorder] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
   const [weather, setWeather] = useState(null);
   const messagesEndRef = useRef(null);

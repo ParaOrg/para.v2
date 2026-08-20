@@ -27,17 +27,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "FLOOD UPDATE: The Metropolitan Manila Development Authority (MMDA) provides an u",
-      "description": "FLOOD UPDATE: The Metropolitan Manila Development Authority (MMDA) provides an update on the reported flooding in some areas of Metro Manila as of 7:35 a.m. this Wed, Aug. 19. 𝐐𝐔𝐄𝐙𝐎𝐍 𝐂𝐈𝐓𝐘 - Vertis Nor",
-      "updated": "Tue, 18 Aug 2026 23:55:19 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxQQWg3aDFSbldmNFhFLWVXVDI4cm83b3FXdUh2aDBHVHdzZVA5NTBHb0V0akwxZC1ES0V0X1pJbWt5ME5ETkpXNERPamNRdUViQi1HMHhTM3JNYnM2UHAwa25yLXBUTUNPT2U2ZkdVVVVXdUxrdzFoNzROM0wxTWNOeUMwWFJYUXVtbW02Z0o4WnBsQXlkbmItYl9LSF9NM3FLbFY1LVNQU1hmTTBaNkZDUXpHbERwQTgzZk5BWnhTUko3a3FpcU0ycHhySm5wdzZR?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-4",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "Number coding in effect, except Quezon City – MMDA - The Manila Times",
       "description": "Number coding in effect, except Quezon City – MMDAThe Manila Times",
       "updated": "Wed, 19 Aug 2026 03:50:00 GMT",
@@ -45,7 +34,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-5",
+      "id": "traffic-4",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -56,7 +45,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-6",
+      "id": "traffic-5",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,7 +56,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-6",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,7 +67,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -100,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-10",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +98,19 @@
       "updated": "Tue, 18 Aug 2026 03:22:02 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxONzRUWUh3bXJmR2toRXRhRkN2UTNVYm5udThnUjlEV0RUTjlRZk40M3d3V2YySXBoZEtWT2dfM1NiRkMwZWM4WmZRQkEtX3Vxejl4b2NIQVBvdTZMVXFIa2N2QlEzTXlUTFllWnp0X09mak5hRzRLakM0RjVJTFNqU3JfS2dZbDVLNDJRTGN1dFFxb0VQa0hlWmVRWVdoZHgxOHFDR2c1YUYzX2pRaktIV0VTR0lXeURYUDlybnRVcUMybk1MSnRTZ2NvWEo1b2pNVG04T0V0Y9IB3AFBVV95cUxPQUl2QVd5RWE5dGFuTkNLU1hZME9aMEpNZC12V2NjOVM3TWo4NHdlMW9ZaGtsLU9vNGx5eG1IbEk5TldwQlQyZURLNDR2MmNka2xoeHZzbTN4Q1FnMzdKQjBWek01S21TZU96dW5SRkNqX0xGWG9aRTI3ZEIyQi1WTWd0eW1QS0I5UGt2RmNqOTRTT19mSWM1OGJ4aXVMTEtxM2VPY1A0dU5PTGRYR1prdWtjT1IzYjlsZTBxVXZvQm9ldkVyTGpXWDJQU090TzA3VXpfVUwyTkdKbUdL?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Torre: MMDA Hotline 136, para pay laeng iti emergency calls - Bombo Radyo Vigan",
+      "description": "Torre: MMDA Hotline 136, para pay laeng iti emergency callsBombo Radyo Vigan",
+      "updated": "Tue, 18 Aug 2026 06:51:17 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxOelpSWm1nalBJb3NSbnRVWERENmN2VjNOODhScFY3bTVaNUl5c05rUWxtdl9aZk85YjZTWmdNVF9ib0lzc2hOTUhZT0NtVTROMlN4QlUyYkY1a1gxZTg4WHY5cjNJYUJnNng1WUt1SElRUUQtWDJMZ1RERVJ6aXNITy1Qdmp2VHhpR3R6aUhBbGc?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-20T09:30:02.291057",
+  "scraped_at": "2026-08-20T10:00:02.124967",
   "source": "Google News RSS"
 }

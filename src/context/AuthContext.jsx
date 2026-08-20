@@ -15,11 +15,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const storedUser = safeParse(localStorage.getItem(USER_KEY));
     if (storedUser && storedUser.email) {
-      fetch(`${API}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: storedUser.email }),
-      })
+      edgePost("auth-signup", { email: storedUser.email })
         .then(r => r.json())
         .then(d => {
           if (d.user) {

@@ -127,7 +127,6 @@ export default function WeatherPage({ onClose }) {
     // Try to fetch live advisories, fall back to defaults
     // Fetch PAGASA advisories from scraped JSON
     // Direct JSON import — no fetch needed
-    console.log('PAGASA data loaded:', pagasaData?.advisories?.length, 'advisories');
     if (pagasaData?.advisories?.length > 0) {
       const now = new Date();
       const cutoff = new Date(now.getTime() - 2 * 86400000);
@@ -149,12 +148,10 @@ export default function WeatherPage({ onClose }) {
         return true; // No date = include
       });
       
-      console.log('Filtered advisories:', recent.length);
       const trafficItems = (trafficData?.advisories || [])
         .sort((a, b) => new Date(b.updated) - new Date(a.updated))
         .slice(0, 5); // Sort by most recent date, take top 5
       const combined = [...recent, ...trafficItems];
-      console.log('Weather:', recent.length, 'Traffic:', trafficItems.length, 'Total:', combined.length);
       setAdvisories(combined.length > 0 ? combined : DEFAULT_ADVISORIES);
     }
   }, [lat, lng, consent, location]);

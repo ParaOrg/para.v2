@@ -1,3 +1,4 @@
+import L from "leaflet";
 // Marker colors matching backend types
 export const MARKER_COLORS = {
     User_Location: "#4285F4",
