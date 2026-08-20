@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl, edgePost } from "../utils/api";
+import { RouteVerificationBadge } from "../components/RouteVerificationBadge";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
@@ -42,6 +43,7 @@ export default function RoutesExplorer() {
 
   const [verified, setVerified] = useState([]);
   const [referenceRoutes, setReferenceRoutes] = useState([]);
+  const [unverified, setUnverified] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("verified");
@@ -94,7 +96,9 @@ export default function RoutesExplorer() {
         const routesData = routesRes; // edgePost already returns parsed JSON
         const refData = await refRes.json();
         const all = routesData.routes || [];
-        setVerified(all.filter((r) => r.is_approved && !r.is_test && !/test|demo|dummy|staging/i.test(r.name || '')));
+        setVerified(all.filter((r) => r.is_approved === true && !/test|demo|dummy|staging/i.test(r.name || '')));
+        setUnverified(all.filter((r) => r.is_approved !== true && !/test|demo|dummy|staging/i.test(r.name || '')));
+        console.log(`Loaded ${routesData.verified_count} verified, ${routesData.unverified_count} unverified`);
         
         // Build verified names set for comparison
         const vNames = new Set();
@@ -119,7 +123,7 @@ export default function RoutesExplorer() {
           uniqueRef.push({ ...r, name: name, route_name: name, is_matched: matched });
         });
         setReferenceRoutes(uniqueRef);
-        setFiltered(all.filter((r) => r.is_approved));
+        setFiltered(all);
       } catch (e) {
         console.error("Failed to load routes:", e);
       } finally {
@@ -130,7 +134,7 @@ export default function RoutesExplorer() {
 
   // Filter by search
   useEffect(() => {
-    const source = tab === "verified" ? verified : referenceRoutes;
+    const source = tab === "verified" ? verified : tab === "unverified" ? unverified : referenceRoutes;
     if (!search.trim()) { setFiltered(source); return; }
     const q = search.toLowerCase();
     setFiltered(source.filter((r) => (r.name || r.route_name || "").toLowerCase().includes(q)));
@@ -204,7 +208,7 @@ export default function RoutesExplorer() {
 
       {/* Tabs */}
       <div className="flex border-b border-gray-100 shrink-0">
-        {[["verified", "✓ Verified"], ["reference", "📋 Reference"], ["build", "🔧 Build"]].map(([id, label]) => (
+        {[["verified", "✅ Verified"], ["unverified", "📝 Unverified"], ["reference", "📋 Reference"], ["build", "🔧 Build"]].map(([id, label]) => (
           <button key={id} onClick={() => { setTab(id); clearSelection(); }}
             className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors ${tab === id ? "text-purple-800 border-purple-800" : "text-gray-400 border-transparent hover:text-gray-500"}`}>
             {label}
