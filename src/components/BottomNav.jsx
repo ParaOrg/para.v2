@@ -1,6 +1,4 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 const LEFT_NAV = [
   { id: "explore", label: "Explore", icon: "🗺️", to: "/explore" },
@@ -15,7 +13,7 @@ const RIGHT_NAV = [
 export default function BottomNav({ onSearchClick }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  // user not needed in BottomNav
 
   const isActive = (path) => location.pathname === path;
 

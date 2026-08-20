@@ -6,7 +6,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getApiBaseUrl } from "../utils/api";
+import { getApiBaseUrl, edgePost } from "../utils/api";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
@@ -88,7 +88,7 @@ export default function RoutesExplorer() {
     (async () => {
       try {
         const [routesRes, refRes] = await Promise.all([
-          fetch(`https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/routes-public`),
+          edgePost('routes-public', {}),
           fetch(`${API}/routes/public/reference`),
         ]);
         const routesData = await routesRes.json();

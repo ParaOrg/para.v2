@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import TrafficOverlay from "./TrafficOverlay";
 import WeatherOverlay from "./WeatherOverlay";
 
-export default function StravaRouteCard({ routeData, onClose }) {
+export default function StravaRouteCard({ routeData, onClose, onStartCommute }) {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
