@@ -8,6 +8,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl, edgePost } from "../utils/api";
 import { getModeColor, getModeEmoji } from "../utils/modeColors";
+import { getModeColor, getModeEmoji } from "../utils/modeColors";
 import { RouteVerificationBadge } from "../components/RouteVerificationBadge";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
@@ -154,7 +155,7 @@ export default function RoutesExplorer() {
       if (!res.ok) throw new Error("No geometry");
       const geo = await res.json();
       layerRef.current?.clearLayers();
-      L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
+      L.geoJSON(geo, { style: { color: getModeColor(selected?.mode || "default"), weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
       const bounds = L.geoJSON(geo).getBounds();
       if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
     } catch (e) {
@@ -252,7 +253,7 @@ export default function RoutesExplorer() {
                 const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
                 if (!res.ok) continue;
                 const geo = await res.json();
-                const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
+                const layer = L.geoJSON(geo, { style: { color: getModeColor(route.mode || "default"), weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
                 layer.bindTooltip(route.name, { sticky: true });
                 const b = layer.getBounds();
                 if (b.isValid()) bounds.extend(b);
