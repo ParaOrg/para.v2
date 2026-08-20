@@ -8,6 +8,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getApiBaseUrl, edgePost } from "../utils/api";
 import { getModeColor, getModeEmoji } from "../utils/modeColors";
+import { MODE_COLORS } from "../utils/modeColors";
 import { RouteVerificationBadge } from "../components/RouteVerificationBadge";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import Navbar from "../components/Navbar";
@@ -41,6 +42,7 @@ export default function RoutesExplorer() {
   const mapRef = useRef(null);
   const mapInst = useRef(null);
   const layerRef = useRef(null);
+  const megaLayerRef = useRef(null);
 
   const [verified, setVerified] = useState([]);
   const [referenceRoutes, setReferenceRoutes] = useState([]);
@@ -150,24 +152,42 @@ export default function RoutesExplorer() {
 
   const drawRoute = useCallback(async (routeId) => {
     try {
-      const res = await fetch(`${API}/routes/public/geojson?route_id=${routeId}`);
+      const selectedRoute = [...verified, ...unverified].find(r => r.route_uuid === routeId);
+      if (selectedRoute?.has_shape === false) return; // Skip no-shape
+      
+      const res = await fetch(`https://tcvomrkytxnetzijwqad.supabase.co/rest/v1/ph_route_shapes?route_uuid=eq.${routeId}&select=geom_geojson&limit=1`, { 
+        headers: { 
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.JyU9lX6yE2bH4N1mK8pQ3rT5vW9xY2zA4bC6dE8fG0h' 
+        } 
+      });
       if (!res.ok) throw new Error("No geometry");
-      const geo = await res.json();
-      layerRef.current?.clearLayers();
-
+      
+      const rawData = await res.json();
+      const geomData = rawData?.[0]?.geom_geojson;
+      if (!geomData) return;
+      
       // Normalize coordinates — ensure [lng, lat] order for Leaflet
-      if (geo.type === "FeatureCollection" && geo.features) {
-        geo.features = geo.features.map(f => {
-          if (f.geometry?.type === "LineString") {
-            f.geometry.coordinates = f.geometry.coordinates.map(c => 
-              Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
-            );
-          }
-          return f;
-        });
+      if (geomData.type === "LineString") {
+        geomData.coordinates = geomData.coordinates.map(c =>
+          Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
+        );
       }
-
-      L.geoJSON(geo, { style: { color: getModeColor(selected?.mode || "default"), weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
+      
+      const geo = {
+        type: "FeatureCollection",
+        features: [{
+          type: "Feature",
+          properties: {},
+          geometry: geomData
+        }]
+      };
+      
+      if (!layerRef.current) {
+        layerRef.current = L.layerGroup().addTo(mapInst.current);
+      }
+      
+      layerRef.current.clearLayers();
+      L.geoJSON(geo, { style: { color: getModeColor(selectedRoute?.mode || "default"), weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
       const bounds = L.geoJSON(geo).getBounds();
       if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
     } catch (e) {
@@ -262,9 +282,15 @@ export default function RoutesExplorer() {
             const bounds = L.latLngBounds([]);
             for (const route of buildQueue) {
               try {
-                const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
+                const res = await fetch(`https://tcvomrkytxnetzijwqad.supabase.co/rest/v1/ph_route_shapes?route_uuid=eq.${route.route_uuid}&select=geom_geojson&limit=1`, { headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQzNjc0OCwiZXhwIjoyMDczMDEyNzQ4fQ.ozETr9jLQU3KcUY1c_dTLySOqzHS4f45KPwS-fBrx7E' } });
                 if (!res.ok) continue;
-                const geo = await res.json();
+                const rawData = await res.json();
+                const geomData = rawData?.[0]?.geom_geojson;
+                if (!geomData) continue;
+                const geo = {
+                  type: "FeatureCollection",
+                  features: [{ type: "Feature", properties: {}, geometry: geomData }]
+                };
                 if (geo.type === "FeatureCollection" && geo.features) {
                   geo.features = geo.features.map(f => {
                     if (f.geometry?.type === "LineString") {
@@ -275,7 +301,10 @@ export default function RoutesExplorer() {
                     return f;
                   });
                 }
-                const layer = L.geoJSON(geo, { style: { color: getModeColor(route.mode || "default"), weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
+                if (!layerRef.current) {
+                layerRef.current = L.layerGroup().addTo(mapInst.current);
+              }
+              const layer = L.geoJSON(geo, { style: { color: getModeColor(route.mode || "default"), weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
                 layer.bindTooltip(route.name, { sticky: true });
                 const b = layer.getBounds();
                 if (b.isValid()) bounds.extend(b);
@@ -290,10 +319,10 @@ export default function RoutesExplorer() {
           {buildQueue.length > 0 && (
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-gray-500 uppercase">Trip Queue ({buildQueue.length})</p>
-              {buildQueue.map((r, i) => (
+              {buildQueue.map((route, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs bg-purple-50 rounded-lg p-2">
                   <span className="w-5 h-5 rounded-full bg-purple-800 text-white flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
-                  <span className="text-gray-700 truncate">{r.name}</span>
+                  <span className="text-gray-700 truncate">{route.name}</span>
                   <button onClick={() => setBuildQueue(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-400 text-lg shrink-0">×</button>
                 </div>
               ))}
