@@ -1,0 +1,973 @@
+/home/aegis/para-frontend
+├── add_poi.sh
+├── admin_routes.py
+├── api_routes.py
+├── backend
+│   ├── admin_routes.py
+│   ├── api_routes.py
+│   ├── biyahe_score.py
+│   ├── config.py
+│   ├── database.py
+│   ├── debug_snap.py
+│   ├── diagnose_paths.py
+│   ├── filter_pedestrian_roads.py
+│   ├── graph_engine.py
+│   ├── ingest_pois.py
+│   ├── llm_engine.py
+│   ├── main.py
+│   ├── models.py
+│   ├── README.md
+│   ├── requirements.txt
+│   ├── smart_cache.py
+│   ├── tasks.py
+│   └── telemetry_engine.py
+├── biyahe_score.py
+├── config.py
+├── database.py
+├── debug_snap.py
+├── diagnose_paths.py
+├── docker-compose.yml
+├── eslint.config.js
+├── fare_routes.py
+├── filter_pedestrian_roads.py
+├── Future
+│   └── landmarks.geojson
+├── gas_routes.py
+├── geojson_data
+│   ├── 1routes.geojson
+│   ├── 1routes.geojson.bak.20260729_212316
+│   ├── 1routes.geojson.bak.20260729_212800
+│   ├── 1routes.geojson.bak.20260729_212830
+│   ├── 1routes.geojson.bak.20260729_215421
+│   ├── 1routes.geojson.bak.20260729_230103
+│   ├── 1routes.geojson.bak.20260729_232618
+│   ├── 1routes.geojson.bak.20260730_154452
+│   ├── 1routes.geojson.bak.20260730_215552
+│   ├── clean_routes.py
+│   ├── community_Test_Route_1785467060.geojson
+│   ├── full_jeepney_routes.csv
+│   ├── inspect_geojson.py
+│   ├── POI.geojson.bak
+│   ├── POI.qmd
+│   ├── prepare_geojson.py
+│   ├── routes.geojson.bak.20260730_215552
+│   ├── routes.geojson.bak.20260730_220125
+│   ├── routes.geojson.duplicate
+│   ├── schools.geojson.bak
+│   ├── walk_paths.geojson.bak
+│   └── walk_paths.geojson.disabled
+├── graph_engine.py
+├── graph_engine.py.bak.20260731_094001
+├── index.html
+├── ingest_pois.py
+├── knowledge_base.txt
+├── llm_engine.py
+├── load_test.py
+├── main.py
+├── models.py
+├── package.json
+├── package-lock.json
+├── PARA_FULL_AUDIT.txt
+├── para_geo_knowledge.db
+├── para_ml_data.db
+├── para_poi.db
+├── pattern_learner.py
+├── project_tree.txt
+├── public
+│   ├── favicon.ico
+│   ├── favicon.jpg
+│   ├── _headers
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── logos
+│   │   ├── caltex.svg
+│   │   ├── cleanfuel.svg
+│   │   ├── petron.svg
+│   │   ├── ptt.svg
+│   │   ├── seaoil.svg
+│   │   ├── shell.svg
+│   │   └── total.svg
+│   ├── manifest.json
+│   ├── _redirects
+│   └── sw.js
+├── README.md
+├── render.yaml
+├── requirements.txt.backend
+├── runtime.txt
+├── scripts
+│   ├── scrape_pagasa.py
+│   └── scrape_traffic_news.py
+├── smart_cache.py
+├── smart_router.py
+├── src
+│   ├── App.jsx
+│   ├── assets
+│   │   ├── images
+│   │   │   ├── about-page
+│   │   │   │   ├── image-1.jpeg
+│   │   │   │   ├── image-2.jpeg
+│   │   │   │   └── image-3.jpeg
+│   │   │   ├── favicon.jpg
+│   │   │   ├── logo1.jpg
+│   │   │   ├── loop.gif
+│   │   │   ├── Para1P.png
+│   │   │   ├── PARA_App.png
+│   │   │   ├── paralogo.png
+│   │   │   └── ParaTeamPhoto.jpg
+│   │   └── inverted_favicon.png
+│   ├── components
+│   │   ├── AnalyticsDashboard.jsx
+│   │   ├── AuthPageLayout.jsx
+│   │   ├── BottomNav.jsx
+│   │   ├── ChatPanel.jsx
+│   │   ├── CommuteTracker.jsx
+│   │   ├── contribute
+│   │   │   ├── ButtonVersionUI.tsx
+│   │   │   ├── ChatActionBar.tsx
+│   │   │   ├── ChatFeed.tsx
+│   │   │   ├── ChatMessage.tsx
+│   │   │   ├── ChatPanel.tsx
+│   │   │   ├── FileUploadOverlay.tsx
+│   │   │   ├── LiveMapBackground.tsx
+│   │   │   ├── RouteSummaryReportInline.tsx
+│   │   │   ├── SegmentTimelineInline.tsx
+│   │   │   ├── StopAutofillInline.tsx
+│   │   │   └── TopBanner.tsx
+│   │   ├── DataAnalytics.jsx
+│   │   ├── FareReporter.jsx
+│   │   ├── GasPrice
+│   │   │   ├── GasPriceBadge.jsx
+│   │   │   ├── GasPricePanel.jsx
+│   │   │   ├── GasStationMap.jsx
+│   │   │   ├── GasStationMarker.jsx
+│   │   │   ├── index.jsx
+│   │   │   ├── ReportModal.jsx
+│   │   │   ├── StationInfoPanel.jsx
+│   │   │   ├── useGasPrices.js
+│   │   │   ├── useGasStations.js
+│   │   │   └── usePriceSubmit.js
+│   │   ├── GlobalWeather.jsx
+│   │   ├── GpsIcon.jsx
+│   │   ├── GpsPrompt.jsx
+│   │   ├── InlineRecorder.jsx
+│   │   ├── input_box.jsx
+│   │   ├── landing_page
+│   │   │   ├── components
+│   │   │   │   ├── CountdownDisplay.jsx
+│   │   │   │   ├── Countdown.jsx
+│   │   │   │   ├── index.js
+│   │   │   │   ├── MetroLine.jsx
+│   │   │   │   ├── MetroMap.jsx
+│   │   │   │   ├── PillShapes.jsx
+│   │   │   │   ├── Station.jsx
+│   │   │   │   ├── Ticket.jsx
+│   │   │   │   └── Train.jsx
+│   │   │   ├── data
+│   │   │   │   ├── config.js
+│   │   │   │   ├── index.js
+│   │   │   │   ├── lines.js
+│   │   │   │   ├── station.js
+│   │   │   │   └── trains.js
+│   │   │   ├── hooks
+│   │   │   │   ├── index.js
+│   │   │   │   └── useCountdown.js
+│   │   │   ├── index.js
+│   │   │   └── MetroCountdown.jsx
+│   │   ├── landingpage-footer.component.jsx
+│   │   ├── LiveRouteRecorder.jsx
+│   │   ├── map_component.jsx
+│   │   ├── map_constants.js
+│   │   ├── Navbar.jsx
+│   │   ├── OTPInput.jsx
+│   │   ├── PipelineStatus.jsx
+│   │   ├── POIForm.jsx
+│   │   ├── RouteEditor.jsx
+│   │   ├── RouteEditVoting.jsx
+│   │   ├── RouteLegend.jsx
+│   │   ├── RouteLines.jsx
+│   │   ├── RouteLoadingAnimation.jsx
+│   │   ├── RouteMarkers.jsx
+│   │   ├── RouteNameInput.jsx
+│   │   ├── RouteOptionsPanel.jsx
+│   │   ├── RouteSteps.jsx
+│   │   ├── RouteSummaryReport.jsx
+│   │   ├── RouteUploader.jsx
+│   │   ├── SearchInput.jsx
+│   │   ├── StravaRouteCard.jsx
+│   │   ├── TrafficOverlay.jsx
+│   │   ├── TripSummaryCard.jsx
+│   │   ├── waitList
+│   │   │   ├── BubbleButton.jsx
+│   │   │   └── WaitListForm.jsx
+│   │   ├── waitList_bubble.jsx
+│   │   ├── WeatherOverlay.jsx
+│   │   └── WeatherPage.jsx
+│   ├── config
+│   │   ├── api.js
+│   │   └── googleMaps.js
+│   ├── context
+│   │   ├── AuthContext.jsx
+│   │   └── TrackingConsentContext.jsx
+│   ├── hooks
+│   │   ├── useContributeSync.ts
+│   │   ├── useGeofencedAutoDropOff.ts
+│   │   ├── useGoogleMaps.js
+│   │   └── useTrajectoryRouteRanking.ts
+│   ├── index.css
+│   ├── main.jsx
+│   ├── pages
+│   │   ├── About.jsx
+│   │   ├── AdminApproval.jsx
+│   │   ├── AdminDashboard.jsx
+│   │   ├── ArticlePage.jsx
+│   │   ├── Community.jsx
+│   │   ├── Contact.jsx
+│   │   ├── Contribute.jsx
+│   │   ├── ContributePage.tsx
+│   │   ├── GasPrices.jsx
+│   │   ├── HomeNew.jsx
+│   │   ├── Login.jsx
+│   │   ├── POIBrowser.jsx
+│   │   ├── PrivacyPolicy.jsx
+│   │   ├── Profile.jsx
+│   │   ├── RouteOptionsPage.jsx
+│   │   ├── RoutesExplorer.jsx
+│   │   ├── RouteUploader.jsx
+│   │   ├── SignupDetailsStep.jsx
+│   │   ├── Signup.jsx
+│   │   └── SignupOTPStep.jsx
+│   ├── reducers
+│   │   └── contributeReducer.ts
+│   ├── styles
+│   │   └── Map.css
+│   ├── types
+│   │   └── contribute.ts
+│   └── utils
+│       ├── androidBackHandler.js
+│       ├── api.d.ts
+│       ├── api.js
+│       ├── backgroundTracker.js
+│       ├── batchSync.ts
+│       ├── cityGazetteer.js
+│       ├── gpsDownsampler.ts
+│       ├── notifications.js
+│       ├── offlineBuffer.js
+│       ├── openWeatherAlerts.ts
+│       ├── pagasaAdvisories.json
+│       ├── pagasaAdvisories.ts
+│       ├── pwaTracker.js
+│       ├── queryNormalizer.js
+│       ├── spatialCalculations.ts
+│       ├── stopDatabase.js
+│       ├── syncEngine.js
+│       ├── __tests__
+│       │   ├── contributeFullSimulation.ts
+│       │   ├── finalPipelineTest.ts
+│       │   ├── fullPipelineTest.ts
+│       │   ├── paritySimulation.ts
+│       │   ├── spatialCalculations.test.ts
+│       │   └── testDlsuToUst.ts
+│       ├── trafficAdvisories.json
+│       └── weatherFallback.ts
+├── supabase
+│   └── functions
+│       ├── auth-signup
+│       │   └── index.ts
+│       ├── commute-save
+│       │   └── index.ts
+│       ├── debug-routes
+│       │   └── index.ts
+│       ├── fare-report
+│       │   └── index.ts
+│       ├── poi-add
+│       │   └── index.ts
+│       ├── route-save
+│       │   └── index.ts
+│       └── routes-public
+│           └── index.ts
+├── supabase.js
+├── tailwindcss.css
+├── tasks.py
+├── telemetry_engine.py
+├── test
+│   ├── index (1).css
+│   ├── main (1).tsx
+│   ├── package (1).json
+│   ├── postcss.config (1).js
+│   ├── src
+│   │   ├── App.tsx
+│   │   ├── index (4).css
+│   │   ├── main (2).tsx
+│   │   └── pages
+│   │       └── pages
+│   │           ├── Dashboard.tsx
+│   │           └── Search3.tsx
+│   ├── tsconfig (1).json
+│   └── vite.config (1).ts
+├── v1_routes.py
+├── vercel.json
+└── vite.config.js
+/mnt/nvme-drive/para.v2/para.v2
+├── add_poi.sh
+├── admin_routes.py
+├── api_routes.py
+├── biyahe_score.py
+├── commute_logs
+├── config.py
+├── database.py
+├── data_cleaner.py
+├── data_pipeline.py
+├── debug_snap.py
+├── diagnose_paths.py
+├── docker-compose.yml
+├── eslint.config.js
+├── fare_routes.py
+├── filter_pedestrian_roads.py
+├── frontend
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── favicon.jpg
+│   │   ├── _headers
+│   │   ├── logos
+│   │   │   ├── caltex.svg
+│   │   │   ├── cleanfuel.svg
+│   │   │   ├── petron.svg
+│   │   │   ├── ptt.svg
+│   │   │   ├── seaoil.svg
+│   │   │   ├── shell.svg
+│   │   │   └── total.svg
+│   │   ├── PARA_APP (1).png
+│   │   └── _redirects
+│   └── src
+│       └── pages
+│           └── HomeNew.jsx
+├── Future
+│   └── landmarks.geojson
+├── gas_routes.py
+├── geojson_data
+│   ├── 1routes.geojson
+│   ├── 1routes.geojson.bak.20260729_212316
+│   ├── 1routes.geojson.bak.20260729_212800
+│   ├── 1routes.geojson.bak.20260729_212830
+│   ├── 1routes.geojson.bak.20260729_215421
+│   ├── 1routes.geojson.bak.20260729_230103
+│   ├── 1routes.geojson.bak.20260729_232618
+│   ├── 1routes.geojson.bak.20260730_154452
+│   ├── 1routes.geojson.bak.20260730_215552
+│   ├── clean_routes.py
+│   ├── community_Test_Route_1785467060.geojson
+│   ├── full_jeepney_routes.csv
+│   ├── inspect_geojson.py
+│   ├── POI.geojson.bak
+│   ├── POI.qmd
+│   ├── prepare_geojson.py
+│   ├── routes.geojson.bak.20260730_215552
+│   ├── routes.geojson.bak.20260730_220125
+│   ├── routes.geojson.duplicate
+│   ├── schools.geojson.bak
+│   ├── walk_paths.geojson.bak
+│   └── walk_paths.geojson.disabled
+├── graph_engine.py
+├── graph_engine.py.bak.20260731_094001
+├── index.html
+├── ingest_pois.py
+├── knowledge_base.txt
+├── LICENSE.md
+├── llm_engine.py
+├── main.py
+├── models.py
+├── package.json
+├── package-lock.json
+├── PARA_FULL_AUDIT.txt
+├── para_geo_knowledge.db
+├── para_ml_data.db
+├── para_poi.db
+├── para.v2
+│   ├── add_poi.sh
+│   ├── admin_routes.py
+│   ├── api_routes.py
+│   ├── backend
+│   │   ├── admin_routes.py
+│   │   ├── api_routes.py
+│   │   ├── biyahe_score.py
+│   │   ├── config.py
+│   │   ├── database.py
+│   │   ├── debug_snap.py
+│   │   ├── diagnose_paths.py
+│   │   ├── filter_pedestrian_roads.py
+│   │   ├── graph_engine.py
+│   │   ├── ingest_pois.py
+│   │   ├── llm_engine.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── README.md
+│   │   ├── requirements.txt
+│   │   ├── smart_cache.py
+│   │   ├── tasks.py
+│   │   └── telemetry_engine.py
+│   ├── biyahe_score.py
+│   ├── config.py
+│   ├── database.py
+│   ├── debug_snap.py
+│   ├── diagnose_paths.py
+│   ├── docker-compose.yml
+│   ├── eslint.config.js
+│   ├── fare_routes.py
+│   ├── filter_pedestrian_roads.py
+│   ├── Future
+│   │   └── landmarks.geojson
+│   ├── gas_routes.py
+│   ├── geojson_data
+│   │   ├── 1routes.geojson
+│   │   ├── 1routes.geojson.bak.20260729_212316
+│   │   ├── 1routes.geojson.bak.20260729_212800
+│   │   ├── 1routes.geojson.bak.20260729_212830
+│   │   ├── 1routes.geojson.bak.20260729_215421
+│   │   ├── 1routes.geojson.bak.20260729_230103
+│   │   ├── 1routes.geojson.bak.20260729_232618
+│   │   ├── 1routes.geojson.bak.20260730_154452
+│   │   ├── 1routes.geojson.bak.20260730_215552
+│   │   ├── clean_routes.py
+│   │   ├── community_Test_Route_1785467060.geojson
+│   │   ├── full_jeepney_routes.csv
+│   │   ├── inspect_geojson.py
+│   │   ├── POI.geojson.bak
+│   │   ├── POI.qmd
+│   │   ├── prepare_geojson.py
+│   │   ├── routes.geojson.bak.20260730_215552
+│   │   ├── routes.geojson.bak.20260730_220125
+│   │   ├── routes.geojson.duplicate
+│   │   ├── schools.geojson.bak
+│   │   ├── walk_paths.geojson.bak
+│   │   └── walk_paths.geojson.disabled
+│   ├── graph_engine.py
+│   ├── graph_engine.py.bak.20260731_094001
+│   ├── index.html
+│   ├── ingest_pois.py
+│   ├── knowledge_base.txt
+│   ├── llm_engine.py
+│   ├── load_test.py
+│   ├── main.py
+│   ├── models.py
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── PARA_FULL_AUDIT.txt
+│   ├── para_geo_knowledge.db
+│   ├── para_ml_data.db
+│   ├── para_poi.db
+│   ├── pattern_learner.py
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── favicon.jpg
+│   │   ├── _headers
+│   │   ├── icon-192.png
+│   │   ├── icon-512.png
+│   │   ├── logos
+│   │   │   ├── caltex.svg
+│   │   │   ├── cleanfuel.svg
+│   │   │   ├── petron.svg
+│   │   │   ├── ptt.svg
+│   │   │   ├── seaoil.svg
+│   │   │   ├── shell.svg
+│   │   │   └── total.svg
+│   │   ├── manifest.json
+│   │   ├── _redirects
+│   │   └── sw.js
+│   ├── README.md
+│   ├── render.yaml
+│   ├── requirements.txt.backend
+│   ├── runtime.txt
+│   ├── scripts
+│   │   ├── scrape_pagasa.py
+│   │   └── scrape_traffic_news.py
+│   ├── smart_cache.py
+│   ├── smart_router.py
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   │   ├── images
+│   │   │   │   ├── about-page
+│   │   │   │   │   ├── image-1.jpeg
+│   │   │   │   │   ├── image-2.jpeg
+│   │   │   │   │   └── image-3.jpeg
+│   │   │   │   ├── favicon.jpg
+│   │   │   │   ├── logo1.jpg
+│   │   │   │   ├── loop.gif
+│   │   │   │   ├── Para1P.png
+│   │   │   │   ├── PARA_App.png
+│   │   │   │   ├── paralogo.png
+│   │   │   │   └── ParaTeamPhoto.jpg
+│   │   │   └── inverted_favicon.png
+│   │   ├── components
+│   │   │   ├── AnalyticsDashboard.jsx
+│   │   │   ├── AuthPageLayout.jsx
+│   │   │   ├── BottomNav.jsx
+│   │   │   ├── ChatPanel.jsx
+│   │   │   ├── CommuteTracker.jsx
+│   │   │   ├── contribute
+│   │   │   │   ├── ButtonVersionUI.tsx
+│   │   │   │   ├── ChatActionBar.tsx
+│   │   │   │   ├── ChatFeed.tsx
+│   │   │   │   ├── ChatMessage.tsx
+│   │   │   │   ├── ChatPanel.tsx
+│   │   │   │   ├── FileUploadOverlay.tsx
+│   │   │   │   ├── LiveMapBackground.tsx
+│   │   │   │   ├── RouteSummaryReportInline.tsx
+│   │   │   │   ├── SegmentTimelineInline.tsx
+│   │   │   │   ├── StopAutofillInline.tsx
+│   │   │   │   └── TopBanner.tsx
+│   │   │   ├── DataAnalytics.jsx
+│   │   │   ├── FareReporter.jsx
+│   │   │   ├── GasPrice
+│   │   │   │   ├── GasPriceBadge.jsx
+│   │   │   │   ├── GasPricePanel.jsx
+│   │   │   │   ├── GasStationMap.jsx
+│   │   │   │   ├── GasStationMarker.jsx
+│   │   │   │   ├── index.jsx
+│   │   │   │   ├── ReportModal.jsx
+│   │   │   │   ├── StationInfoPanel.jsx
+│   │   │   │   ├── useGasPrices.js
+│   │   │   │   ├── useGasStations.js
+│   │   │   │   └── usePriceSubmit.js
+│   │   │   ├── GlobalWeather.jsx
+│   │   │   ├── GpsIcon.jsx
+│   │   │   ├── GpsPrompt.jsx
+│   │   │   ├── InlineRecorder.jsx
+│   │   │   ├── input_box.jsx
+│   │   │   ├── landing_page
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CountdownDisplay.jsx
+│   │   │   │   │   ├── Countdown.jsx
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── MetroLine.jsx
+│   │   │   │   │   ├── MetroMap.jsx
+│   │   │   │   │   ├── PillShapes.jsx
+│   │   │   │   │   ├── Station.jsx
+│   │   │   │   │   ├── Ticket.jsx
+│   │   │   │   │   └── Train.jsx
+│   │   │   │   ├── data
+│   │   │   │   │   ├── config.js
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── lines.js
+│   │   │   │   │   ├── station.js
+│   │   │   │   │   └── trains.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useCountdown.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── MetroCountdown.jsx
+│   │   │   ├── landingpage-footer.component.jsx
+│   │   │   ├── LiveRouteRecorder.jsx
+│   │   │   ├── map_component.jsx
+│   │   │   ├── map_constants.js
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── OTPInput.jsx
+│   │   │   ├── PipelineStatus.jsx
+│   │   │   ├── POIForm.jsx
+│   │   │   ├── RouteEditor.jsx
+│   │   │   ├── RouteEditVoting.jsx
+│   │   │   ├── RouteLegend.jsx
+│   │   │   ├── RouteLines.jsx
+│   │   │   ├── RouteLoadingAnimation.jsx
+│   │   │   ├── RouteMarkers.jsx
+│   │   │   ├── RouteNameInput.jsx
+│   │   │   ├── RouteOptionsPanel.jsx
+│   │   │   ├── RouteSteps.jsx
+│   │   │   ├── RouteSummaryReport.jsx
+│   │   │   ├── RouteUploader.jsx
+│   │   │   ├── SearchInput.jsx
+│   │   │   ├── StravaRouteCard.jsx
+│   │   │   ├── TrafficOverlay.jsx
+│   │   │   ├── TripSummaryCard.jsx
+│   │   │   ├── waitList
+│   │   │   │   ├── BubbleButton.jsx
+│   │   │   │   └── WaitListForm.jsx
+│   │   │   ├── waitList_bubble.jsx
+│   │   │   ├── WeatherOverlay.jsx
+│   │   │   └── WeatherPage.jsx
+│   │   ├── config
+│   │   │   ├── api.js
+│   │   │   └── googleMaps.js
+│   │   ├── context
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── TrackingConsentContext.jsx
+│   │   ├── hooks
+│   │   │   ├── useContributeSync.ts
+│   │   │   ├── useGeofencedAutoDropOff.ts
+│   │   │   ├── useGoogleMaps.js
+│   │   │   └── useTrajectoryRouteRanking.ts
+│   │   ├── index.css
+│   │   ├── main.jsx
+│   │   ├── pages
+│   │   │   ├── About.jsx
+│   │   │   ├── AdminApproval.jsx
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── ArticlePage.jsx
+│   │   │   ├── Community.jsx
+│   │   │   ├── Contact.jsx
+│   │   │   ├── Contribute.jsx
+│   │   │   ├── ContributePage.tsx
+│   │   │   ├── GasPrices.jsx
+│   │   │   ├── HomeNew.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── POIBrowser.jsx
+│   │   │   ├── PrivacyPolicy.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   ├── RouteOptionsPage.jsx
+│   │   │   ├── RoutesExplorer.jsx
+│   │   │   ├── RouteUploader.jsx
+│   │   │   ├── SignupDetailsStep.jsx
+│   │   │   ├── Signup.jsx
+│   │   │   └── SignupOTPStep.jsx
+│   │   ├── reducers
+│   │   │   └── contributeReducer.ts
+│   │   ├── styles
+│   │   │   └── Map.css
+│   │   ├── types
+│   │   │   └── contribute.ts
+│   │   └── utils
+│   │       ├── androidBackHandler.js
+│   │       ├── api.d.ts
+│   │       ├── api.js
+│   │       ├── backgroundTracker.js
+│   │       ├── batchSync.ts
+│   │       ├── cityGazetteer.js
+│   │       ├── gpsDownsampler.ts
+│   │       ├── notifications.js
+│   │       ├── offlineBuffer.js
+│   │       ├── openWeatherAlerts.ts
+│   │       ├── pagasaAdvisories.json
+│   │       ├── pagasaAdvisories.ts
+│   │       ├── pwaTracker.js
+│   │       ├── queryNormalizer.js
+│   │       ├── spatialCalculations.ts
+│   │       ├── stopDatabase.js
+│   │       ├── syncEngine.js
+│   │       ├── __tests__
+│   │       │   ├── contributeFullSimulation.ts
+│   │       │   ├── finalPipelineTest.ts
+│   │       │   ├── fullPipelineTest.ts
+│   │       │   ├── paritySimulation.ts
+│   │       │   ├── spatialCalculations.test.ts
+│   │       │   └── testDlsuToUst.ts
+│   │       ├── trafficAdvisories.json
+│   │       └── weatherFallback.ts
+│   ├── supabase
+│   │   └── functions
+│   │       ├── auth-signup
+│   │       │   └── index.ts
+│   │       ├── commute-save
+│   │       │   └── index.ts
+│   │       ├── fare-report
+│   │       │   └── index.ts
+│   │       ├── poi-add
+│   │       │   └── index.ts
+│   │       ├── route-save
+│   │       │   └── index.ts
+│   │       └── routes-public
+│   │           └── index.ts
+│   ├── supabase.js
+│   ├── tailwindcss.css
+│   ├── tasks.py
+│   ├── telemetry_engine.py
+│   ├── test
+│   │   ├── index (1).css
+│   │   ├── main (1).tsx
+│   │   ├── package (1).json
+│   │   ├── postcss.config (1).js
+│   │   ├── src
+│   │   │   ├── App.tsx
+│   │   │   ├── index (4).css
+│   │   │   ├── main (2).tsx
+│   │   │   └── pages
+│   │   │       └── pages
+│   │   │           ├── Dashboard.tsx
+│   │   │           └── Search3.tsx
+│   │   ├── tsconfig (1).json
+│   │   └── vite.config (1).ts
+│   ├── v1_routes.py
+│   ├── vercel.json
+│   └── vite.config.js
+├── pattern_learner.py
+├── pending_routes
+├── public
+│   ├── favicon.jpg
+│   ├── logos
+│   │   ├── caltex.svg
+│   │   ├── cleanfuel.svg
+│   │   ├── petron.svg
+│   │   ├── ptt.svg
+│   │   ├── seaoil.svg
+│   │   ├── shell.svg
+│   │   └── total.svg
+│   ├── manifest.json
+│   └── sw.js
+├── README.md
+├── render_build.sh
+├── render.yaml
+├── requirements.txt
+├── runtime.txt
+├── smart_cache.py
+├── smart_router.py
+├── src
+│   ├── App.jsx
+│   ├── assets
+│   │   ├── images
+│   │   │   ├── about-page
+│   │   │   │   ├── image-1.jpeg
+│   │   │   │   ├── image-2.jpeg
+│   │   │   │   └── image-3.jpeg
+│   │   │   ├── favicon.jpg
+│   │   │   ├── logo1.jpg
+│   │   │   ├── loop.gif
+│   │   │   ├── Para1P.png
+│   │   │   ├── paralogo.png
+│   │   │   └── ParaTeamPhoto.jpg
+│   │   └── inverted_favicon.png
+│   ├── backgroundTracker.js
+│   ├── components
+│   │   ├── AuthPageLayout.jsx
+│   │   ├── BottomNav.jsx
+│   │   ├── ChatPanel.jsx
+│   │   ├── CommuteTracker.jsx
+│   │   ├── DataAnalytics.jsx
+│   │   ├── GasPrice
+│   │   │   ├── GasPriceBadge.jsx
+│   │   │   ├── GasPricePanel.jsx
+│   │   │   ├── GasStationMap.jsx
+│   │   │   ├── GasStationMarker.jsx
+│   │   │   ├── index.jsx
+│   │   │   ├── ReportModal.jsx
+│   │   │   ├── StationInfoPanel.jsx
+│   │   │   ├── useGasPrices.js
+│   │   │   ├── useGasStations.js
+│   │   │   └── usePriceSubmit.js
+│   │   ├── GpsPrompt.jsx
+│   │   ├── InlineRecorder.jsx
+│   │   ├── input_box.jsx
+│   │   ├── landing_page
+│   │   │   ├── components
+│   │   │   │   ├── CountdownDisplay.jsx
+│   │   │   │   ├── Countdown.jsx
+│   │   │   │   ├── index.js
+│   │   │   │   ├── MetroLine.jsx
+│   │   │   │   ├── MetroMap.jsx
+│   │   │   │   ├── PillShapes.jsx
+│   │   │   │   ├── Station.jsx
+│   │   │   │   ├── Ticket.jsx
+│   │   │   │   └── Train.jsx
+│   │   │   ├── data
+│   │   │   │   ├── config.js
+│   │   │   │   ├── index.js
+│   │   │   │   ├── lines.js
+│   │   │   │   ├── station.js
+│   │   │   │   └── trains.js
+│   │   │   ├── hooks
+│   │   │   │   ├── index.js
+│   │   │   │   └── useCountdown.js
+│   │   │   ├── index.js
+│   │   │   └── MetroCountdown.jsx
+│   │   ├── landingpage-footer.component.jsx
+│   │   ├── LiveRouteRecorder.jsx
+│   │   ├── map_component.jsx
+│   │   ├── map_constants.js
+│   │   ├── Navbar.jsx
+│   │   ├── OTPInput.jsx
+│   │   ├── PipelineStatus.jsx
+│   │   ├── POIForm.jsx
+│   │   ├── POIForm.jsx.bak
+│   │   ├── RouteLegend.jsx
+│   │   ├── RouteLines.jsx
+│   │   ├── RouteMarkers.jsx
+│   │   ├── RouteOptionsPanel.jsx
+│   │   ├── RouteSteps.jsx
+│   │   ├── RouteUploader.jsx
+│   │   ├── SearchInput.jsx
+│   │   ├── TripSummaryCard.jsx
+│   │   ├── waitList
+│   │   │   ├── BubbleButton.jsx
+│   │   │   └── WaitListForm.jsx
+│   │   └── waitList_bubble.jsx
+│   ├── config
+│   │   ├── api.js
+│   │   └── googleMaps.js
+│   ├── context
+│   │   ├── AuthContext.jsx
+│   │   └── TrackingConsentContext.jsx
+│   ├── firebase.js
+│   ├── frontend
+│   ├── hooks
+│   │   └── useGoogleMaps.js
+│   ├── index.css
+│   ├── main.jsx
+│   ├── pages
+│   │   ├── About.jsx
+│   │   ├── AdminApproval.jsx
+│   │   ├── AdminDashboard.jsx
+│   │   ├── Community.jsx
+│   │   ├── Contact.jsx
+│   │   ├── Contribute.jsx
+│   │   ├── GasPrices.jsx
+│   │   ├── HomeNew.jsx
+│   │   ├── Login.jsx
+│   │   ├── POIBrowser.jsx
+│   │   ├── PrivacyPolicy.jsx
+│   │   ├── Profile.jsx
+│   │   ├── RouteOptionsPage.jsx
+│   │   ├── RoutesExplorer.jsx
+│   │   ├── RouteUploader.jsx
+│   │   ├── SignupDetailsStep.jsx
+│   │   ├── Signup.jsx
+│   │   ├── SignupOTPStep.jsx
+│   │   └── v1_routes.py
+│   ├── src
+│   │   ├── App.jsx
+│   │   ├── App.jsx.bak.step3
+│   │   ├── assets
+│   │   │   ├── images
+│   │   │   │   ├── about-page
+│   │   │   │   │   ├── image-1.jpeg
+│   │   │   │   │   ├── image-2.jpeg
+│   │   │   │   │   └── image-3.jpeg
+│   │   │   │   ├── favicon.jpg
+│   │   │   │   ├── logo1.jpg
+│   │   │   │   ├── loop.gif
+│   │   │   │   ├── Para1P.png
+│   │   │   │   ├── paralogo.png
+│   │   │   │   └── ParaTeamPhoto.jpg
+│   │   │   └── inverted_favicon.png
+│   │   ├── components
+│   │   │   ├── AuthPageLayout.jsx
+│   │   │   ├── BottomNav.jsx
+│   │   │   ├── ChatPanel.jsx
+│   │   │   ├── ChatPanel.jsx.bak.step9
+│   │   │   ├── CommuteTracker.jsx
+│   │   │   ├── CommuteTracker.jsx.bak.step6
+│   │   │   ├── GasPrice
+│   │   │   │   ├── GasPriceBadge.jsx
+│   │   │   │   ├── GasPricePanel.jsx
+│   │   │   │   ├── GasStationMap.jsx
+│   │   │   │   ├── GasStationMarker.jsx
+│   │   │   │   ├── index.jsx
+│   │   │   │   ├── ReportModal.jsx
+│   │   │   │   ├── StationInfoPanel.jsx
+│   │   │   │   ├── useGasPrices.js
+│   │   │   │   ├── useGasStations.js
+│   │   │   │   └── usePriceSubmit.js
+│   │   │   ├── GpsPrompt.jsx
+│   │   │   ├── GpsPrompt.jsx.bak.step4
+│   │   │   ├── InlineRecorder.jsx
+│   │   │   ├── input_box.jsx
+│   │   │   ├── landing_page
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CountdownDisplay.jsx
+│   │   │   │   │   ├── Countdown.jsx
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── MetroLine.jsx
+│   │   │   │   │   ├── MetroMap.jsx
+│   │   │   │   │   ├── PillShapes.jsx
+│   │   │   │   │   ├── Station.jsx
+│   │   │   │   │   ├── Ticket.jsx
+│   │   │   │   │   └── Train.jsx
+│   │   │   │   ├── data
+│   │   │   │   │   ├── config.js
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── lines.js
+│   │   │   │   │   ├── station.js
+│   │   │   │   │   └── trains.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useCountdown.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── MetroCountdown.jsx
+│   │   │   ├── landingpage-footer.component.jsx
+│   │   │   ├── map_component.jsx
+│   │   │   ├── map_component.jsx.bak.step5
+│   │   │   ├── map_constants.js
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── OTPInput.jsx
+│   │   │   ├── POIForm.jsx
+│   │   │   ├── RouteLegend.jsx
+│   │   │   ├── RouteLines.jsx
+│   │   │   ├── RouteMarkers.jsx
+│   │   │   ├── RouteOptionsPanel.jsx
+│   │   │   ├── RouteSteps.jsx
+│   │   │   ├── RouteUploader.jsx
+│   │   │   ├── SearchInput.jsx
+│   │   │   ├── TripSummaryCard.jsx
+│   │   │   ├── TripSummaryCard.jsx.bak.step8
+│   │   │   ├── TripSummaryCard.jsx.bak.step9
+│   │   │   ├── waitList
+│   │   │   │   ├── BubbleButton.jsx
+│   │   │   │   └── WaitListForm.jsx
+│   │   │   └── waitList_bubble.jsx
+│   │   ├── config
+│   │   │   ├── api.js
+│   │   │   └── googleMaps.js
+│   │   ├── context
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── TrackingConsentContext.jsx
+│   │   ├── firebase.js
+│   │   ├── frontend
+│   │   ├── hooks
+│   │   │   └── useGoogleMaps.js
+│   │   ├── index.css
+│   │   ├── index.css.bak.step16
+│   │   ├── main.jsx
+│   │   ├── main.jsx.bak.step2
+│   │   ├── pages
+│   │   │   ├── About.jsx
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── Community.jsx
+│   │   │   ├── Contact.jsx
+│   │   │   ├── GasPrices.jsx
+│   │   │   ├── HomeNew.jsx
+│   │   │   ├── HomeNew.jsx.bak.step7
+│   │   │   ├── Login.jsx
+│   │   │   ├── POIBrowser.jsx
+│   │   │   ├── PrivacyPolicy.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   ├── RoutesExplorer.jsx
+│   │   │   ├── RouteUploader.jsx
+│   │   │   ├── SignupDetailsStep.jsx
+│   │   │   ├── Signup.jsx
+│   │   │   ├── Signup.jsx.bak.step13
+│   │   │   └── SignupOTPStep.jsx
+│   │   ├── styles
+│   │   │   └── Map.css
+│   │   └── utils
+│   │       └── api.js
+│   ├── styles
+│   │   └── Map.css
+│   └── utils
+│       ├── api.js
+│       ├── backgroundTracker.js
+│       ├── cityGazetteer.js
+│       ├── offlineBuffer.js
+│       ├── pwaTracker.js
+│       ├── queryNormalizer.js
+│       └── syncEngine.js
+├── supabase.js
+├── tailwindcss.css
+├── tasks.py
+├── telemetry_engine.py
+├── test
+│   ├── index (1).css
+│   ├── main (1).tsx
+│   ├── package (1).json
+│   ├── postcss.config (1).js
+│   ├── src
+│   │   ├── App.tsx
+│   │   ├── index (4).css
+│   │   ├── main (2).tsx
+│   │   └── pages
+│   │       └── pages
+│   │           ├── Dashboard.tsx
+│   │           └── Search3.tsx
+│   ├── tsconfig (1).json
+│   └── vite.config (1).ts
+├── v1_routes.py
+├── vercel.json
+└── vite.config.js
+
+133 directories, 838 files
