@@ -277,7 +277,25 @@ export default function RoutesExplorer() {
             </div>
           )}
           <div className="border-t border-gray-100 pt-2 max-h-60 overflow-y-auto">
-            {[...verified, ...unverified].map((item) => {
+            {tab === "build" ? [...verified, ...unverified].filter(r => r.has_shape !== false).map((item) => {
+              const inQueue = buildQueue.find(q => q.route_uuid === item.route_uuid);
+              return (
+                <button key={item.route_uuid} onClick={() => {
+                  if (inQueue) { setBuildQueue(prev => prev.filter(q => q.route_uuid !== item.route_uuid)); }
+                  else { setBuildQueue(prev => [...prev, item]); }
+                }} className={`w-full text-left p-2 rounded-lg flex items-start gap-2 mb-0.5 text-xs ${inQueue ? "bg-purple-100" : "hover:bg-gray-50"}`}>
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold shrink-0 mt-0.5 ${inQueue ? "bg-purple-800 text-white" : "bg-gray-200 text-gray-500"}`}>{inQueue ? "✓" : "+"}</span>
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ background: getModeColor(item.mode) }} />
+                  <span className="truncate text-gray-700 flex-1">{item.name}</span>
+                  {!item.is_approved && (
+                    <span className="text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
+                      UNVERIFIED
+                    </span>
+                  )}
+                  <span className="text-[9px] text-gray-400 shrink-0">{getModeEmoji(item.mode)}</span>
+                </button>
+              );
+            }) : verified.map((item) => {
               const inQueue = buildQueue.find(q => q.route_uuid === item.route_uuid);
               return (
                 <button key={item.route_uuid} onClick={() => {
