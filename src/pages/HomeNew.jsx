@@ -152,7 +152,7 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const LAMBDA_URL = "https://9rlyqfeaoi.execute-api.ap-southeast-1.amazonaws.com/prod";
+      const LAMBDA_URL = "/api/route-search";
       const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
