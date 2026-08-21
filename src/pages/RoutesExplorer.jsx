@@ -248,14 +248,40 @@ export default function RoutesExplorer() {
                 const bounds = L.latLngBounds([]);
                 for (const route of buildQueue) {
                   try {
-                    const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
+                    if (route?.has_shape === false) continue;
+                    const res = await fetch(`https://tcvomrkytxnetzijwqad.supabase.co/rest/v1/ph_route_shapes?route_uuid=eq.${route.route_uuid}&select=geom_geojson&limit=1`, { 
+                      headers: { 
+                        apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.JyU9lX6yE2bH4N1mK8pQ3rT5vW9xY2zA4bC6dE8fG0h' 
+                      } 
+                    });
                     if (!res.ok) continue;
-                    const geo = await res.json();
-                    const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
+                    const rawData = await res.json();
+                    const geomData = rawData?.[0]?.geom_geojson;
+                    if (!geomData) continue;
+                    
+                    // Normalize coordinates — ensure [lng, lat] order for Leaflet
+                    if (geomData.type === "LineString") {
+                      geomData.coordinates = geomData.coordinates.map(c =>
+                        Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
+                      );
+                    }
+                    
+                    const geo = {
+                      type: "FeatureCollection",
+                      features: [{
+                        type: "Feature",
+                        properties: {},
+                        geometry: geomData
+                      }]
+                    };
+                    
+                    const layer = L.geoJSON(geo, { style: { color: getModeColor(route.mode || "default"), weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
                     layer.bindTooltip(route.name, { sticky: true });
                     const b = layer.getBounds();
                     if (b.isValid()) bounds.extend(b);
-                  } catch {}
+                  } catch (err) {
+                    console.error(`Failed to load route ${route.name}:`, err);
+                  }
                 }
                 if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
                 setLoading(false);
