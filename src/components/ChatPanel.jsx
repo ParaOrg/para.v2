@@ -150,7 +150,7 @@ export default function ChatPanel() {
       const payload = { user_id: "guest", message: backendMessage };
       if (gps) payload.user_location = { lat: gps[0], lng: gps[1] };
 
-      const res = await fetch(`${API}/chat`, {
+      const res = await fetch("https://9rlyqfeaoi.execute-api.ap-southeast-1.amazonaws.com/prod", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
