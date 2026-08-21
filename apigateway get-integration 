@@ -1,0 +1,33 @@
+{
+    "httpMethod": "OPTIONS",
+    "authorizationType": "NONE",
+    "apiKeyRequired": false,
+    "methodResponses": {
+        "200": {
+            "statusCode": "200",
+            "responseParameters": {
+                "method.response.header.Access-Control-Allow-Headers": true,
+                "method.response.header.Access-Control-Allow-Methods": true,
+                "method.response.header.Access-Control-Allow-Origin": true
+            }
+        }
+    },
+    "methodIntegration": {
+        "type": "MOCK",
+        "passthroughBehavior": "WHEN_NO_MATCH",
+        "timeoutInMillis": 29000,
+        "cacheNamespace": "7ufykxv6l2",
+        "cacheKeyParameters": [],
+        "integrationResponses": {
+            "200": {
+                "statusCode": "200",
+                "responseParameters": {
+                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                    "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'",
+                    "method.response.header.Access-Control-Allow-Origin": "'*'"
+                }
+            }
+        },
+        "responseTransferMode": "BUFFERED"
+    }
+}
