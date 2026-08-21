@@ -171,6 +171,7 @@ export default function HomeNew() {
           mkrs.push({ lat: coords[0][0], lng: coords[0][1], type: "stop" });
         });
         setPolylines(lns); setRouteMarkers(mkrs);
+        setShowChat(false); // Collapse chat to show route on map
       }
       try {
         const cached = JSON.parse(localStorage.getItem("para_recent_searches") || "[]");
@@ -187,7 +188,7 @@ export default function HomeNew() {
       <div className="hidden md:block"><Navbar /><ChatPanel /><button onClick={locateMap} className="fixed top-20 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
       <div className="md:hidden">
         <div className="md:hidden absolute top-4 left-4 z-30 flex flex-col items-center"><img src={paralogo} alt="Para PH" className="w-10 h-10 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]" /><p className="text-[8px] text-gray-700 mt-0.5 font-medium leading-tight text-center drop-shadow-sm">Bawat Byahe,<br/>Tulong sa Komunidad</p></div>
-        <div className="absolute inset-0 z-0" style={{ minHeight: "100dvh" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
+        <div className="absolute inset-0 z-10" style={{ minHeight: "100dvh" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
         {!gpsActive && <button onClick={requestConsentAndLocation} className="md:hidden absolute top-32 right-4 z-30 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2 text-xs font-bold text-[#7A4BC8] animate-pulse"><span>📍</span><span>Enable GPS</span></button>}
         <button onClick={locateMap} className="absolute top-4 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="absolute top-16 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
         {chatOpen && !showTracker && (
