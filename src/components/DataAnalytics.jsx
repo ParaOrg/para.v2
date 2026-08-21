@@ -42,7 +42,9 @@ export default function DataAnalytics() {
       const pois = await poisRes.json();
       const waitlist = await waitlistRes.json();
 
-      const verifiedRoutes = routes.routes || [];
+      const allRoutes = routes.routes || [];
+      const verifiedRoutes = allRoutes.filter(r => r.is_approved);
+      const unverifiedRoutes = allRoutes.filter(r => !r.is_approved);
       const referenceRoutes = refs.routes || [];
       const fareReports = fares.reports || [];
       const commuteLogs = tracks.logs || [];
@@ -100,6 +102,7 @@ export default function DataAnalytics() {
 
       setStats({
         verifiedRoutes: verifiedRoutes.length,
+        unverifiedRoutes: unverifiedRoutes.length,
         referenceRoutes: referenceRoutes.length,
         fareReports: fareReports.length,
         commuteLogs: commuteLogs.length,
@@ -108,25 +111,17 @@ export default function DataAnalytics() {
         totalContributions: fareReports.length + commuteLogs.length + communityThreads.length + poiList.length,
       });
 
-      // Fuzzy match for progress bar
+      // Exact match against VERIFIED routes only (48)
       const vNames = verifiedRoutes.map(r => (r.name || "").toLowerCase().trim());
       const matchedArr = [];
       const unmatchedArr = [];
       for (const ref of referenceRoutes) {
         const refName = (ref.route_name || "").toLowerCase().trim();
-        const cleanRef = refName.replace(/^\([^)]+\)\s*/, '').trim();
-        let found = false;
-        for (const vName of vNames) {
-          if (!vName) continue;
-          if (refName === vName || cleanRef === vName || 
-              refName.includes(vName) || vName.includes(refName) ||
-              cleanRef.includes(vName) || vName.includes(cleanRef)) {
-            matchedArr.push({ reference: ref.route_name, verified: vName });
-            found = true;
-            break;
-          }
+        if (vNames.includes(refName)) {
+          matchedArr.push({ reference: ref.route_name, verified: refName });
+        } else {
+          unmatchedArr.push(ref.route_name);
         }
-        if (!found) unmatchedArr.push(ref.route_name);
       }
       setMatched(matchedArr);
       setUnmatched(unmatchedArr);
@@ -209,17 +204,21 @@ export default function DataAnalytics() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-purple-50 rounded-xl p-3 text-center">
-          <p className="text-2xl font-black text-purple-800">{stats?.verifiedRoutes || 0}</p>
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-green-50 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-green-700">{stats?.verifiedRoutes || 0}</p>
           <p className="text-[10px] text-gray-400">Verified</p>
+        </div>
+        <div className="bg-amber-50 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-amber-600">{stats?.unverifiedRoutes || 0}</p>
+          <p className="text-[10px] text-gray-400">Unverified</p>
         </div>
         <div className="bg-orange-50 rounded-xl p-3 text-center">
           <p className="text-2xl font-black text-orange-600">{stats?.referenceRoutes || 0}</p>
           <p className="text-[10px] text-gray-400">Reference</p>
         </div>
-        <div className="bg-green-50 rounded-xl p-3 text-center">
-          <p className="text-2xl font-black text-green-700">{stats?.totalContributions || 0}</p>
+        <div className="bg-purple-50 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-purple-800">{stats?.totalContributions || 0}</p>
           <p className="text-[10px] text-gray-400">Contributions</p>
         </div>
       </div>
