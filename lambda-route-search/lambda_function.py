@@ -150,6 +150,30 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
+    # Handle OPTIONS for CORS preflight
+    if isinstance(event, dict) and event.get('httpMethod') == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+                'Access-Control-Allow-Methods': 'POST,OPTIONS',
+                'Access-Control-Max-Age': '86400',
+            },
+            'body': ''
+        }
+    if isinstance(event, dict) and event.get('requestContext') and event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+                'Access-Control-Allow-Methods': 'POST,OPTIONS',
+                'Access-Control-Max-Age': '86400',
+            },
+            'body': ''
+        }
+    
     logger.info(f"Event type: {type(event)}, keys: {list(event.keys()) if isinstance(event, dict) else 'N/A'}")
     try:
         # Parse request - handle both direct Lambda invoke and API Gateway
