@@ -1,4 +1,5 @@
 import json
+import gzip
 import heapq
 import os
 import boto3
@@ -16,7 +17,7 @@ def load_graph():
     if _graph is not None:
         return _graph, _nodes
     
-    with open('graph_full.json', 'r') as f:
+    with gzip.open('graph_full.json.gz', 'rt') as f:
         data = json.load(f)
     
     _graph = data['adj']
@@ -144,13 +145,23 @@ def error_response(message):
         'body': json.dumps({'status': 'error', 'message': message})
     }
 
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 def lambda_handler(event, context):
+    logger.info(f"Event type: {type(event)}, keys: {list(event.keys()) if isinstance(event, dict) else 'N/A'}")
     try:
         # Parse request - handle both direct Lambda invoke and API Gateway
         if isinstance(event, str):
             body = json.loads(event)
         elif 'body' in event and event.get('body'):
-            body = json.loads(event['body'])
+            if isinstance(event['body'], str):
+                body = json.loads(event['body'])
+            else:
+                body = event['body']
+        elif isinstance(event, dict) and 'message' in event:
+            body = event
         else:
             body = event
         
@@ -267,7 +278,7 @@ def lambda_handler(event, context):
         }
     except Exception as e:
         return {
-            'statusCode': 500,
+            'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*',
