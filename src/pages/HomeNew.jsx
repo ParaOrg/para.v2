@@ -127,7 +127,7 @@ export default function HomeNew() {
     };
   }, []);
 
-  const closeChatPanel = () => { setShowChat(false); setMessages([]); setRouteMarkers([]); setPolylines([]); };
+  const closeChatPanel = () => {  setMessages([]); setRouteMarkers([]); setPolylines([]); };
 
   const locateMap = () => {
     const m = window.__paraMap;
@@ -174,8 +174,7 @@ export default function HomeNew() {
           mkrs.push({ lat: coords[0][0], lng: coords[0][1], type: "stop" });
         });
         setPolylines(lns); setRouteMarkers(mkrs);
-        setShowChat(false);
-        setShowChat(false); // Collapse chat to show route on map
+         // Collapse chat to show route on map
       }
       try {
         const cached = JSON.parse(localStorage.getItem("para_recent_searches") || "[]");

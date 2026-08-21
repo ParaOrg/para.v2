@@ -19,6 +19,8 @@ KNOWN_PLACES = {
     'alabang': ('Alabang', 14.4450, 121.0254),
     'pasay': ('Pasay', 14.5378, 120.9910),
     'upd': ('UPD', 14.6561, 121.0648),
+    'up': ('UPD', 14.6561, 121.0648),
+    'up diliman': ('UPD', 14.6561, 121.0648),
     'up diliman': ('UPD', 14.6561, 121.0648),
     'ust': ('UST', 14.6101, 120.9894),
     'katipunan': ('Katipunan', 14.6225, 121.0785),
@@ -152,7 +154,7 @@ def lambda_handler(event, context):
                 dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
             else:
                 for name, (label, plat, plng) in KNOWN_PLACES.items():
-                    if name in dest_name or dest_name in name:
+                    if name in dest_name or dest_name in name or dest_name.startswith(name):
                         dest_lat, dest_lng = plat, plng
                         break
         
@@ -176,7 +178,7 @@ def lambda_handler(event, context):
             else:
                 # Fuzzy: check if any known place is in the query
                 for name, (label, plat, plng) in KNOWN_PLACES.items():
-                    if name in dest_name or dest_name in name:
+                    if name in dest_name or dest_name in name or dest_name.startswith(name):
                         dest_lat, dest_lng = plat, plng
                         origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
                         break
