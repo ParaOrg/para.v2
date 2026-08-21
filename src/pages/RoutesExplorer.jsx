@@ -13,6 +13,7 @@ import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
 import BottomNav from "../components/BottomNav";
+import { useAuth } from "../context/AuthContext";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -133,6 +134,8 @@ function AdminModePanel({ routes }) {
 }
 
 export default function RoutesExplorer() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "founder";
   const isMobile = useIsMobile();
   const mapRef = useRef(null);
   const mapInst = useRef(null);
@@ -417,7 +420,7 @@ export default function RoutesExplorer() {
               {buildQueue.length > 10 && <p className="text-[10px] text-gray-400">...and {buildQueue.length - 10} more</p>}
             </div>
           )}
-          <AdminModePanel routes={allRoutes} />
+          {isAdmin && <AdminModePanel routes={allRoutes} />}
           <div className="border-t border-gray-100 pt-2 max-h-60 overflow-y-auto">
             {allRoutes.map((item) => {
               const itemId = item.route_uuid;
@@ -434,6 +437,15 @@ export default function RoutesExplorer() {
                     <span className="text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
                       UNVERIFIED
                     </span>
+                  )}
+                  {!isAdmin && (
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      // Flag route for admin review
+                      console.log("Flagged route:", item.route_uuid);
+                    }} className="text-[8px] text-orange-500 hover:text-orange-600 font-bold shrink-0 ml-1">
+                      🚩 Flag
+                    </button>
                   )}
                 </button>
               );
