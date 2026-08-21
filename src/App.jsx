@@ -11,9 +11,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import About from "./pages/About";
-import Contribute from "./pages/ContributePage";
-import ContributeOriginal from "./pages/Contribute";
-import GlobalWeather from "./components/GlobalWeather";
+import GasPrices from "./pages/GasPrices";
+import POIBrowser from "./pages/POIBrowser";
+import ArticlePage from "./pages/ArticlePage";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -25,7 +25,7 @@ function ProtectedRoute({ children }) {
 function AdminRoute({ children }) {
   const { user, isAuthenticated, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" /></div>;
-  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "founder")) return <Navigate to="/login" replace />;
+  if (!isAuthenticated || user?.role !== "admin") return <Navigate to="/login" replace />;
   return children;
 }
 
@@ -33,13 +33,14 @@ export default function App() {
   return (
     <TrackingConsentProvider>
       <AuthProvider>
-        <GlobalWeather />
         <Routes>
           <Route path="/" element={<HomeNew />} />
           <Route path="/explore" element={<RoutesExplorer />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/about" element={<About />} />
-                              <Route path="/contribute" element={<Contribute />} />
+          <Route path="/gas-prices" element={<GasPrices />} />
+          <Route path="/poi" element={<POIBrowser />} />
+          <Route path="/articles/:slug" element={<ArticlePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
