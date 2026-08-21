@@ -6,11 +6,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { getApiBaseUrl, edgePost } from "../utils/api";
-import { getModeColor, getModeEmoji } from "../utils/modeColors";
-import { MODE_COLORS } from "../utils/modeColors";
-import { RouteVerificationBadge } from "../components/RouteVerificationBadge";
-import { useTrackingConsent } from "../context/TrackingConsentContext";
+import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
@@ -42,11 +38,9 @@ export default function RoutesExplorer() {
   const mapRef = useRef(null);
   const mapInst = useRef(null);
   const layerRef = useRef(null);
-  const megaLayerRef = useRef(null);
 
   const [verified, setVerified] = useState([]);
   const [referenceRoutes, setReferenceRoutes] = useState([]);
-  const [unverified, setUnverified] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState("verified");
@@ -59,25 +53,6 @@ export default function RoutesExplorer() {
   const [recordingRoute, setRecordingRoute] = useState(null);
   const [verifiedNames, setVerifiedNames] = useState(new Set());
 
-  // GPS live tracking on main map
-  const { consent, location } = useTrackingConsent();
-  useEffect(() => {
-    const map = mapInst.current;
-    const layer = layerRef.current;
-    if (!map || !layer) return;
-    if (consent && location?.lat && location?.lng && showRecorder) {
-      L.circleMarker([location.lat, location.lng], {
-        radius: 10,
-        fillColor: "#4285F4",
-        color: "#fff",
-        weight: 3,
-        fillOpacity: 1,
-        zIndexOffset: 9999,
-      }).addTo(layer).bindTooltip("You are here", { permanent: true, direction: "top" });
-      map.setView([location.lat, location.lng], Math.max(map.getZoom(), 15), { animate: true });
-    }
-  }, [consent, location, showRecorder]);
-
   // Init map
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
@@ -88,106 +63,71 @@ export default function RoutesExplorer() {
     mapInst.current = map;
   }, []);
 
-  // Load routes — Edge FIRST, then reference independently
+  // Load routes
   useEffect(() => {
     (async () => {
-      let routesData = null;
       try {
-        // Load Edge routes (doesn't depend on Render)
-        routesData = await edgePost('routes-public', {});
+        const [routesRes, refRes] = await Promise.all([
+          fetch(`${API}/routes/public`),
+          fetch(`${API}/routes/public/reference`),
+        ]);
+        const routesData = await routesRes.json();
+        const refData = await refRes.json();
         const all = routesData.routes || [];
+        setVerified(all.filter((r) => r.is_approved && !r.is_test && !/test|demo|dummy|staging/i.test(r.name || '')));
         
-        const verifiedArr = all.filter((r) => r.is_approved === true && !/test|demo|dummy|staging/i.test(r.name || ''));
-        const unverifiedArr = all.filter((r) => r.is_approved !== true && !/test|demo|dummy|staging/i.test(r.name || ''));
-        
-        setVerified(verifiedArr);
-        setUnverified(unverifiedArr);
-        setFiltered(verifiedArr);
-        console.log(`Loaded ${verifiedArr.length} verified, ${unverifiedArr.length} unverified`);
-        
-        // Build verified names set
+        // Build verified names set for comparison
         const vNames = new Set();
-        verifiedArr.forEach(r => {
+        all.filter(r => r.is_approved).forEach(r => {
           if (r.name) vNames.add(r.name.toLowerCase().trim());
         });
         setVerifiedNames(vNames);
-      } catch (e) {
-        console.error("Failed to load Edge routes:", e);
-      } finally {
-        setListLoading(false);
-      }
-
-      // Load reference routes separately (Render may be down)
-      try {
-        const refData = routesData.reference || [];
+        
+        // Deduplicate reference routes by UNIQUE name
         const seen = new Set();
         const uniqueRef = [];
-        refData.forEach(r => {
+        (refData.routes || []).forEach(r => {
           const name = (r.route_name || r.name || "").trim();
           const lower = name.toLowerCase();
-          if (!name || seen.has(lower)) return;
+          if (!name) return;
+          if (!lower || seen.has(lower)) return;
           seen.add(lower);
-          uniqueRef.push({ ...r, name, route_name: name, is_matched: false });
+          
+          // Check if matches any verified name
+          let matched = false;
+          vNames.forEach(vName => {
+            if (lower.includes(vName) || vName.includes(lower)) matched = true;
+          });
+          
+          uniqueRef.push({ ...r, name: name, route_name: name, is_matched: matched });
         });
         setReferenceRoutes(uniqueRef);
-      } catch (refErr) {
-        console.warn("Reference unavailable:", refErr.message);
+        setFiltered(all.filter((r) => r.is_approved));
+      } catch (e) {
+        console.error("Failed to load routes:", e);
+      } finally {
+        setListLoading(false);
       }
     })();
   }, []);
 
-  // Update filtered when tab/search/verified/unverified changes
+  // Filter by search
   useEffect(() => {
-    const source = tab === "all" ? [...verified, ...unverified] 
-    : tab === "verified" ? verified 
-    : tab === "reference" ? [...verified, ...unverified] 
-    : tab === "build" ? [...verified, ...unverified] 
-    : referenceRoutes;
+    const source = tab === "verified" ? verified : referenceRoutes;
     if (!search.trim()) { setFiltered(source); return; }
     const q = search.toLowerCase();
     setFiltered(source.filter((r) => (r.name || r.route_name || "").toLowerCase().includes(q)));
-  }, [search, tab, verified, unverified, referenceRoutes]);
+  }, [search, tab, verified, referenceRoutes]);
 
   useEffect(() => { if (!isMobile && mobileOpen) setMobileOpen(false); }, [isMobile, mobileOpen]);
 
   const drawRoute = useCallback(async (routeId) => {
     try {
-      const selectedRoute = [...verified, ...unverified].find(r => r.route_uuid === routeId);
-      if (selectedRoute?.has_shape === false) return; // Skip no-shape
-      
-      const res = await fetch(`https://tcvomrkytxnetzijwqad.supabase.co/rest/v1/ph_route_shapes?route_uuid=eq.${routeId}&select=geom_geojson&limit=1`, { 
-        headers: { 
-          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.JyU9lX6yE2bH4N1mK8pQ3rT5vW9xY2zA4bC6dE8fG0h' 
-        } 
-      });
+      const res = await fetch(`${API}/routes/public/geojson?route_id=${routeId}`);
       if (!res.ok) throw new Error("No geometry");
-      
-      const rawData = await res.json();
-      const geomData = rawData?.[0]?.geom_geojson;
-      if (!geomData) return;
-      
-      // Normalize coordinates — ensure [lng, lat] order for Leaflet
-      if (geomData.type === "LineString") {
-        geomData.coordinates = geomData.coordinates.map(c =>
-          Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
-        );
-      }
-      
-      const geo = {
-        type: "FeatureCollection",
-        features: [{
-          type: "Feature",
-          properties: {},
-          geometry: geomData
-        }]
-      };
-      
-      if (!layerRef.current) {
-        layerRef.current = L.layerGroup().addTo(mapInst.current);
-      }
-      
-      layerRef.current.clearLayers();
-      L.geoJSON(geo, { style: { color: getModeColor(selectedRoute?.mode || "default"), weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
+      const geo = await res.json();
+      layerRef.current?.clearLayers();
+      L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 4, opacity: 0.9 } }).addTo(layerRef.current);
       const bounds = L.geoJSON(geo).getBounds();
       if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
     } catch (e) {
@@ -201,25 +141,47 @@ export default function RoutesExplorer() {
     const name = (route.name || route.route_name || "").trim();
     if (!id && !name) return;
 
-    if (selected) {
-      const currentId = selected?.route_uuid || selected?.id;
-      const currentName = selected?.route_name || selected?.name || "";
-      if ((id && currentId === id) || (!id && currentName === name)) {
-        setSelected(null);
-        layerRef.current?.clearLayers();
-        return;
-      }
+    const currentId = selected?.route_uuid || selected?.id;
+    const currentName = selected?.route_name || selected?.name || "";
+    if (currentId === id || currentName === name) {
+      setSelected(null);
+      layerRef.current?.clearLayers();
+      return;
     }
     setSelected(route);
     setMobileOpen(false);
+    setLoading(true);
 
-    // If route has geometry, draw it
-    if (id || route.route_uuid) {
-      await drawRoute(id || route.route_uuid);
-    } else {
+    if ((tab === "reference" && !id) || (!id && !route.route_uuid)) {
+      // No geometry — prompt to record this route
       layerRef.current?.clearLayers();
+      const parts = name.split(" - ");
+      const origin = (parts[0] || "").trim();
+      const dest = (parts[1] || "").trim();
+      if (origin && dest) {
+        const bounds = L.latLngBounds([]);
+        for (const [i, place] of [origin, dest].entries()) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}, Metro Manila&limit=1`);
+            const data = await res.json();
+            if (data[0]) {
+              const ll = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+              L.circleMarker(ll, { radius: 8, fillColor: i === 0 ? "#22c55e" : "#ef4444", color: "#fff", weight: 2, fillOpacity: 1 })
+                .addTo(layerRef.current).bindTooltip(i === 0 ? `Origin: ${place}` : `Dest: ${place}`, { permanent: true, direction: "top" });
+              bounds.extend(ll);
+            }
+          } catch {}
+        }
+        if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
+      }
+      // Show recorder for unmapped routes
+      setRecordingRoute({ name, uuid: null });
+      setShowRecorder(true);
+    } else {
+      await drawRoute(id || route.route_uuid);
     }
-  }, [selected, drawRoute]);
+    setLoading(false);
+  }, [selected, drawRoute, tab]);
 
   const clearSelection = useCallback(() => {
     setSelected(null);
@@ -239,19 +201,15 @@ export default function RoutesExplorer() {
             <div className="text-[10px] text-purple-200">Verified</div>
           </div>
           <div className="flex-1 bg-white/15 rounded-lg py-1.5 px-2.5 text-center">
-            <div className="text-[15px] font-extrabold text-white">{unverified.length}</div>
-            <div className="text-[10px] text-purple-200">Unverified</div>
-          </div>
-          <div className="flex-1 bg-white/15 rounded-lg py-1.5 px-2.5 text-center">
-            <div className="text-[15px] font-extrabold text-white">{referenceRoutes.length}</div>
-            <div className="text-[10px] text-purple-200">Reference</div>
+            <div className="text-[15px] font-extrabold text-white">{referenceRoutes.filter(r => r.is_matched).length}/{referenceRoutes.length}</div>
+            <div className="text-[10px] text-purple-200">Mapped</div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex border-b border-gray-100 shrink-0">
-        {[["all", "🗺️ All"], ["verified", "✅ Verified"], ["reference", "📋 Reference"], ["build", "🔧 Build"]].map(([id, label]) => (
+        {[["verified", "✓ Verified"], ["reference", "📋 Reference"], ["build", "🔧 Build"]].map(([id, label]) => (
           <button key={id} onClick={() => { setTab(id); clearSelection(); }}
             className={`flex-1 py-2.5 text-xs font-semibold border-b-2 transition-colors ${tab === id ? "text-purple-800 border-purple-800" : "text-gray-400 border-transparent hover:text-gray-500"}`}>
             {label}
@@ -269,67 +227,43 @@ export default function RoutesExplorer() {
       {tab === "build" && (
         <div className="p-3 space-y-3 flex-1 overflow-y-auto">
           <div className="flex gap-2">
-            <button onClick={() => setBuildQueue([...verified, ...unverified])} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-purple-100 text-purple-800 hover:bg-purple-200">See All Routes ({verified.length})</button>
+            <button onClick={() => setBuildQueue([...verified])} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-purple-100 text-purple-800 hover:bg-purple-200">See All Routes ({verified.length})</button>
             <button onClick={() => { setBuildQueue([]); layerRef.current?.clearLayers(); }} className="flex-1 py-1.5 text-[10px] font-semibold rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200">Clear All</button>
           </div>
           <p className="text-[11px] text-gray-400">Click routes below to build a custom trip chain on the map.</p>
-
-          {/* Show Combined Route — always visible, above queue */}
-          <button onClick={async () => {
-            if (buildQueue.length < 1) return;
-            setLoading(true);
-            layerRef.current?.clearLayers();
-            const bounds = L.latLngBounds([]);
-            for (const route of buildQueue) {
-              try {
-                const res = await fetch(`https://tcvomrkytxnetzijwqad.supabase.co/rest/v1/ph_route_shapes?route_uuid=eq.${route.route_uuid}&select=geom_geojson&limit=1`, { headers: { apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzQzNjc0OCwiZXhwIjoyMDczMDEyNzQ4fQ.ozETr9jLQU3KcUY1c_dTLySOqzHS4f45KPwS-fBrx7E' } });
-                if (!res.ok) continue;
-                const rawData = await res.json();
-                const geomData = rawData?.[0]?.geom_geojson;
-                if (!geomData) continue;
-                const geo = {
-                  type: "FeatureCollection",
-                  features: [{ type: "Feature", properties: {}, geometry: geomData }]
-                };
-                if (geo.type === "FeatureCollection" && geo.features) {
-                  geo.features = geo.features.map(f => {
-                    if (f.geometry?.type === "LineString") {
-                      f.geometry.coordinates = f.geometry.coordinates.map(c => 
-                        Math.abs(c[0]) > 90 ? [c[1], c[0]] : c
-                      );
-                    }
-                    return f;
-                  });
-                }
-                if (!layerRef.current) {
-                layerRef.current = L.layerGroup().addTo(mapInst.current);
-              }
-              const layer = L.geoJSON(geo, { style: { color: getModeColor(route.mode || "default"), weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
-                layer.bindTooltip(route.name, { sticky: true });
-                const b = layer.getBounds();
-                if (b.isValid()) bounds.extend(b);
-              } catch {}
-            }
-            if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
-            setLoading(false);
-          }} disabled={buildQueue.length < 1} className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-xs mb-2 disabled:opacity-40 disabled:cursor-not-allowed">
-            🚀 Show Combined Route
-          </button>
-
           {buildQueue.length > 0 && (
             <div className="space-y-1">
               <p className="text-[10px] font-bold text-gray-500 uppercase">Trip Queue ({buildQueue.length})</p>
-              {buildQueue.map((route, i) => (
+              {buildQueue.map((r, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs bg-purple-50 rounded-lg p-2">
                   <span className="w-5 h-5 rounded-full bg-purple-800 text-white flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</span>
-                  <span className="text-gray-700 truncate">{route.name}</span>
+                  <span className="text-gray-700 truncate">{r.name}</span>
                   <button onClick={() => setBuildQueue(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-400 text-lg shrink-0">×</button>
                 </div>
               ))}
+              <button onClick={async () => {
+                if (buildQueue.length < 1) return;
+                setLoading(true);
+                layerRef.current?.clearLayers();
+                const bounds = L.latLngBounds([]);
+                for (const route of buildQueue) {
+                  try {
+                    const res = await fetch(`${API}/routes/public/geojson?route_id=${route.route_uuid}`);
+                    if (!res.ok) continue;
+                    const geo = await res.json();
+                    const layer = L.geoJSON(geo, { style: { color: "#7A4BC8", weight: 3, opacity: 0.7 } }).addTo(layerRef.current);
+                    layer.bindTooltip(route.name, { sticky: true });
+                    const b = layer.getBounds();
+                    if (b.isValid()) bounds.extend(b);
+                  } catch {}
+                }
+                if (bounds.isValid()) mapInst.current?.fitBounds(bounds, { padding: [60, 60] });
+                setLoading(false);
+              }} className="w-full py-2 bg-purple-800 text-white rounded-xl font-bold text-xs mt-2">🚀 Show Combined Route</button>
             </div>
           )}
           <div className="border-t border-gray-100 pt-2 max-h-60 overflow-y-auto">
-            {tab === "build" ? [...verified, ...unverified].filter(r => r.has_shape !== false).map((item) => {
+            {verified.map((item) => {
               const inQueue = buildQueue.find(q => q.route_uuid === item.route_uuid);
               return (
                 <button key={item.route_uuid} onClick={() => {
@@ -337,32 +271,7 @@ export default function RoutesExplorer() {
                   else { setBuildQueue(prev => [...prev, item]); }
                 }} className={`w-full text-left p-2 rounded-lg flex items-start gap-2 mb-0.5 text-xs ${inQueue ? "bg-purple-100" : "hover:bg-gray-50"}`}>
                   <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold shrink-0 mt-0.5 ${inQueue ? "bg-purple-800 text-white" : "bg-gray-200 text-gray-500"}`}>{inQueue ? "✓" : "+"}</span>
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ background: getModeColor(item.mode) }} />
-                  <span className="truncate text-gray-700 flex-1">{item.name}</span>
-                  {!item.is_approved && (
-                    <span className="text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
-                      UNVERIFIED
-                    </span>
-                  )}
-                  <span className="text-[9px] text-gray-400 shrink-0">{getModeEmoji(item.mode)}</span>
-                </button>
-              );
-            }) : verified.map((item) => {
-              const inQueue = buildQueue.find(q => q.route_uuid === item.route_uuid);
-              return (
-                <button key={item.route_uuid} onClick={() => {
-                  if (inQueue) { setBuildQueue(prev => prev.filter(q => q.route_uuid !== item.route_uuid)); }
-                  else { setBuildQueue(prev => [...prev, item]); }
-                }} className={`w-full text-left p-2 rounded-lg flex items-start gap-2 mb-0.5 text-xs ${inQueue ? "bg-purple-100" : "hover:bg-gray-50"}`}>
-                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold shrink-0 mt-0.5 ${inQueue ? "bg-purple-800 text-white" : "bg-gray-200 text-gray-500"}`}>{inQueue ? "✓" : "+"}</span>
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: getModeColor(item.mode) }} />
-                  <span className="truncate text-gray-700 flex-1">{item.name}</span>
-                  {!item.is_approved && (
-                    <span className="text-[8px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full shrink-0 font-bold">
-                      UNVERIFIED
-                    </span>
-                  )}
-                  <span className="text-[9px] text-gray-400 shrink-0">{getModeEmoji(item.mode)}</span>
+                  <span className="truncate text-gray-700">{item.name}</span>
                 </button>
               );
             })}
@@ -384,12 +293,8 @@ export default function RoutesExplorer() {
               {filtered.map((route) => {
                 const id = route.route_uuid || route.id;
                 const name = route.name || route.route_name || "Unknown";
-                const isUnverified = tab === "all" && !route.is_approved;
                 const mode = route.mode || route.agency || "";
-                const active = selected && (
-                  (id && (selected?.route_uuid || selected?.id) === id) ||
-                  (!id && (selected?.route_name || selected?.name) === name)
-                );
+                const active = (selected?.route_uuid || selected?.id) === id;
                 const isMatched = tab === "reference" ? route.is_matched : route.is_approved;
                 return (
                   <button key={id || name} onClick={() => selectRoute(route)}
@@ -445,26 +350,31 @@ export default function RoutesExplorer() {
             </div>
           )}
           {selected && !loading && (
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 z-30 w-[min(92vw,320px)]">
-              <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                <div className="px-3 py-2 flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-gray-900 truncate">{selected.name || selected.route_name}</h3>
-                    <span className="text-[10px] text-gray-400 capitalize">{selected.mode || selected.agency || "transit"}</span>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 w-[min(90vw,400px)]">
+              <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+                <div className="bg-gradient-to-r from-purple-800 to-purple-600 px-4 py-3 flex items-center gap-2.5">
+                  <div className="flex-1">
+                    <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
+                      {selected.mode || selected.agency || "transit"}
+                    </span>
                   </div>
-                  <button onClick={clearSelection} className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0">✕</button>
+                  <button onClick={clearSelection} className="bg-white/20 rounded-lg w-7 h-7 flex items-center justify-center text-white text-sm">✕</button>
                 </div>
-                <div className="px-3 pb-2 flex gap-2">
-                  <Link to={`/?route=${encodeURIComponent(selected?.name || selected?.route_name || "")}`} className="flex-1 py-2 bg-purple-800 text-white rounded-lg font-bold text-[11px] text-center no-underline">
-                    🚐 Commute
-                  </Link>
-                  <button onClick={() => {
-                    const routeName = selected?.name || selected?.route_name || "";
-                    setRecordingRoute({ name: routeName, uuid: selected?.route_uuid || selected?.id || null });
-                    setShowRecorder(true);
-                  }} className="flex-1 py-2 bg-green-500 text-white rounded-lg text-[11px] font-bold">
-                    📍 Track it
-                  </button>
+                <div className="p-4">
+                  <h3 className="text-sm font-bold text-gray-900 truncate">{selected.name || selected.route_name}</h3>
+                  <Link to={`/?route=${encodeURIComponent(selected?.name || selected?.route_name || "")}`} className="flex items-center justify-center gap-2 py-2.5 mt-3 bg-purple-800 text-white rounded-xl font-bold text-[13px] no-underline">
+                🚐 Commute this Route
+              </Link>
+              <button onClick={() => {
+                const routeName = selected?.name || selected?.route_name || "";
+                setRecordingRoute({
+                  name: routeName,
+                  uuid: selected?.route_uuid || selected?.id || null,
+                });
+                setShowRecorder(true);
+              }} className="w-full py-2 mt-1 bg-green-500 text-white rounded-lg text-[11px] font-bold">
+                📍 I'm on this route — Track it
+              </button>
                 </div>
               </div>
             </div>

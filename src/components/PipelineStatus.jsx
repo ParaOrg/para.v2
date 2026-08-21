@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
+import { getApiBaseUrl } from "../utils/api";
 
-const EDGE = "https://tcvomrkytxnetzijwqad.supabase.co/functions/v1";
-const RENDER = "https://para-ph-api.onrender.com";
+const API = getApiBaseUrl();
 
-// READ-ONLY CHECKS — no POST, no data mutation
 const CHECKS = [
-  { id: "routes", label: "Routes (Edge)", url: `${EDGE}/routes-public`, method: "POST", body: {} },
-  { id: "render", label: "Render Graph", url: `${RENDER}/health`, method: "GET" },
-  { id: "edge-status", label: "Edge Functions", url: `${EDGE}/routes-public`, method: "POST", body: {} },
+  { id: "health", label: "Backend Health", endpoint: "/health" },
+  { id: "routes", label: "Public Routes", endpoint: "/routes/public" },
+  { id: "fares", label: "Fare Reports", endpoint: "/fare/reports?limit=1" },
+  { id: "cities", label: "Cities", endpoint: "/cities" },
+  { id: "threads", label: "Community Threads", endpoint: "/community/threads" },
+  { id: "pois", label: "POI List", endpoint: "/poi/list" },
+  { id: "write_test", label: "DB Write Capability", endpoint: "/health/write-test" },
 ];
 
 export default function PipelineStatus() {
@@ -21,15 +24,11 @@ export default function PipelineStatus() {
     for (const check of CHECKS) {
       const start = Date.now();
       try {
-        const options = { method: check.method };
-        if (check.method === "POST" && check.body) {
-          options.headers = { "Content-Type": "application/json" };
-          options.body = JSON.stringify(check.body);
-        }
-        const res = await fetch(check.url, options);
+        const res = await fetch(`${API}${check.endpoint}`);
+        const contentType = res.headers.get("content-type") || "";
         newResults[check.id] = {
-          ok: res.ok,
-          status: res.status,
+          ok: res.ok && !contentType.includes("text/html"),
+          status: res.ok ? res.status : 0,
           latency: Date.now() - start,
         };
       } catch (e) {

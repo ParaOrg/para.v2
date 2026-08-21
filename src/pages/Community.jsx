@@ -44,7 +44,7 @@ export default function Community() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_email: auth.user?.email || "anonymous",
-          author_name: auth.user?.handle || JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}").handle || "Anonymous",
+          author_name: auth.user?.handle || auth.user?.name || "Anonymous",
           title: newPost.title,
           content: newPost.content,
           tag: newPost.tag,
@@ -163,7 +163,7 @@ export default function Community() {
             <div className="p-4" onClick={() => openThread(thread)}>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-[#7A4BC8]">{thread.tag || "General"}</span>
-                <span className="text-xs text-gray-400 ml-auto">{thread.author_name || "Anonymous"}</span>
+                <span className="text-xs text-gray-400 ml-auto">{thread.author_name || (thread.user_email || "anonymous").split("@")[0]}</span>
               </div>
               <h2 className="font-bold text-gray-900 mt-1">{thread.title}</h2>
               <div className="text-sm text-gray-500 mt-1 line-clamp-3">
@@ -205,7 +205,7 @@ export default function Community() {
             </div>
             <h2 className="text-xl font-black text-gray-900 mt-1">{selectedThread.title}</h2>
             <p className="text-xs text-gray-400 mt-1">
-              Posted by {selectedThread.author_name || "Anonymous"} • {selectedThread.created_at?.slice(0, 10)}
+              Posted by {selectedThread.author_name || (selectedThread.user_email || "anonymous").split("@")[0]} • {selectedThread.created_at?.slice(0, 10)}
             </p>
             <div className="mt-4 prose prose-sm max-w-none">
               <ReactMarkdown>{selectedThread.content}</ReactMarkdown>
@@ -219,7 +219,7 @@ export default function Community() {
               <p className="text-xs font-bold text-gray-500 mb-3">{comments.length} Comments</p>
               {comments.map((comment) => (
                 <div key={comment.comment_uuid} className="mb-3 bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-700">{comment.author_name || "Anonymous"}</p>
+                  <p className="text-xs font-semibold text-gray-700">{(comment.user_email || "anonymous").split("@")[0]}</p>
                   <div className="text-sm text-gray-600 prose prose-sm max-w-none">
                     <ReactMarkdown>{comment.content}</ReactMarkdown>
                   </div>

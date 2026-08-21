@@ -1,7 +1,7 @@
 {
   "name": "para-frontend",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,15 +12,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
     "@tailwindcss/typography": "^0.5.20",
-    "@turf/bearing": "^7.4.0",
-    "@turf/distance": "^7.4.0",
-    "@turf/helpers": "^7.4.0",
-    "@turf/nearest-point-on-line": "^7.4.0",
-    "@turf/turf": "^7.4.0",
     "@vercel/analytics": "^2.0.1",
     "@vis.gl/react-google-maps": "^1.8.1",
-    "framer-motion": "^13.1.0",
-    "html-to-image": "^1.11.13",
+    "firebase": "^12.11.0",
     "leaflet": "^1.9.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -39,11 +33,12 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
-    "supabase": "^2.114.0",
     "tailwindcss": "4.1.18",
     "vite": "^7.3.6"
   },
   "allowScripts": {
-    "esbuild@0.25.12": true
+    "esbuild@0.25.12": true,
+    "@firebase/util@1.15.1": true,
+    "protobufjs@7.6.5": true
   }
 }

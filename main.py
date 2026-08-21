@@ -33,11 +33,19 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("✅ Database connected")
 
-    # Build transit graph from Supabase
-    logger.info("📊 Building transit graph from Supabase...")
-    G = await build_transit_graph()
+    # Load graph from cache (instant) or build
+    import pickle, os
+    if os.path.exists("graph_cache.pkl"):
+        logger.info("📊 Loading graph from cache...")
+        with open("graph_cache.pkl", "rb") as f:
+            G = pickle.load(f)
+        logger.info(f"✅ Graph loaded from cache: {G.number_of_nodes()} nodes")
+    else:
+        logger.info("📊 Building graph from Supabase...")
+        G = await build_transit_graph()
+        with open("graph_cache.pkl", "wb") as f:
+            pickle.dump(G, f, protocol=pickle.HIGHEST_PROTOCOL)
     app.state.G = G
-
     logger.info(f"✅ Graph loaded: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
     
     # Pre-compute popular routes for instant responses
