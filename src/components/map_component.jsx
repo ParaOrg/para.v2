@@ -29,7 +29,10 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
 
   // Update polylines when prop changes
   useEffect(() => {
-    if (!polylineLayer.current || !mapInstance.current) return;
+    if (!mapInstance.current) return;
+    if (!polylineLayer.current) {
+      polylineLayer.current = L.layerGroup().addTo(mapInstance.current);
+    }
     polylineLayer.current.clearLayers();
     polylines.forEach((line) => {
       L.polyline(line.coordinates, {
