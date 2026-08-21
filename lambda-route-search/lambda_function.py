@@ -249,8 +249,28 @@ def lambda_handler(event, context):
                 'type': 'transit',
             })
         
-        total_time = round(sum(s['time_min'] for s in final_segments), 1)
+        # Fare calculation based on mode
+        FARES = {
+            'jeepney': 13.0,
+            'bus': 15.0,
+            'uv_express': 20.0,
+            'train': 20.0,
+            'lrt': 20.0,
+            'mrt': 20.0,
+        }
+        
+        total_fare = 0
+        for seg in final_segments:
+            mode = seg.get('mode', 'jeepney')
+            total_fare += FARES.get(mode, 13.0)
+        
+        total_time = round(sum(s['time_min'] for s in final_segments) + (len(final_segments) - 1) * 5, 1)  # 5min transfer penalty
         total_dist = round(sum(s['distance_km'] for s in final_segments), 2)
+        
+        # Biyahe score: 0-100 rating
+        transfer_penalty = (len(final_segments) - 1) * 0.15
+        walk_penalty = 0  # no walk segments in current graph
+        score = max(0, min(100, int((1.0 - transfer_penalty - walk_penalty) * 100)))
         
         return {
             'statusCode': 200,
@@ -261,8 +281,9 @@ def lambda_handler(event, context):
                     'segments': final_segments,
                     'total_time_min': total_time,
                     'total_distance_km': total_dist,
-                    'total_fare': 0,
+                    'total_fare': round(total_fare, 2),
                     'transfers': len(final_segments) - 1,
+                    'biyahe_score': score,
                 },
                 'reply_text': 'Here are your commute options:',
                 'path': path,
