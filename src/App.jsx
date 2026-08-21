@@ -4,6 +4,8 @@ import { TrackingConsentProvider } from "./context/TrackingConsentContext";
 
 import HomeNew from "./pages/HomeNew";
 import RoutesExplorer from "./pages/RoutesExplorer";
+import ContributePage from "./pages/ContributePage";
+import WeatherPage from "./components/WeatherPage";
 import Community from "./pages/Community";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
@@ -36,6 +38,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomeNew />} />
           <Route path="/explore" element={<RoutesExplorer />} />
+          <Route path="/contribute" element={<ContributePage />} />
+          <Route path="/weather" element={<WeatherPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/about" element={<About />} />
           <Route path="/gas-prices" element={<GasPrices />} />
