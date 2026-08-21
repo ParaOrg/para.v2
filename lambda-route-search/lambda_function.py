@@ -220,6 +220,36 @@ def lambda_handler(event, context):
         # Run Dijkstra
         path = dijkstra(adj, start, end)
         
+        # Build segments with geometry
+        segments = []
+        for i in range(len(path) - 1):
+            u = path[i]
+            v = path[i + 1]
+            if u in nodes and v in nodes:
+                u_lat, u_lon = nodes[u]
+                v_lat, v_lon = nodes[v]
+                dist = haversine(u_lat, u_lon, v_lat, v_lon)
+                time_min = (dist / 1000) / 4.5 * 60  # walk speed fallback
+                segments.append({
+                    'from_node': u,
+                    'to_node': v,
+                    'distance_km': round(dist / 1000, 3),
+                    'time_min': round(time_min, 1),
+                    'geometry': [[u_lat, u_lon], [v_lat, v_lon]],
+                    'type': 'walk' if 'WALK' in u else 'transit',
+                })
+        
+        total_time = round(sum(s['time_min'] for s in segments), 1)
+        total_dist = round(sum(s['distance_km'] for s in segments), 2)
+        
+        route_data = {
+            'segments': segments,
+            'total_time_min': total_time,
+            'total_distance_km': total_dist,
+            'total_fare': 0,
+            'transfers': 0,
+        }
+        
         return {
             'statusCode': 200,
             'headers': {
@@ -228,6 +258,8 @@ def lambda_handler(event, context):
             },
             'body': json.dumps({
                 'status': 'success',
+                'route_data': route_data,
+                'reply_text': f'Here are your commute options:',
                 'path': path,
                 'path_length': len(path),
                 'graph_nodes': len(adj),

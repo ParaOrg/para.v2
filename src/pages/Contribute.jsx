@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Navbar from "../components/Navbar";
+import WeatherPage from "../components/WeatherPage";
 import BottomNav from "../components/BottomNav";
 import GpsIcon from "../components/GpsIcon";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
@@ -25,6 +26,7 @@ const POI_TYPES = [
 ];
 
 export default function Contribute() {
+  const [showWeather, setShowWeather] = useState(false);
   // Main mode
   const [mode, setMode] = useState(null); // null | personal | route | poi | upload
   
@@ -543,6 +545,7 @@ export default function Contribute() {
         )}
       </div>
 
+      {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
       <BottomNav />
     </div>
   );

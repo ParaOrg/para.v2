@@ -13,6 +13,8 @@ import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
 import BottomNav from "../components/BottomNav";
+import WeatherPage from "../components/WeatherPage";
+import GpsIcon from "../components/GpsIcon";
 import { useAuth } from "../context/AuthContext";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -154,6 +156,7 @@ export default function RoutesExplorer() {
   const [showRecorder, setShowRecorder] = useState(false);
   const [recordingRoute, setRecordingRoute] = useState(null);
   const [activeMode, setActiveMode] = useState(null);
+  const [showWeather, setShowWeather] = useState(false);
 
   // Init map
   useEffect(() => {
@@ -515,6 +518,7 @@ export default function RoutesExplorer() {
           {isMobile && (
             <button onClick={() => setMobileOpen(true)} className="absolute top-4 left-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md font-semibold text-[13px] text-purple-800">☰ Routes</button>
           )}
+          <button onClick={() => setShowWeather(true)} className="absolute top-16 right-4 z-40 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
           <div ref={mapRef} className="absolute inset-0 z-0" />
           
           {/* Map Legend - Clickable */}
@@ -585,6 +589,7 @@ export default function RoutesExplorer() {
           )}
         </div>
       </div>
+      {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
       <BottomNav />
       {showRecorder && recordingRoute && (
         <LiveRouteRecorder
