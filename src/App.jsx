@@ -25,7 +25,7 @@ function ProtectedRoute({ children }) {
 function AdminRoute({ children }) {
   const { user, isAuthenticated, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" /></div>;
-  if (!isAuthenticated || user?.role !== "admin") return <Navigate to="/login" replace />;
+  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "founder")) return <Navigate to="/login" replace />;
   return children;
 }
 

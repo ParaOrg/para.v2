@@ -222,7 +222,7 @@ export default function RoutesExplorer() {
           }
         });
         
-        // Sort: most frequent drawn first (bottom), least frequent last (top)
+        // Sort: least frequent drawn first (bottom), most frequent last (top)
         const modeFrequency = {};
         buildQueue.forEach(r => {
           const m = r.mode || "default";
@@ -231,7 +231,7 @@ export default function RoutesExplorer() {
         const sortedQueue = [...buildQueue].sort((a, b) => {
           const ma = a.mode || "default";
           const mb = b.mode || "default";
-          return (modeFrequency[mb] || 0) - (modeFrequency[ma] || 0);
+          return (modeFrequency[ma] || 0) - (modeFrequency[mb] || 0);
         });
         
         for (const route of sortedQueue) {

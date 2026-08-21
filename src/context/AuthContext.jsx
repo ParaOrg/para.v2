@@ -15,7 +15,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const storedUser = safeParse(localStorage.getItem(USER_KEY));
     if (storedUser && storedUser.email) {
-      fetch(`${API}/auth/signup`, {
+      fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: storedUser.email }),
@@ -37,7 +37,7 @@ export function AuthProvider({ children }) {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) throw new Error("Email is required");
 
-    const res = await fetch(`${API}/auth/signup`, {
+    const res = await fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: normalizedEmail }),
@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) throw new Error("Email is required");
 
-    const res = await fetch(`${API}/auth/signup`, {
+    const res = await fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: normalizedEmail, name: name || normalizedEmail.split("@")[0] }),
