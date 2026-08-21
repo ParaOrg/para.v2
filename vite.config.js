@@ -6,11 +6,12 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/health': 'https://para-ph-api.onrender.com',
-      '/api': {
-        target: 'https://para-ph-api.onrender.com',
+      '/api/route-search': {
+        target: 'https://l3rwrx7tlkqcn5wr7tt53uaqku0dlwte.lambda-url.ap-southeast-1.on.aws',
         changeOrigin: true,
+        rewrite: () => '',
       },
+      '/health': 'https://para-ph-api.onrender.com',
       '/chat': 'https://para-ph-api.onrender.com',
       '/feedback': 'https://para-ph-api.onrender.com',
       '/telemetry': 'https://para-ph-api.onrender.com',
@@ -24,8 +25,6 @@ export default defineConfig({
       '/cities': 'https://para-ph-api.onrender.com',
       '/articles': 'https://para-ph-api.onrender.com',
       '/admin/routes': 'https://para-ph-api.onrender.com',
-      '/admin/pending': 'https://para-ph-api.onrender.com',
-      '/admin/graph': 'https://para-ph-api.onrender.com',
     }
   }
 })
