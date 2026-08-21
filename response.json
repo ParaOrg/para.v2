@@ -1,0 +1,1 @@
+{"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"}, "body": "{\"status\": \"success\", \"path\": [\"Baliwag Bocaue::14.82373_120.90003\"], \"path_length\": 1, \"graph_nodes\": 47712}"}

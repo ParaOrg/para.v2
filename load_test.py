@@ -1,139 +1,119 @@
 """
-Load test — 10k concurrent users hitting all endpoints.
+Load test: 1000 concurrent users hitting the /chat endpoint with text queries.
 """
 
 import asyncio
 import aiohttp
-import json
-import random
 import time
-from datetime import datetime
+import random
+from collections import defaultdict
 
-API = "https://para-ph-api.onrender.com"
-TOTAL_USERS = 10000
-CONCURRENCY = 100  # parallel requests
+BASE_URL = "https://para-ph-api.onrender.com"
+CONCURRENT_USERS = 1000
+TIMEOUT_SECONDS = 30
 
-results = {
-    "health": {"ok": 0, "fail": 0, "latency": []},
-    "signup": {"ok": 0, "fail": 0, "latency": []},
-    "commute_save": {"ok": 0, "fail": 0, "latency": []},
-    "fare_report": {"ok": 0, "fail": 0, "latency": []},
-    "community_thread": {"ok": 0, "fail": 0, "latency": []},
-    "poi_add": {"ok": 0, "fail": 0, "latency": []},
-    "routes_public": {"ok": 0, "fail": 0, "latency": []},
-    "fare_stats": {"ok": 0, "fail": 0, "latency": []},
-}
+TEST_MESSAGES = [
+    "from Cubao to Makati",
+    "from Alabang to Quezon City",
+    "from Pasay to Manila",
+    "from BGC to Ortigas",
+    "from Fairview to Baclaran",
+    "from Sucat to Monumento",
+    "from Recto to Santolan",
+    "from Taft to Cubao",
+    "from Ayala to Lagro",
+    "from Novaliches to EDSA",
+]
 
-async def do_request(session, method, url, data=None):
+results = defaultdict(list)
+latencies = []
+errors = []
+status_codes = defaultdict(int)
+
+async def send_request(session, user_id):
+    message = random.choice(TEST_MESSAGES)
+    url = f"{BASE_URL}/chat"
+    payload = {
+        "message": message,
+        "user_id": f"loadtest_{user_id}",
+    }
+    
     start = time.time()
     try:
-        if method == "GET":
-            async with session.get(url) as res:
-                latency = time.time() - start
-                return res.status, latency
-        else:
-            async with session.post(url, json=data) as res:
-                latency = time.time() - start
-                return res.status, latency
+        async with session.post(url, json=payload, timeout=TIMEOUT_SECONDS) as resp:
+            latency_ms = (time.time() - start) * 1000
+            latencies.append(latency_ms)
+            status_codes[resp.status] += 1
+            
+            if resp.status == 200:
+                data = await resp.json()
+                has_route = bool(data.get("route_data"))
+                results["route_found"].append(1 if has_route else 0)
+            else:
+                body = await resp.text()
+                errors.append(f"User {user_id}: HTTP {resp.status} - {body[:200]}")
+    except asyncio.TimeoutError:
+        latencies.append(TIMEOUT_SECONDS * 1000)
+        errors.append(f"User {user_id}: TIMEOUT after {TIMEOUT_SECONDS}s")
+        status_codes["timeout"] += 1
     except Exception as e:
-        return 0, time.time() - start
-
-async def simulate_user(session, user_id):
-    email = f"load-{user_id}@test.com"
-    phone = f"0917{user_id:07d}"
-    tasks = []
-
-    # Health
-    status, lat = await do_request(session, "GET", f"{API}/health")
-    results["health"]["ok" if status == 200 else "fail"] += 1
-    results["health"]["latency"].append(lat)
-
-    # Signup
-    status, lat = await do_request(session, "POST", f"{API}/auth/signup", {"email": email, "name": f"User{user_id}"})
-    results["signup"]["ok" if status == 200 else "fail"] += 1
-    results["signup"]["latency"].append(lat)
-
-    # Commute save
-    status, lat = await do_request(session, "POST", f"{API}/commute/save", {
-        "client_log_id": f"load-{user_id}-{int(time.time())}",
-        "route_name": "Load Test Route",
-        "user_email": email,
-        "total_time_sec": random.randint(60, 3600),
-    })
-    results["commute_save"]["ok" if status == 200 else "fail"] += 1
-    results["commute_save"]["latency"].append(lat)
-
-    # Fare report
-    status, lat = await do_request(session, "POST", f"{API}/fare/report", {
-        "user_email": email,
-        "mode": random.choice(["jeepney", "bus", "train"]),
-        "fare_amount": random.uniform(10, 50),
-        "city": "Metro Manila",
-    })
-    results["fare_report"]["ok" if status == 200 else "fail"] += 1
-    results["fare_report"]["latency"].append(lat)
-
-    # Community thread
-    status, lat = await do_request(session, "POST", f"{API}/community/threads", {
-        "user_email": email,
-        "author_name": f"User{user_id}",
-        "title": f"Load Test {user_id}",
-        "content": "Testing",
-    })
-    results["community_thread"]["ok" if status == 200 else "fail"] += 1
-    results["community_thread"]["latency"].append(lat)
-
-    # POI add
-    status, lat = await do_request(session, "POST", f"{API}/poi/add", {
-        "canonical_name": f"Load POI {user_id}",
-        "category": "test",
-        "lat": 14.5 + random.random(),
-        "lng": 120.9 + random.random(),
-    })
-    results["poi_add"]["ok" if status == 200 else "fail"] += 1
-    results["poi_add"]["latency"].append(lat)
-
-    # Routes public
-    status, lat = await do_request(session, "GET", f"{API}/routes/public")
-    results["routes_public"]["ok" if status == 200 else "fail"] += 1
-    results["routes_public"]["latency"].append(lat)
-
-    # Fare stats
-    status, lat = await do_request(session, "GET", f"{API}/fare/stats?city=Metro%20Manila")
-    results["fare_stats"]["ok" if status == 200 else "fail"] += 1
-    results["fare_stats"]["latency"].append(lat)
+        latencies.append((time.time() - start) * 1000)
+        errors.append(f"User {user_id}: {type(e).__name__}: {e}")
+        status_codes["error"] += 1
 
 async def main():
-    print(f"🔥 Load test: {TOTAL_USERS} users, {CONCURRENCY} concurrent")
-    print(f"⏱  Start: {datetime.now().strftime('%H:%M:%S')}")
+    print(f"🚀 Starting load test: {CONCURRENT_USERS} concurrent users")
+    print(f"📍 Target: {BASE_URL}/chat")
+    print(f"📊 {len(TEST_MESSAGES)} unique text queries")
+    print()
+    
     start_time = time.time()
-
-    semaphore = asyncio.Semaphore(CONCURRENCY)
-    connector = aiohttp.TCPConnector(limit=CONCURRENCY)
-
+    
+    connector = aiohttp.TCPConnector(limit=CONCURRENT_USERS, limit_per_host=CONCURRENT_USERS)
     async with aiohttp.ClientSession(connector=connector) as session:
-        async def bounded(user_id):
-            async with semaphore:
-                await simulate_user(session, user_id)
-
-        # Process in batches
-        batch_size = 100
-        for batch_start in range(0, TOTAL_USERS, batch_size):
-            batch = range(batch_start, min(batch_start + batch_size, TOTAL_USERS))
-            await asyncio.gather(*[bounded(i) for i in batch])
-            if (batch_start + batch_size) % 1000 == 0:
-                elapsed = time.time() - start_time
-                print(f"  {batch_start + batch_size}/{TOTAL_USERS} done ({elapsed:.0f}s)")
-
-    elapsed = time.time() - start_time
-    print(f"\n⏱  Complete: {elapsed:.1f}s")
-    print(f"📊 Rate: {TOTAL_USERS / elapsed:.0f} users/sec")
-    print(f"\n{'Endpoint':<20} {'OK':<6} {'Fail':<6} {'Avg Lat':<10} {'Max Lat'}")
-    print("-" * 55)
-    for name, r in results.items():
-        avg = sum(r["latency"]) / max(len(r["latency"]), 1) * 1000
-        mx = max(r["latency"]) * 1000 if r["latency"] else 0
-        print(f"{name:<20} {r['ok']:<6} {r['fail']:<6} {avg:.0f}ms     {mx:.0f}ms")
+        tasks = [send_request(session, i) for i in range(CONCURRENT_USERS)]
+        await asyncio.gather(*tasks)
+    
+    total_time = time.time() - start_time
+    
+    print("=" * 60)
+    print("📊 LOAD TEST REPORT")
+    print("=" * 60)
+    print(f"Total users:        {CONCURRENT_USERS}")
+    print(f"Total time:         {total_time:.2f}s")
+    print(f"Requests/sec:       {CONCURRENT_USERS / total_time:.1f}")
+    print()
+    
+    print("Status codes:")
+    for code, count in sorted(status_codes.items(), key=lambda x: str(x[0])):
+        print(f"  {code}: {count}")
+    print()
+    
+    if latencies:
+        latencies_sorted = sorted(latencies)
+        print("Latency (ms):")
+        print(f"  Min:     {latencies_sorted[0]:.0f}")
+        print(f"  Median:  {latencies_sorted[len(latencies_sorted)//2]:.0f}")
+        print(f"  P90:     {latencies_sorted[int(len(latencies_sorted)*0.9)]:.0f}")
+        print(f"  P95:     {latencies_sorted[int(len(latencies_sorted)*0.95)]:.0f}")
+        print(f"  P99:     {latencies_sorted[int(len(latencies_sorted)*0.99)]:.0f}")
+        print(f"  Max:     {latencies_sorted[-1]:.0f}")
+    print()
+    
+    if results.get("route_found"):
+        found = sum(results["route_found"])
+        total = len(results["route_found"])
+        print(f"Routes found: {found}/{total} ({found/total*100:.0f}%)")
+    print()
+    
+    if errors:
+        print(f"❌ Errors: {len(errors)}")
+        for err in errors[:10]:
+            print(f"   {err}")
+        if len(errors) > 10:
+            print(f"   ...and {len(errors) - 10} more")
+    else:
+        print("✅ No errors")
 
 if __name__ == "__main__":
     asyncio.run(main())

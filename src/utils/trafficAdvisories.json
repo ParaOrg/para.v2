@@ -49,28 +49,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "LOOK: Celebrities brave floods, heavy traffic as Habagat drenches Metro Manila -",
-      "description": "LOOK: Celebrities brave floods, heavy traffic as Habagat drenches Metro ManilaManila Bulletin",
-      "updated": "Wed, 19 Aug 2026 03:46:17 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPdi1LTDJReEJ6VmJmNFdzQ214MGZFdlE2OVZ1NzF3VjFOV2NEazdMRW1yX0NhZkV2TTRuN3VGVDdJZ3BQdTJhTWRFMno3U29yNzY5OE5ZSlJnbDhuMENOME5od1NSSGNFbEtNNi0yVnVheFhoNkJQUUNuMkNUbnZNbE1vTnp6YUJrNmp4d0pYREM4QUhHXzJKd3RyeWxXWHhYTVpWUjhOcW0?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-6",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Alert as of 6:00am When: August 21, 2026 What: Traffic Update EDSA SB ",
-      "description": "METROBASE Alert as of 6:00am When: August 21, 2026 What: Traffic Update EDSA SB Monte De Piedad light traffic EDSA Santolan Light traffic EDSA SB Ortigas light traffic EDSA NB Guadalupe bridge light t",
-      "updated": "Thu, 20 Aug 2026 22:12:51 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxORmNxUEtGMVJ1SXZ5N1RJU0planRQNkFObTNMSUY3RUM5Mzg5Y2VuN2pLNFFLVWZWUmtiQllsOHJHanBvNHExTThTSE4tckhjQno4akFQeWMwZnBmV3JUN2R4LWZ6S1pEZnFEekFYYWdIUmVhbU1VeDU5NkFzdnVyTFV0Ymx6ZzlEaVVqSVdZSWJKcXBjNUhxczFGUzJEeUsycmVXM0c0WTJYbUtHNUJuOTAtQzRGV2xySGk4c2ZUdnVmOTlsbW9SS1ptdFkxVk1OWmc?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-7",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "𝐓𝐑𝐀𝐅𝐅𝐈𝐂 𝐀𝐃𝐕𝐈𝐒𝐎𝐑𝐘: The Department of Public Works and Highways (DPWH) has been un",
       "description": "𝐓𝐑𝐀𝐅𝐅𝐈𝐂 𝐀𝐃𝐕𝐈𝐒𝐎𝐑𝐘: The Department of Public Works and Highways (DPWH) has been undertaking asphalt overlay activities along the EDSA Busway since 4:00 a.m. on August 20 until 4:00 a.m. on August 24. Mo",
       "updated": "Thu, 20 Aug 2026 09:19:46 GMT",
@@ -78,7 +56,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-6",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,14 +67,36 @@
       "source_name": "Google News"
     },
     {
+      "id": "traffic-7",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA suspends number coding on Ninoy Aquino Day - Daily Tribune",
+      "description": "MMDA suspends number coding on Ninoy Aquino DayDaily Tribune",
+      "updated": "Thu, 20 Aug 2026 07:10:37 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQWHBHcU5rcjl2VDc4STFyaDl3elFVTWxucGhpaUwzczZvTkVwN0JPLU9pazI0dDBRXzlLeVdic0hjRVNTVFVac0NtZjA0WW5nSEhHLWZUUmNvTDVDM09abm43UVd0MmZnckwtRU5IT1U0WFFNRFM4ZEZwQUpOLUk0cVVwejVHTWd3?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-8",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Dizon: Asphalt is still best option for EDSA road rehabilitation - ABS-CBN",
+      "description": "Dizon: Asphalt is still best option for EDSA road rehabilitationABS-CBN",
+      "updated": "Wed, 19 Aug 2026 09:44:00 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOcTlsd1gydWF0RE9JU3ZLTDB0YWFMWXJBMk14NG9fUXEyTWxvem9vSVoxTURYZ01wYmNIeWdHb0Z4bHhZUWNLUHNBNkxNTDhBV3FtbUY2bjRhbEFpN2xka0RFMXJxZDVZc1p1emdKMkZ1TFc5Y1ZacGJRSWtYdWpIWEg3RFl1XzQ1akl4R3FFVkRhYVcxbkJXOWsyZEE2M1VRM0ZEQU5FMVVkNXBpQnBBNjVyaDk?oc=5",
+      "source_name": "Google News"
+    },
+    {
       "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 7:00am August 21, 2026 A. MAJOR ROADS: *EDSA SOUT",
-      "description": "METROBASE Traffic Update as of 7:00am August 21, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - Estrella, moderate NORTHBOUND: Light Traffic *C5 SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *COMMONWE",
-      "updated": "Thu, 20 Aug 2026 23:35:25 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNM2VQUDJJdVFlU1Z4QVNWSEkyMUd5N0xsdmxreXVMNTZZQUhld3Z0cDUxZUlnYnMtRUM0cTQwYnNVOUtkVDRhS190bDF6LUI0WmtXVkN5a3psbmloU0lHQXZ0dFJ4b3p5UEllWHpMOFJELTBTZjdNTWtSRVUwS0RNV3oyanR0YXZhX3NRX0N1NGhuZ3F5bE9MX24yeEY1RmVIV1ZLbG9NaEYxdU9wZlJSdW9zbnNJNGQtX0VfWUNDUUs0dmhtS1kzUFdtemtvZnk1NU9N?oc=5",
+      "title": "𝐓𝐑𝐀𝐅𝐅𝐈𝐂 𝐀𝐃𝐕𝐈𝐒𝐎𝐑𝐘: The Department of Public Works and Highways (DPWH) has been un",
+      "description": "𝐓𝐑𝐀𝐅𝐅𝐈𝐂 𝐀𝐃𝐕𝐈𝐒𝐎𝐑𝐘: The Department of Public Works and Highways (DPWH) has been undertaking asphalt overlay activities along the EDSA Busway since 4:00 a.m. on August 20 until 4:00 a.m. on August 24. Mo",
+      "updated": "Thu, 20 Aug 2026 09:19:46 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMirgNBVV95cUxNNVVpSFMwX3FjQWZVbGdpTERGN3poSnNESC1hQ2VOSVpRa05QNzNvUWt1Q29rMGdGellqZUNFT2Itb0NkZ1phQmJiMFZuNVRnNTdaeFZGZGhyYUkzbWJrNTJqRDZ6aXV1Z29LZXNDVXdRMzdFR2YyOGlsWHNxRFBxczRpaVFCcE03aWxfaTktTnVDdlpwbFkwVURwTnQzeFdPQTVpcDdpU1VIQmtBOWQwTHRPZGtubGJmeWFDRkVFS2Y3T0ZENTZqWW4wZldpdmJMWGNENjlqbnNhM3d4dDIxUTBTUG5kNFlNam9IMnc4QjEtb2Z4aHJLeEFpS1RrTC1XeUh1SU40NTFobDJTcXE3QWhlVHRLMXk5TFNvTnNDR282cF9MQlRNV0FNaTNybjJGenhIbFJ1RWRLd3J0VmFmcG9DVVJvcWxVV1p4LWZETU5ya01vemFVZ1ZfSmJsN0FqOTZ2RXY5Q0tFQXdXUGtzZmNOWGluOTk4cFNqRUNaYjM5THFyMzBjc1N1WUZIRUszSEZISnZ3azROeTFlblpzQnNfR3ZWXzA1bGZwRE5n?oc=5",
       "source_name": "Google News"
     },
     {
@@ -104,13 +104,13 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 6:00pm WHEN: August 20, 2026 A. MAJOR ROADS: *EDS",
-      "description": "METROBASE Traffic Update as of 6:00pm WHEN: August 20, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - MCU to Gen. Tinio, moderate to slow moving (due to volume of vehicles) - Muñoz to Bansalangin, moderate ",
-      "updated": "Thu, 20 Aug 2026 10:07:44 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxPVnc2Zkt4RENtMmJMZjk0YnNoRG40R2ZSbExUR3BNZU04U2J1NHE4N0dpZkh1X3NlckpCZGh3TXNqUnNySVZDUi1rZDFoQl9DYnFaVVNxYTVCelRhMXZsdXRpSU4tdTk2MUFWb2p0bUZjek9pS2c4OGpDYTBHZ0ZzWldCbDRMc3E3MHZlOElKTWxISVNwVUZZU21GRHRweERuVlF6YW8zbE9BbnFlNDZ6d1UxcTRWbXRnSzkwWXBqU3ZnR0FpdE9qUVVxRDNyaW1UdmVv?oc=5",
+      "title": "MMDA suspends number coding scheme on Ninoy Aquino Day, Aug. 21 - GMA Network",
+      "description": "MMDA suspends number coding scheme on Ninoy Aquino Day, Aug. 21GMA Network",
+      "updated": "Thu, 20 Aug 2026 07:51:39 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQNXBaMVZDQ3dHZEdRbnZGeE9JUWM5b05sY0RCMkxUZjBZSXFOb3ltUTN4Nm5OSHhzNlRZSk4wNmprY2tGNEZ1MDgxUWY0dWVIRGVIbk1JeVR6eWZZT19JTXFUM0E5b0ktYWZrVGdVSGhuZWk4QkpIS3labzRCajlGZ0gtejdnWVA2U2N0UFJmWVFCWXdCRFFkSEd6OFJjTlgxSHFsV2NYdDlTY2450gGyAUFVX3lxTE50UWtkNTczeGtPcUVTNEJjNnRON2Q4b0k1bkpuWGtNYXhXWjhXdkFZampjRkZ5eXRua2RDbU9EN1JVblg3djZ2QmRFRHlZd3hhby1uOUcyQmNhOTdCSy1aXzU2dXZuUVNHR2NUZzYtRHV2bmNrRjRaeVQ5RUU4MGpXTGZOYTNWaFM0RHhXVGZlOU1IQV9NZlYwNVZLWTJObXdXcWpfUk93MXpJNEJsUXlmNmc?oc=5",
       "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-21T09:00:03.181542",
+  "scraped_at": "2026-08-21T13:00:03.057676",
   "source": "Google News RSS"
 }
