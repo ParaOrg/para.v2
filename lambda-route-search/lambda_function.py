@@ -1,14 +1,35 @@
 import json
 import gzip
 import heapq
-import os
-import boto3
-from collections import defaultdict
+import math
+import logging
 
-# Load graph from S3 or Lambda layer
-# For now, load from local file (will be uploaded as part of deployment package)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
-# Global cache - Lambda keeps this warm between invocations
+KNOWN_PLACES = {
+    'naia': ('NAIA Terminal 3', 14.5086, 121.0194),
+    'cubao': ('Cubao', 14.6225, 121.0538),
+    'makati': ('Makati', 14.5547, 121.0244),
+    'manila': ('Manila', 14.5995, 120.9842),
+    'quezon city': ('Quezon City', 14.6760, 121.0437),
+    'qc': ('Quezon City', 14.6760, 121.0437),
+    'ortigas': ('Ortigas', 14.6091, 121.0223),
+    'bgc': ('BGC', 14.5547, 121.0244),
+    'alabang': ('Alabang', 14.4450, 121.0254),
+    'pasay': ('Pasay', 14.5378, 120.9910),
+    'upd': ('UPD', 14.6561, 121.0648),
+    'ust': ('UST', 14.6101, 120.9894),
+    'katipunan': ('Katipunan', 14.6225, 121.0785),
+    'moa': ('SM MOA', 14.5351, 120.9820),
+    'sm moa': ('SM MOA', 14.5351, 120.9820),
+    'sm north': ('SM North', 14.6568, 121.0364),
+    'monumento': ('Monumento', 14.6544, 120.9842),
+    'baclaran': ('Baclaran', 14.5378, 120.9910),
+    'divisoria': ('Divisoria', 14.6027, 120.9740),
+    'quiapo': ('Quiapo', 14.5983, 120.9830),
+}
+
 _graph = None
 _nodes = None
 
@@ -22,15 +43,15 @@ def load_graph():
     
     _graph = data['adj']
     _nodes = data['nodes']
+    logger.info(f"Loaded graph: {len(_graph)} nodes")
     return _graph, _nodes
 
 def haversine(lat1, lon1, lat2, lon2):
-    import math
     R = 6371
     dLat = math.radians(lat2 - lat1)
     dLon = math.radians(lon2 - lon1)
     a = math.sin(dLat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 1000  # meters
 
 def find_nearest_node(lat, lon, nodes):
     nearest = None
@@ -45,12 +66,10 @@ def find_nearest_node(lat, lon, nodes):
 def dijkstra(adj, start, end):
     if start not in adj or end not in adj:
         return []
-    
     heap = [(0, start)]
     dist = {start: 0}
     prev = {}
     visited = set()
-    
     while heap:
         d, u = heapq.heappop(heap)
         if u in visited:
@@ -58,9 +77,6 @@ def dijkstra(adj, start, end):
         visited.add(u)
         if u == end:
             break
-        if d > dist.get(u, float('inf')):
-            continue
-        
         for edge in adj.get(u, []):
             v = edge[0]
             w = edge[1]
@@ -69,10 +85,8 @@ def dijkstra(adj, start, end):
                 dist[v] = nd
                 prev[v] = u
                 heapq.heappush(heap, (nd, v))
-    
     if end not in prev and start != end:
         return []
-    
     path = []
     u = end
     while u in prev:
@@ -81,63 +95,6 @@ def dijkstra(adj, start, end):
     path.append(start)
     return path[::-1]
 
-KNOWN_PLACES = {
-    'naia': ('NAIA Terminal 3', 14.5086, 121.0194),
-    'naia terminal 3': ('NAIA Terminal 3', 14.5086, 121.0194),
-    'airport': ('NAIA Terminal 3', 14.5086, 121.0194),
-    'cubao': ('Cubao', 14.6225, 121.0538),
-    'katipunan': ('Katipunan', 14.6225, 121.0785),
-    'makati': ('Makati', 14.5547, 121.0244),
-    'manila': ('Manila', 14.5995, 120.9842),
-    'quezon city': ('Quezon City', 14.6760, 121.0437),
-    'qc': ('Quezon City', 14.6760, 121.0437),
-    'ortigas': ('Ortigas', 14.6091, 121.0223),
-    'bgc': ('BGC', 14.5547, 121.0244),
-    'alabang': ('Alabang', 14.4450, 121.0254),
-    'pasay': ('Pasay', 14.5378, 120.9910),
-    'upd': ('UPD', 14.6561, 121.0648),
-    'ust': ('UST', 14.6101, 120.9894),
-}
-
-def geocode_place(place_name, nodes):
-    """Find nearest graph node by place name substring match."""
-    import re
-    place_lower = place_name.lower().strip()
-    
-    # Check known places first
-    if place_lower in KNOWN_PLACES:
-        return KNOWN_PLACES[place_lower][1], KNOWN_PLACES[place_lower][2]
-    
-    matches = []
-    for node_id, (n_lat, n_lon) in nodes.items():
-        node_lower = node_id.lower()
-        if place_lower in node_lower or node_lower in place_lower:
-            matches.append((node_id, n_lat, n_lon))
-    
-    if matches:
-        # Return the first match (or could average)
-        return matches[0][1], matches[0][2]
-    return None
-
-def parse_text_query(message, nodes):
-    """Parse 'from X to Y' into nearest node IDs."""
-    import re
-    m = re.search(r'from\s+(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
-    if not m:
-        return None
-    origin_name = m.group(1).strip()
-    dest_name = m.group(2).strip()
-    
-    origin = geocode_place(origin_name, nodes)
-    dest = geocode_place(dest_name, nodes)
-    
-    if origin and dest:
-        return {
-            'origin_lat': origin[0], 'origin_lng': origin[1],
-            'dest_lat': dest[0], 'dest_lng': dest[1],
-        }
-    return None
-
 def error_response(message):
     return {
         'statusCode': 200,
@@ -145,12 +102,7 @@ def error_response(message):
         'body': json.dumps({'status': 'error', 'message': message})
     }
 
-import logging
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
 def lambda_handler(event, context):
-    # Handle OPTIONS for CORS preflight
     if isinstance(event, dict) and event.get('httpMethod') == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -158,154 +110,151 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
                 'Access-Control-Allow-Methods': 'POST,OPTIONS',
-                'Access-Control-Max-Age': '86400',
-            },
-            'body': ''
-        }
-    if isinstance(event, dict) and event.get('requestContext') and event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                'Access-Control-Allow-Methods': 'POST,OPTIONS',
-                'Access-Control-Max-Age': '86400',
             },
             'body': ''
         }
     
-    logger.info(f"Event type: {type(event)}, keys: {list(event.keys()) if isinstance(event, dict) else 'N/A'}")
     try:
-        # Parse request - handle both direct Lambda invoke and API Gateway
         if isinstance(event, str):
             body = json.loads(event)
         elif 'body' in event and event.get('body'):
-            if isinstance(event['body'], str):
-                body = json.loads(event['body'])
-            else:
-                body = event['body']
-        elif isinstance(event, dict) and 'message' in event:
-            body = event
+            body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
         else:
             body = event
         
-        # Load graph first
+        message = body.get('message', '')
+        user_location = body.get('user_location', {})
+        
         adj, nodes = load_graph()
         
-        # Check if text message provided
-        if 'message' in body:
-            message = body['message']
-            user_location = body.get('user_location', {})
+        # Parse message
+        import re
+        
+        origin_lat = None
+        origin_lng = None
+        dest_lat = None
+        dest_lng = None
+        
+        # Check for "from X to Y"
+        m = re.search(r'from\s+(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
+        if m:
+            origin_name = m.group(1).strip().lower()
+            dest_name = m.group(2).strip().lower()
             
-            parsed = parse_text_query(message, nodes)
-            if parsed:
-                origin_lat = parsed['origin_lat']
-                origin_lng = parsed['origin_lng']
-                dest_lat = parsed['dest_lat']
-                dest_lng = parsed['dest_lng']
-            elif 'from here' in message.lower() and user_location:
-                # GPS origin + destination
+            if origin_name == 'here' and user_location:
                 origin_lat = float(user_location.get('lat', 14.6225))
                 origin_lng = float(user_location.get('lng', 121.0538))
-                dest_name = message.lower().replace('from here to', '').replace('here to', '').strip()
-                dest = geocode_place(dest_name, nodes)
-                if dest:
-                    dest_lat, dest_lng = dest
-                else:
-                    return error_response('Could not find destination: ' + dest_name)
-            else:
-                # Check if it's "X to Y" without "from"
-                import re
-                m = re.search(r'(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
-                if m:
-                    origin_name = m.group(1).strip()
-                    dest_name = m.group(2).strip()
-                    origin = geocode_place(origin_name, nodes)
-                    dest = geocode_place(dest_name, nodes)
-                    if origin and dest:
-                        origin_lat, origin_lng = origin
-                        dest_lat, dest_lng = dest
-                    else:
-                        return error_response(f'Could not find: {origin_name} or {dest_name}')
-                else:
-                    # Destination only - use default origin
-                    dest = geocode_place(message.strip(), nodes)
-                    if dest:
-                        origin = geocode_place('Cubao', nodes)
-                        if origin:
-                            origin_lat, origin_lng = origin
-                            dest_lat, dest_lng = dest
-                        else:
-                            return error_response('Could not find Cubao')
-                    else:
-                        return error_response(f'Could not find: {message}')
-        else:
-            origin_lat = float(body.get('origin_lat', 0))
-            origin_lng = float(body.get('origin_lng', 0))
-            dest_lat = float(body.get('dest_lat', 0))
-            dest_lng = float(body.get('dest_lng', 0))
+            elif origin_name in KNOWN_PLACES:
+                origin_lat, origin_lng = KNOWN_PLACES[origin_name][1], KNOWN_PLACES[origin_name][2]
+            
+            if dest_name in KNOWN_PLACES:
+                dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
         
-        # Load graph (cached between warm invocations)
-        adj, nodes = load_graph()
+        # Check for "X to Y" without "from"
+        if (origin_lat is None or dest_lat is None) and ' to ' in message:
+            parts = message.lower().split(' to ')
+            if len(parts) == 2:
+                origin_name = parts[0].strip()
+                dest_name = parts[1].strip()
+                if origin_name in KNOWN_PLACES:
+                    origin_lat, origin_lng = KNOWN_PLACES[origin_name][1], KNOWN_PLACES[origin_name][2]
+                if dest_name in KNOWN_PLACES:
+                    dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
         
-        # Find nearest nodes
+        # Destination only
+        if dest_lat is None:
+            dest_name = message.strip().lower()
+            if dest_name in KNOWN_PLACES:
+                dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
+                origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
+        
+        if origin_lat is None or dest_lat is None:
+            return error_response(f'Could not find: {message}')
+        
+        # Find nodes
         start = find_nearest_node(origin_lat, origin_lng, nodes)
         end = find_nearest_node(dest_lat, dest_lng, nodes)
         
-        # Run Dijkstra
+        if not start or not end:
+            return error_response('Could not find route nodes')
+        
         path = dijkstra(adj, start, end)
         
-        # Build segments with geometry
+        if not path:
+            return error_response('No path found')
+        
+        # Build segments by grouping consecutive nodes on same route
         segments = []
-        for i in range(len(path) - 1):
-            u = path[i]
-            v = path[i + 1]
-            if u in nodes and v in nodes:
-                u_lat, u_lon = nodes[u]
-                v_lat, v_lon = nodes[v]
-                dist = haversine(u_lat, u_lon, v_lat, v_lon)
-                time_min = (dist / 1000) / 4.5 * 60  # walk speed fallback
-                segments.append({
-                    'from_node': u,
-                    'to_node': v,
-                    'distance_km': round(dist / 1000, 3),
-                    'time_min': round(time_min, 1),
-                    'geometry': [[u_lat, u_lon], [v_lat, v_lon]],
-                    'type': 'walk' if 'WALK' in u else 'transit',
-                })
+        current_route = None
+        current_group = []
         
-        total_time = round(sum(s['time_min'] for s in segments), 1)
-        total_dist = round(sum(s['distance_km'] for s in segments), 2)
+        for node_id in path:
+            if '::' not in node_id:
+                continue
+            route = node_id.split('::')[0]
+            if route != current_route:
+                if current_group:
+                    segments.append({'route': current_route, 'nodes': current_group})
+                current_route = route
+                current_group = [node_id]
+            else:
+                current_group.append(node_id)
         
-        route_data = {
-            'segments': segments,
-            'total_time_min': total_time,
-            'total_distance_km': total_dist,
-            'total_fare': 0,
-            'transfers': 0,
-        }
+        if current_group:
+            segments.append({'route': current_route, 'nodes': current_group})
+        
+        # Build final route_data
+        final_segments = []
+        for seg in segments:
+            coords = []
+            for node_id in seg['nodes']:
+                if node_id in nodes:
+                    lat, lon = nodes[node_id]
+                    coords.append([lat, lon])
+            
+            if len(coords) < 2:
+                continue
+            
+            # Simplify
+            coords = coords[::max(1, len(coords)//20)]
+            
+            # Calculate distance
+            total_dist_km = 0
+            for i in range(len(coords) - 1):
+                total_dist_km += haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) / 1000
+            
+            time_min = max(total_dist_km / 25 * 60, 2)
+            
+            final_segments.append({
+                'route': seg['route'],
+                'mode': 'bus' if 'bus' in seg['route'].lower() else 'jeepney',
+                'distance_km': round(total_dist_km, 2),
+                'time_min': round(time_min, 1),
+                'geometry': coords,
+                'type': 'transit',
+            })
+        
+        total_time = round(sum(s['time_min'] for s in final_segments), 1)
+        total_dist = round(sum(s['distance_km'] for s in final_segments), 2)
         
         return {
             'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
             'body': json.dumps({
                 'status': 'success',
-                'route_data': route_data,
-                'reply_text': f'Here are your commute options:',
+                'route_data': {
+                    'segments': final_segments,
+                    'total_time_min': total_time,
+                    'total_distance_km': total_dist,
+                    'total_fare': 0,
+                    'transfers': len(final_segments) - 1,
+                },
+                'reply_text': 'Here are your commute options:',
                 'path': path,
                 'path_length': len(path),
                 'graph_nodes': len(adj),
             })
         }
     except Exception as e:
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
-            'body': json.dumps({'status': 'error', 'message': str(e)})
-        }
+        logger.error(f"Error: {e}")
+        return error_response(str(e))
