@@ -16,7 +16,7 @@ def load_graph():
     if _graph is not None:
         return _graph, _nodes
     
-    with open('graph_lightweight.json', 'r') as f:
+    with open('graph_full.json', 'r') as f:
         data = json.load(f)
     
     _graph = data['adj']
@@ -80,21 +80,23 @@ def dijkstra(adj, start, end):
     path.append(start)
     return path[::-1]
 
-def geocode_place(place_name):
-    """Geocode a place name to coordinates using Nominatim."""
-    import urllib.request
-    import urllib.parse
+def geocode_place(place_name, nodes):
+    """Find nearest graph node by place name substring match."""
+    import re
+    place_lower = place_name.lower().strip()
+    matches = []
+    for node_id, (n_lat, n_lon) in nodes.items():
+        node_lower = node_id.lower()
+        if place_lower in node_lower or node_lower in place_lower:
+            matches.append((node_id, n_lat, n_lon))
     
-    url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(place_name + ', Metro Manila')}&limit=1"
-    req = urllib.request.Request(url, headers={'User-Agent': 'ParaPH-Routing/1.0'})
-    with urllib.request.urlopen(req, timeout=5) as resp:
-        data = json.loads(resp.read())
-        if data:
-            return float(data[0]['lat']), float(data[0]['lon'])
+    if matches:
+        # Return the first match (or could average)
+        return matches[0][1], matches[0][2]
     return None
 
-def parse_text_query(message):
-    """Parse 'from X to Y' into origin/dest coords."""
+def parse_text_query(message, nodes):
+    """Parse 'from X to Y' into nearest node IDs."""
     import re
     m = re.search(r'from\s+(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
     if not m:
@@ -102,8 +104,8 @@ def parse_text_query(message):
     origin_name = m.group(1).strip()
     dest_name = m.group(2).strip()
     
-    origin = geocode_place(origin_name)
-    dest = geocode_place(dest_name)
+    origin = geocode_place(origin_name, nodes)
+    dest = geocode_place(dest_name, nodes)
     
     if origin and dest:
         return {
@@ -114,12 +116,18 @@ def parse_text_query(message):
 
 def lambda_handler(event, context):
     try:
-        # Parse request
-        body = json.loads(event.get('body', '{}'))
+        # Parse request - handle both direct Lambda invoke and API Gateway
+        if isinstance(event, str):
+            body = json.loads(event)
+        elif 'body' in event:
+            body = json.loads(event['body'])
+        else:
+            body = event
         
         # Check if text message provided
         if 'message' in body:
-            parsed = parse_text_query(body['message'])
+            adj, nodes = load_graph()
+            parsed = parse_text_query(body['message'], nodes)
             if parsed:
                 origin_lat = parsed['origin_lat']
                 origin_lng = parsed['origin_lng']
