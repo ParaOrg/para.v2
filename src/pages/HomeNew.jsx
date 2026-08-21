@@ -152,7 +152,7 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const LAMBDA_URL = "http://localhost:3001/api/route-search";
+      const LAMBDA_URL = "/api/route-search";
       console.log('Fetching:', LAMBDA_URL);
       console.log('Body:', body);
       const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
