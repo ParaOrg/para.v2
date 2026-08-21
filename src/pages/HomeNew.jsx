@@ -152,8 +152,11 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const LAMBDA_URL = "/api/route-search";
+      const LAMBDA_URL = "http://localhost:3001/api/route-search";
+      console.log('Fetching:', LAMBDA_URL);
+      console.log('Body:', body);
       const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      console.log('Response status:', res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setMessages((prev) => [...prev, { sender: "bot", text: data.reply_text || "No route found", routeData: data.route_data, alternatives: data.alternatives }]);
@@ -171,6 +174,7 @@ export default function HomeNew() {
           mkrs.push({ lat: coords[0][0], lng: coords[0][1], type: "stop" });
         });
         setPolylines(lns); setRouteMarkers(mkrs);
+        setShowChat(false);
         setShowChat(false); // Collapse chat to show route on map
       }
       try {
@@ -178,7 +182,7 @@ export default function HomeNew() {
         cached.unshift({ query: text, route: data.route_data || null, timestamp: Date.now() });
         localStorage.setItem("para_recent_searches", JSON.stringify(cached.slice(0, 10)));
       } catch {}
-    } catch { setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]); }
+    } catch (e) { console.error('Search error:', e); setMessages((prev) => [...prev, { sender: "bot", text: "Sorry, something went wrong." }]); }
     setLoading(false);
   };
 
