@@ -27,6 +27,26 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
   const [ready, setReady] = useState(false);
   const { consent, location } = useTrackingConsent();
 
+  // Update polylines when prop changes
+  useEffect(() => {
+    if (!polylineLayer.current || !mapInstance.current) return;
+    polylineLayer.current.clearLayers();
+    polylines.forEach((line) => {
+      L.polyline(line.coordinates, {
+        color: line.color || "#310775",
+        weight: line.weight || 4,
+        dashArray: line.dashed ? "5, 8" : null,
+        opacity: 0.8,
+      }).addTo(polylineLayer.current);
+    });
+    if (fitBounds && polylines.length > 0) {
+      const bounds = L.latLngBounds(
+        polylines.flatMap((p) => p.coordinates)
+      );
+      mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [polylines, fitBounds]);
+
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
     const map = L.map(mapRef.current, { zoomControl: false, attributionControl: true }).setView(DEFAULT_CENTER, 13);
