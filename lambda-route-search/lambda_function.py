@@ -80,10 +80,33 @@ def dijkstra(adj, start, end):
     path.append(start)
     return path[::-1]
 
+KNOWN_PLACES = {
+    'naia': ('NAIA Terminal 3', 14.5086, 121.0194),
+    'naia terminal 3': ('NAIA Terminal 3', 14.5086, 121.0194),
+    'airport': ('NAIA Terminal 3', 14.5086, 121.0194),
+    'cubao': ('Cubao', 14.6225, 121.0538),
+    'katipunan': ('Katipunan', 14.6225, 121.0785),
+    'makati': ('Makati', 14.5547, 121.0244),
+    'manila': ('Manila', 14.5995, 120.9842),
+    'quezon city': ('Quezon City', 14.6760, 121.0437),
+    'qc': ('Quezon City', 14.6760, 121.0437),
+    'ortigas': ('Ortigas', 14.6091, 121.0223),
+    'bgc': ('BGC', 14.5547, 121.0244),
+    'alabang': ('Alabang', 14.4450, 121.0254),
+    'pasay': ('Pasay', 14.5378, 120.9910),
+    'upd': ('UPD', 14.6561, 121.0648),
+    'ust': ('UST', 14.6101, 120.9894),
+}
+
 def geocode_place(place_name, nodes):
     """Find nearest graph node by place name substring match."""
     import re
     place_lower = place_name.lower().strip()
+    
+    # Check known places first
+    if place_lower in KNOWN_PLACES:
+        return KNOWN_PLACES[place_lower][1], KNOWN_PLACES[place_lower][2]
+    
     matches = []
     for node_id, (n_lat, n_lon) in nodes.items():
         node_lower = node_id.lower()
