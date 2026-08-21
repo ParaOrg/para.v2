@@ -379,6 +379,7 @@ async def signup(request: Request):
         # Override role for known admin emails
         if email in ADMIN_EMAILS:
             role = "admin"
+        phone = data.get("phone", "")
         contact = data.get("contact", "")
         password = data.get("password", "")
         role = data.get("role", "commuter")
