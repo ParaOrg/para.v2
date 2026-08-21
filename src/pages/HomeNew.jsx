@@ -151,7 +151,8 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const res = await fetch(`${API}/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const LAMBDA_URL = "https://ttuc543wq23kbt2c4m4w7o6tvi0ovvmc.lambda-url.ap-southeast-1.on.aws/";
+      const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setMessages((prev) => [...prev, { sender: "bot", text: data.reply_text || "No route found", routeData: data.route_data, alternatives: data.alternatives }]);

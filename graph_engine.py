@@ -550,57 +550,53 @@ class TransitGraph:
 
 import heapq
 
-async def dijkstra_supabase(origin_node, dest_node, node_positions, max_nodes=5000):
-    """Pure Python Dijkstra querying Supabase graph_edges on-demand."""
-    from database import supabase
-    
-    # Connect virtual origin/dest to nearest nodes
-    # For now, origin_node and dest_node are actual node IDs in the graph
-    
-    heap = [(0, origin_node)]
-    dist = {origin_node: 0}
+import heapq
+import json
+from collections import defaultdict
+
+# Load lightweight graph ONCE at startup
+try:
+    with open('graph_lightweight.json', 'r') as f:
+        ADJ = json.load(f)
+    print(f"✅ Loaded lightweight graph: {len(ADJ)} nodes")
+except FileNotFoundError:
+    ADJ = {}
+    print("⚠️ graph_lightweight.json not found")
+
+def dijkstra_path(adj, start, end):
+    """Pure Python Dijkstra using in-memory adjacency list."""
+    if start not in adj or end not in adj:
+        return []
+    heap = [(0, start)]
+    dist = {start: 0}
     prev = {}
     visited = set()
-    
-    while heap and len(visited) < max_nodes:
+    while heap:
         d, u = heapq.heappop(heap)
         if u in visited:
             continue
         visited.add(u)
-        if u == dest_node:
+        if u == end:
             break
         if d > dist.get(u, float('inf')):
             continue
-        
-        # Query Supabase for edges from this node
-        try:
-            res = supabase.table("graph_edges").select("to_node,weight,route,mode,oneway").eq("from_node", u).limit(100).execute()
-            edges = res.data or []
-        except Exception:
-            edges = []
-        
-        for edge in edges:
-            v = edge['to_node']
-            w = edge['weight'] or 1.0
+        for edge in adj.get(u, []):
+            v = edge[0]
+            w = edge[1]
             nd = d + w
             if nd < dist.get(v, float('inf')):
                 dist[v] = nd
                 prev[v] = u
                 heapq.heappush(heap, (nd, v))
-    
-    if dest_node not in prev and origin_node != dest_node:
+    if end not in prev and start != end:
         return []
-    
-    # Reconstruct path
     path = []
-    u = dest_node
+    u = end
     while u in prev:
         path.append(u)
         u = prev[u]
-    path.append(origin_node)
+    path.append(start)
     return path[::-1]
-
-
 
 def _extract_route_segments_simple(path, node_positions):
     """Build route segments from path without NetworkX."""
@@ -638,7 +634,7 @@ def _extract_route_segments_simple(path, node_positions):
 
 # ============ ROUTE FINDING ============
 
-async def find_route(G, origin_lat: float, origin_lon: float,
+def find_route(G, origin_lat: float, origin_lon: float,
                dest_lat: float, dest_lon: float) -> Optional[Dict]:
     """
     Find the optimal multi-modal route between two points.
@@ -660,7 +656,7 @@ async def find_route(G, origin_lat: float, origin_lon: float,
         return None
 
     try:
-        path = await dijkstra_supabase(origin_node, dest_node, node_positions)
+        path = dijkstra_path(ADJ, origin_node, dest_node)
         if not path:
             logger.warning("⚠️ No path found between origin and destination")
             return None
