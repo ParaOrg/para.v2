@@ -547,9 +547,98 @@ class TransitGraph:
         self._transfer_edges.add(edge_key)
 
 
+
+import heapq
+
+async def dijkstra_supabase(origin_node, dest_node, node_positions, max_nodes=5000):
+    """Pure Python Dijkstra querying Supabase graph_edges on-demand."""
+    from database import supabase
+    
+    # Connect virtual origin/dest to nearest nodes
+    # For now, origin_node and dest_node are actual node IDs in the graph
+    
+    heap = [(0, origin_node)]
+    dist = {origin_node: 0}
+    prev = {}
+    visited = set()
+    
+    while heap and len(visited) < max_nodes:
+        d, u = heapq.heappop(heap)
+        if u in visited:
+            continue
+        visited.add(u)
+        if u == dest_node:
+            break
+        if d > dist.get(u, float('inf')):
+            continue
+        
+        # Query Supabase for edges from this node
+        try:
+            res = supabase.table("graph_edges").select("to_node,weight,route,mode,oneway").eq("from_node", u).limit(100).execute()
+            edges = res.data or []
+        except Exception:
+            edges = []
+        
+        for edge in edges:
+            v = edge['to_node']
+            w = edge['weight'] or 1.0
+            nd = d + w
+            if nd < dist.get(v, float('inf')):
+                dist[v] = nd
+                prev[v] = u
+                heapq.heappush(heap, (nd, v))
+    
+    if dest_node not in prev and origin_node != dest_node:
+        return []
+    
+    # Reconstruct path
+    path = []
+    u = dest_node
+    while u in prev:
+        path.append(u)
+        u = prev[u]
+    path.append(origin_node)
+    return path[::-1]
+
+
+
+def _extract_route_segments_simple(path, node_positions):
+    """Build route segments from path without NetworkX."""
+    if not path:
+        return None
+    
+    segments = []
+    for i in range(len(path) - 1):
+        u = path[i]
+        v = path[i + 1]
+        if u in node_positions and v in node_positions:
+            lat1, lon1 = node_positions[u]
+            lat2, lon2 = node_positions[v]
+            dist_km = haversine(lat1, lon1, lat2, lon2)
+            time_min = (dist_km / 4.5) * 60  # walking speed fallback
+            segments.append({
+                'from_node': u,
+                'to_node': v,
+                'distance_km': round(dist_km, 2),
+                'time_min': round(time_min, 1),
+                'geometry': [[lat1, lon1], [lat2, lon2]],
+            })
+    
+    total_time = sum(s['time_min'] for s in segments)
+    total_dist = sum(s['distance_km'] for s in segments)
+    
+    return {
+        'segments': segments,
+        'total_time_min': round(total_time, 1),
+        'total_distance_km': round(total_dist, 2),
+        'total_fare': 0,
+        'transfers': 0,
+    }
+
+
 # ============ ROUTE FINDING ============
 
-def find_route(G: nx.DiGraph, origin_lat: float, origin_lon: float,
+async def find_route(G, origin_lat: float, origin_lon: float,
                dest_lat: float, dest_lon: float) -> Optional[Dict]:
     """
     Find the optimal multi-modal route between two points.
@@ -571,11 +660,14 @@ def find_route(G: nx.DiGraph, origin_lat: float, origin_lon: float,
         return None
 
     try:
-        path = nx.dijkstra_path(G_copy, origin_node, dest_node, weight='weight')
-        route = _extract_route_segments(G_copy, path)
+        path = await dijkstra_supabase(origin_node, dest_node, node_positions)
+        if not path:
+            logger.warning("⚠️ No path found between origin and destination")
+            return None
+        route = _extract_route_segments_simple(path, node_positions)
         return route
-    except nx.NetworkXNoPath:
-        logger.warning("⚠️ No path found between origin and destination")
+    except Exception as e:
+        logger.error(f"Routing error: {e}")
         return None
     finally:
         for node in [origin_node, dest_node]:
