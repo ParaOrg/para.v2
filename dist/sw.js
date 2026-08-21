@@ -24,10 +24,6 @@ self.addEventListener("message", (e) => {
   }
 });
 
-// Don't intercept dev server or non-GET requests
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
-  const url = new URL(e.request.url);
-  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") return;
   e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
