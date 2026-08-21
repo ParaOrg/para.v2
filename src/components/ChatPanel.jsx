@@ -92,7 +92,7 @@ export default function ChatPanel() {
     const bounds = [];
     segments.forEach((seg, i) => {
       if (!seg.geometry || seg.geometry.length < 2) return;
-      const coords = seg.geometry.map((c) => [c[1], c[0]]);
+      const coords = seg.geometry.map((c) => [c[0], c[1]]);
       coords.forEach(coord => bounds.push(coord));
       const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.includes("WALK"));
       const isFirst = i === 0;
