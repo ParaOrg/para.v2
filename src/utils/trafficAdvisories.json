@@ -49,14 +49,25 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "LIST: Flooded roads in Metro Manila on Aug. 19, Wednesday - ABS-CBN",
-      "description": "LIST: Flooded roads in Metro Manila on Aug. 19, WednesdayABS-CBN",
-      "updated": "Thu, 20 Aug 2026 05:50:39 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOTWVaRmVmb0hSV0hyYkl1VGczUnZxemZVdUk3TGVPZkpqV040QktQdE4tRGZMZ0NQMXZrMENtaEQ0eV8yR3BSSE5kZTFaYk1VQ04wZDdzSXhUZkh5M3gtUHdqUi16ZGF5Ym9FWXg3LWxoR0RxZkFVVHBjTjlFRktDb0g5X0o4d3pSaERKRTBKVjNiU1ozWTBCSDBEeTVlZTZXY0FKZ2o4R1RfdWNGcmlUNVZSUDQ?oc=5",
+      "title": "LOOK: Celebrities brave floods, heavy traffic as Habagat drenches Metro Manila -",
+      "description": "LOOK: Celebrities brave floods, heavy traffic as Habagat drenches Metro ManilaManila Bulletin",
+      "updated": "Wed, 19 Aug 2026 03:46:17 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPdi1LTDJReEJ6VmJmNFdzQ214MGZFdlE2OVZ1NzF3VjFOV2NEazdMRW1yX0NhZkV2TTRuN3VGVDdJZ3BQdTJhTWRFMno3U29yNzY5OE5ZSlJnbDhuMENOME5od1NSSGNFbEtNNi0yVnVheFhoNkJQUUNuMkNUbnZNbE1vTnp6YUJrNmp4d0pYREM4QUhHXzJKd3RyeWxXWHhYTVpWUjhOcW0?oc=5",
       "source_name": "Google News"
     },
     {
       "id": "traffic-6",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "METROBASE Alert as of 6:00am When: August 21, 2026 What: Traffic Update EDSA SB ",
+      "description": "METROBASE Alert as of 6:00am When: August 21, 2026 What: Traffic Update EDSA SB Monte De Piedad light traffic EDSA Santolan Light traffic EDSA SB Ortigas light traffic EDSA NB Guadalupe bridge light t",
+      "updated": "Thu, 20 Aug 2026 22:12:51 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxORmNxUEtGMVJ1SXZ5N1RJU0planRQNkFObTNMSUY3RUM5Mzg5Y2VuN2pLNFFLVWZWUmtiQllsOHJHanBvNHExTThTSE4tckhjQno4akFQeWMwZnBmV3JUN2R4LWZ6S1pEZnFEekFYYWdIUmVhbU1VeDU5NkFzdnVyTFV0Ymx6ZzlEaVVqSVdZSWJKcXBjNUhxczFGUzJEeUsycmVXM0c0WTJYbUtHNUJuOTAtQzRGV2xySGk4c2ZUdnVmOTlsbW9SS1ptdFkxVk1OWmc?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,7 +78,29 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-8",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "METROBASE Traffic Update as of 8:00am DATE: 8/21/2026 A. MAJOR ROADS: *EDSA SOUT",
+      "description": "METROBASE Traffic Update as of 8:00am DATE: 8/21/2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - Estrella, moderate NORTHBOUND: Light Traffic *C5 SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *COMMONWE",
+      "updated": "Thu, 20 Aug 2026 23:35:25 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNaXVTbWtrOXFiaE5mTVVYa2l1SHFUdWtuM0NCd0hCWVh0ZWdoWVRMdERycUgwclhFa09sVG5BTHpOajNwVEtCNFl2Zko4Nk9wM1pSSHlOd3EtOWgwLTBKLU5rcUVaYmdMbXY1UDY1X3dsNEV5eVVSazJIVWhFUUlGczFrSXZ3Q0d0blRqQS15V0tENU9OTjdERGtJdkhQYWJ1SjVUSnp5X2c2bTFlbU0tMk9HSG80V3BaYjQ2OExxc2cxRHNEa1U3bkdjZDZPUGRSMEpv?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-9",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "METROBASE Traffic Update as of 7:00am August 21, 2026 A. MAJOR ROADS: *EDSA SOUT",
+      "description": "METROBASE Traffic Update as of 7:00am August 21, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - Estrella, moderate NORTHBOUND: Light Traffic *C5 SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *COMMONWE",
+      "updated": "Thu, 20 Aug 2026 23:35:25 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNM2VQUDJJdVFlU1Z4QVNWSEkyMUd5N0xsdmxreXVMNTZZQUhld3Z0cDUxZUlnYnMtRUM0cTQwYnNVOUtkVDRhS190bDF6LUI0WmtXVkN5a3psbmloU0lHQXZ0dFJ4b3p5UEllWHpMOFJELTBTZjdNTWtSRVUwS0RNV3oyanR0YXZhX3NRX0N1NGhuZ3F5bE9MX24yeEY1RmVIV1ZLbG9NaEYxdU9wZlJSdW9zbnNJNGQtX0VfWUNDUUs0dmhtS1kzUFdtemtvZnk1NU9N?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -76,41 +109,8 @@
       "updated": "Thu, 20 Aug 2026 10:07:44 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxPVnc2Zkt4RENtMmJMZjk0YnNoRG40R2ZSbExUR3BNZU04U2J1NHE4N0dpZkh1X3NlckpCZGh3TXNqUnNySVZDUi1rZDFoQl9DYnFaVVNxYTVCelRhMXZsdXRpSU4tdTk2MUFWb2p0bUZjek9pS2c4OGpDYTBHZ0ZzWldCbDRMc3E3MHZlOElKTWxISVNwVUZZU21GRHRweERuVlF6YW8zbE9BbnFlNDZ6d1UxcTRWbXRnSzkwWXBqU3ZnR0FpdE9qUVVxRDNyaW1UdmVv?oc=5",
       "source_name": "Google News"
-    },
-    {
-      "id": "traffic-8",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 5:00pm WHEN: August 20, 2026 A. MAJOR ROADS: *EDS",
-      "description": "METROBASE Traffic Update as of 5:00pm WHEN: August 20, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - MCU to Gen. Tinio, moderate to slow moving (due to volume of vehicles) - Muñoz to Bansalangin, moderate ",
-      "updated": "Thu, 20 Aug 2026 09:06:53 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNeXhfTmJiRFNXNGdWUlBxdmxxbTh1WFpRcHB5V21WTk1Va29qVzJUWXBTemRtQlExR083dTNlYU8ycGNTUHFPakdwWG5KajJJWUVfcVkwUVR2dU5uQTVWRkFvRzZMZm11aG0tbENVTzBKNHZsX2piUGdwdlVvX0Y2MWpvZHFEQUMzOXFyT1hHS2tMVHpvTDhMSUtTNkFDZ1lRQm9ic214MG5VMUNiQ0t0ay04blM4UHhzYWNxMzRjbUlPMVNmLWNDY291YlU0cTdtUTJr?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-9",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "LIST: Flooded roads in Metro Manila on Aug. 19, Wednesday - ABS-CBN",
-      "description": "LIST: Flooded roads in Metro Manila on Aug. 19, WednesdayABS-CBN",
-      "updated": "Thu, 20 Aug 2026 05:50:39 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxOTWVaRmVmb0hSV0hyYkl1VGczUnZxemZVdUk3TGVPZkpqV040QktQdE4tRGZMZ0NQMXZrMENtaEQ0eV8yR3BSSE5kZTFaYk1VQ04wZDdzSXhUZkh5M3gtUHdqUi16ZGF5Ym9FWXg3LWxoR0RxZkFVVHBjTjlFRktDb0g5X0o4d3pSaERKRTBKVjNiU1ozWTBCSDBEeTVlZTZXY0FKZ2o4R1RfdWNGcmlUNVZSUDQ?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-10",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA suspends number coding on Ninoy Aquino Day - Daily Tribune",
-      "description": "MMDA suspends number coding on Ninoy Aquino DayDaily Tribune",
-      "updated": "Thu, 20 Aug 2026 07:10:37 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQWHBHcU5rcjl2VDc4STFyaDl3elFVTWxucGhpaUwzczZvTkVwN0JPLU9pazI0dDBRXzlLeVdic0hjRVNTVFVac0NtZjA0WW5nSEhHLWZUUmNvTDVDM09abm43UVd0MmZnckwtRU5IT1U0WFFNRFM4ZEZwQUpOLUk0cVVwejVHTWd3?oc=5",
-      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-21T02:00:02.998904",
+  "scraped_at": "2026-08-21T09:00:03.181542",
   "source": "Google News RSS"
 }
