@@ -159,11 +159,13 @@ export default function HomeNew() {
       setMessages((prev) => [...prev, { sender: "bot", text: data.reply_text || "No route found", routeData: data.route_data, alternatives: data.alternatives }]);
       if (data.route_data) {
         setActiveRouteData(data.route_data);
+        // Draw route on map
         const segs = data.route_data.segments || [];
         const lns = [], mkrs = [];
         segs.forEach((seg) => {
           if (!seg.geometry || seg.geometry.length < 2) return;
           const coords = seg.geometry.map((c) => [c[0], c[1]]);
+          console.log("Drawing segment:", coords.length, "points");
           const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.indexOf("WALK") !== -1);
           lns.push({ coordinates: coords, color: isWalk ? "#9CA3AF" : "#310775", weight: isWalk ? 2 : 4, dashed: isWalk });
           mkrs.push({ lat: coords[0][0], lng: coords[0][1], type: "stop" });
