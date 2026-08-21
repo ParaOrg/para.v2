@@ -7,9 +7,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/route-search': {
-        target: 'https://l3rwrx7tlkqcn5wr7tt53uaqku0dlwte.lambda-url.ap-southeast-1.on.aws',
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        rewrite: () => '',
       },
       '/health': 'https://para-ph-api.onrender.com',
       '/chat': 'https://para-ph-api.onrender.com',
@@ -24,7 +23,6 @@ export default defineConfig({
       '/community': 'https://para-ph-api.onrender.com',
       '/cities': 'https://para-ph-api.onrender.com',
       '/articles': 'https://para-ph-api.onrender.com',
-      '/admin/routes': 'https://para-ph-api.onrender.com',
     }
   }
 })
