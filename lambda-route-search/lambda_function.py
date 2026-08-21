@@ -137,31 +137,73 @@ def parse_text_query(message, nodes):
         }
     return None
 
+def error_response(message):
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'body': json.dumps({'status': 'error', 'message': message})
+    }
+
 def lambda_handler(event, context):
     try:
         # Parse request - handle both direct Lambda invoke and API Gateway
         if isinstance(event, str):
             body = json.loads(event)
-        elif 'body' in event:
+        elif 'body' in event and event.get('body'):
             body = json.loads(event['body'])
         else:
             body = event
         
+        # Load graph first
+        adj, nodes = load_graph()
+        
         # Check if text message provided
         if 'message' in body:
-            adj, nodes = load_graph()
-            parsed = parse_text_query(body['message'], nodes)
+            message = body['message']
+            user_location = body.get('user_location', {})
+            
+            parsed = parse_text_query(message, nodes)
             if parsed:
                 origin_lat = parsed['origin_lat']
                 origin_lng = parsed['origin_lng']
                 dest_lat = parsed['dest_lat']
                 dest_lng = parsed['dest_lng']
+            elif 'from here' in message.lower() and user_location:
+                # GPS origin + destination
+                origin_lat = float(user_location.get('lat', 14.6225))
+                origin_lng = float(user_location.get('lng', 121.0538))
+                dest_name = message.lower().replace('from here to', '').replace('here to', '').strip()
+                dest = geocode_place(dest_name, nodes)
+                if dest:
+                    dest_lat, dest_lng = dest
+                else:
+                    return error_response('Could not find destination: ' + dest_name)
             else:
-                return {
-                    'statusCode': 400,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'status': 'error', 'message': 'Could not parse query. Use: from X to Y'})
-                }
+                # Check if it's "X to Y" without "from"
+                import re
+                m = re.search(r'(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
+                if m:
+                    origin_name = m.group(1).strip()
+                    dest_name = m.group(2).strip()
+                    origin = geocode_place(origin_name, nodes)
+                    dest = geocode_place(dest_name, nodes)
+                    if origin and dest:
+                        origin_lat, origin_lng = origin
+                        dest_lat, dest_lng = dest
+                    else:
+                        return error_response(f'Could not find: {origin_name} or {dest_name}')
+                else:
+                    # Destination only - use default origin
+                    dest = geocode_place(message.strip(), nodes)
+                    if dest:
+                        origin = geocode_place('Cubao', nodes)
+                        if origin:
+                            origin_lat, origin_lng = origin
+                            dest_lat, dest_lng = dest
+                        else:
+                            return error_response('Could not find Cubao')
+                    else:
+                        return error_response(f'Could not find: {message}')
         else:
             origin_lat = float(body.get('origin_lat', 0))
             origin_lng = float(body.get('origin_lng', 0))
