@@ -32,10 +32,10 @@ def extract_coordinates(geometry):
     else:
         return []
 
-def upload_route(name, coordinates, submitted_by="gabri@para.ph"):
+def upload_route(name, coordinates, mode="jeepney", submitted_by="gabri@para.ph"):
     payload = {
         "route_name": name,
-        "mode": "jeepney",
+        "mode": mode if mode in ['jeepney', 'bus', 'train', 'rail', 'lrt', 'mrt', 'uv_express', 'trike', 'ferry'] else 'jeepney',
         "path_coordinates": coordinates,
         "submitted_by": submitted_by,
         "region": "ncr",
@@ -74,7 +74,8 @@ def main():
             skip_count += 1
             continue
         print(f"  [{i}/{len(features)}] Uploading: {name} ({len(coords)} pts)...")
-        ok, result = upload_route(name, coords)
+        mode = feature.get('properties', {}).get('mode', 'jeepney')
+        ok, result = upload_route(name, coords, mode)
         if ok:
             ok_count += 1
             print(f"    OK {result}")
