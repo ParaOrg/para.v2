@@ -201,26 +201,50 @@ class TransitGraph:
 
     async def _load_all_routes(self):
         """Load all approved routes and their geometries from Supabase REST API."""
-        # Step 1: Get all approved routes
-        routes_res = supabase.table("ph_routes").select("*").eq("is_approved", True).order("name").execute()
-        routes = routes_res.data or []
+        # Step 1: Get ALL routes with pagination (Supabase caps at 1000/query)
+        routes = []
+        route_offset = 0
+        route_batch_size = 1000
+        while True:
+            routes_res = supabase.table("ph_routes").select("*").order("name").range(route_offset, route_offset + route_batch_size - 1).execute()
+            route_batch = routes_res.data or []
+            if not route_batch:
+                break
+            routes.extend(route_batch)
+            route_offset += len(route_batch)
+            if len(route_batch) < route_batch_size:
+                break
         
         if not routes:
-            logger.warning("⚠️ No approved routes found in Supabase")
+            logger.warning("⚠️ No routes found in Supabase")
             return
         
-        logger.info(f"📂 Fetched {len(routes)} approved routes from Supabase")
+        logger.info(f"📂 Fetched {len(routes)} routes from Supabase (verified + unverified)")
         
-        # Step 2: For each route, fetch its geometry
+        # Step 2: Fetch ALL shapes in ONE batch query
+        all_shapes = []
+        shape_offset = 0
+        shape_batch_size = 1000
+        while True:
+            shape_res = supabase.table("ph_route_shapes").select("route_uuid, geom, length_m, geom_geojson").range(shape_offset, shape_offset + shape_batch_size - 1).execute()
+            shape_batch = shape_res.data or []
+            if not shape_batch:
+                break
+            all_shapes.extend(shape_batch)
+            shape_offset += len(shape_batch)
+            if len(shape_batch) < shape_batch_size:
+                break
+        
+        # Build lookup: route_uuid -> shape
+        shape_map = {s["route_uuid"]: s for s in all_shapes}
+        logger.info(f"📂 Fetched {len(all_shapes)} shapes in batch")
+        
+        # Step 3: Process each route using the shape_map
         for route in routes:
             route_uuid = route["route_uuid"]
-            shape_res = supabase.table("ph_route_shapes").select("geom, length_m, geom_geojson").eq("route_uuid", route_uuid).limit(1).execute()
-            shapes = shape_res.data or []
-            
-            if not shapes:
+            shape = shape_map.get(route_uuid)
+            if not shape:
                 continue
-            
-            shape = shapes[0]
             
             # Build route_data dict matching the old SQL output
             route_data = {
@@ -250,6 +274,9 @@ class TransitGraph:
         """Process a single route row from Supabase into graph edges"""
         route_name = route_data.get('name', 'unknown')
         vehicle_type = route_data.get('mode', 'jeepney').lower()
+        is_approved = route_data.get('is_approved', False)
+        # Confidence penalty: verified = 1.0x, unverified = 1.3x
+        confidence_multiplier = 1.0 if is_approved else 1.3
         is_loop = route_data.get('is_loop', False)
         is_bidirectional = route_data.get('is_bidirectional', False)
         is_oneway = route_data.get('is_oneway', False)
@@ -282,7 +309,8 @@ class TransitGraph:
         for line_coords in coords_list:
             if len(line_coords) >= 2:
                 self._process_line_string(line_coords, route_name, vehicle_type,
-                                          oneway=is_oneway, is_bidirectional=is_bidirectional)
+                                          oneway=is_oneway, is_bidirectional=is_bidirectional,
+                                          confidence_multiplier=confidence_multiplier)
 
     def _extract_coords_from_geojson(self, geometry_json: dict) -> List[List[List[float]]]:
         """Extract coordinate arrays from a GeoJSON geometry object"""
@@ -304,7 +332,8 @@ class TransitGraph:
 
     def _process_line_string(self, coords: List[List[float]],
                              route_name: str, vehicle_type: str,
-                             oneway: bool, is_bidirectional: bool):
+                             oneway: bool, is_bidirectional: bool,
+                             confidence_multiplier: float = 1.0):
         """Convert a line string of coordinates into graph nodes and edges"""
         prev_node = None
 
@@ -333,12 +362,14 @@ class TransitGraph:
                     add_reverse = False  # One-way jeepney loop
 
                 self._add_transit_edge(prev_node, node_id, route_name, vehicle_type,
-                                       add_reverse=add_reverse)
+                                       add_reverse=add_reverse,
+                                       confidence_multiplier=confidence_multiplier)
 
             prev_node = node_id
 
     def _add_transit_edge(self, u: str, v: str, route_name: str,
-                          vehicle_type: str, add_reverse: bool = False):
+                          vehicle_type: str, add_reverse: bool = False,
+                          confidence_multiplier: float = 1.0):
         """Add a directed transit edge with optional reverse direction"""
         u_lat, u_lon = self._node_positions[u]
         v_lat, v_lon = self._node_positions[v]
@@ -350,7 +381,7 @@ class TransitGraph:
 
         speed = self.config.get_speed(vehicle_type)
         time_min = (dist / 1000) / speed * 60
-        weight = time_min + (dist / 1000) * 0.5  # Slight distance penalty
+        weight = (time_min + (dist / 1000) * 0.5) * confidence_multiplier  # Confidence penalty for unverified
 
         # Forward edge (always added)
         if not self.graph.has_edge(u, v):

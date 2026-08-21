@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { getApiBaseUrl, edgePost } from "../utils/api";
+import { getApiBaseUrl } from "../utils/api";
 
 const AuthContext = createContext(null);
 const USER_KEY = "para_auth_user_v1";
@@ -15,17 +15,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const storedUser = safeParse(localStorage.getItem(USER_KEY));
     if (storedUser && storedUser.email) {
-      edgePost("auth-signup", { email: storedUser.email })
+      fetch(`${API}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: storedUser.email }),
+      })
         .then(r => r.json())
         .then(d => {
           if (d.user) {
-            // Preserve handle/name from localStorage — backend may not have them
-            const updated = { 
-              ...storedUser, 
-              ...(d.user.role ? { role: d.user.role } : {}),
-              ...(storedUser.handle ? { handle: storedUser.handle } : {}),
-              ...(storedUser.name ? { name: storedUser.name } : {}),
-            };
+            const updated = { ...storedUser, ...(d.user.role ? { role: d.user.role } : {}) };
             localStorage.setItem(USER_KEY, JSON.stringify(updated));
             setUser(updated);
           }
@@ -39,17 +37,21 @@ export function AuthProvider({ children }) {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) throw new Error("Email is required");
 
-    const data = await edgePost("auth-signup", { email: normalizedEmail });
+    const res = await fetch(`${API}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalizedEmail }),
+    });
+
+    if (!res.ok) throw new Error("Sign in failed");
+    const data = await res.json();
+
     if (data.status === "error") throw new Error(data.message || "Sign in failed");
 
-    // Preserve existing name/handle/role from localStorage if Edge doesn't return them
-    const stored = JSON.parse(localStorage.getItem(USER_KEY) || "{}");
-    const userData = {
-      email: normalizedEmail,
-      name: data.user?.name || stored.name || normalizedEmail.split("@")[0],
-      handle: data.user?.handle || stored.handle || null,
-      role: data.user?.role || stored.role || null,
-    };
+    const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
+    // Always trust backend role — it's the source of truth
+    if (data.user?.role) userData.role = data.user.role;
+    if (!userData.role) userData.role = null;
     try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
     setUser(userData);
     return data;
@@ -59,7 +61,15 @@ export function AuthProvider({ children }) {
     const normalizedEmail = String(email || "").trim().toLowerCase();
     if (!normalizedEmail) throw new Error("Email is required");
 
-    const data = await edgePost("auth-signup", { email: normalizedEmail, name: name || normalizedEmail.split("@")[0] });
+    const res = await fetch(`${API}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalizedEmail, name: name || normalizedEmail.split("@")[0] }),
+    });
+
+    if (!res.ok) throw new Error("Sign up failed");
+    const data = await res.json();
+
     if (data.status === "error") throw new Error(data.message || "Sign up failed");
 
     const userData = data.user || { email: normalizedEmail, name };
