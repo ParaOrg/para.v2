@@ -271,6 +271,52 @@ def lambda_handler(event, context):
                         origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
                         break
         
+        # Nominatim geocoding fallback for unknown places
+        if origin_lat is None or dest_lat is None:
+            try:
+                import urllib.parse
+                
+                # Geocode the full message or partial names
+                geocode_query = message
+                if ' to ' in message:
+                    parts = message.lower().split(' to ')
+                    if origin_lat is None:
+                        origin_query = parts[0].strip()
+                        url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(origin_query + ', Metro Manila, Philippines')}&limit=1"
+                        req = ur.Request(url, headers={'User-Agent': 'ParaPH/3.0'})
+                        with ur.urlopen(req, timeout=5) as resp:
+                            geo_data = json.loads(resp.read())
+                            if geo_data:
+                                origin_lat = float(geo_data[0]['lat'])
+                                origin_lng = float(geo_data[0]['lon'])
+                    
+                    if dest_lat is None:
+                        dest_query = parts[1].strip()
+                        url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(dest_query + ', Metro Manila, Philippines')}&limit=1"
+                        req = ur.Request(url, headers={'User-Agent': 'ParaPH/3.0'})
+                        with ur.urlopen(req, timeout=5) as resp:
+                            geo_data = json.loads(resp.read())
+                            if geo_data:
+                                dest_lat = float(geo_data[0]['lat'])
+                                dest_lng = float(geo_data[0]['lon'])
+                else:
+                    # Single destination
+                    url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(message + ', Metro Manila, Philippines')}&limit=1"
+                    req = ur.Request(url, headers={'User-Agent': 'ParaPH/3.0'})
+                    with ur.urlopen(req, timeout=5) as resp:
+                        geo_data = json.loads(resp.read())
+                        if geo_data:
+                            dest_lat = float(geo_data[0]['lat'])
+                            dest_lng = float(geo_data[0]['lon'])
+                            # Use user's location or default Cubao as origin
+                            if user_location:
+                                origin_lat = float(user_location.get('lat', 14.6225))
+                                origin_lng = float(user_location.get('lng', 121.0538))
+                            else:
+                                origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
+            except Exception as e:
+                logger.warning(f"Nominatim geocoding failed: {e}")
+        
         if origin_lat is None or dest_lat is None:
             return error_response(f'Could not find: {message}')
         
