@@ -249,15 +249,51 @@ def lambda_handler(event, context):
                 'type': 'transit',
             })
         
-        # Fare calculation based on mode
+        # Complete Sakay algorithm
         FARES = {
-            'jeepney': 13.0,
-            'bus': 15.0,
-            'uv_express': 20.0,
+            'jeepney': 13.0,  # base minimum
+            'bus': 15.0,      # aircon
+            'uv_express': 25.0,
             'train': 20.0,
             'lrt': 20.0,
             'mrt': 20.0,
+            'walk': 0.0,
         }
+        
+        MODE_SPEEDS = {
+            'jeepney': 25,    # km/h
+            'bus': 30,
+            'uv_express': 40,
+            'train': 45,
+            'lrt': 35,
+            'mrt': 40,
+            'walk': 4.5,
+        }
+        
+        # Recalculate time with proper speeds
+        for seg in final_segments:
+            mode = seg.get('mode', 'jeepney')
+            speed = MODE_SPEEDS.get(mode, 25)
+            seg['time_min'] = round(seg['distance_km'] / speed * 60, 1)
+        
+        # Transfer penalty
+        TRANSFER_PENALTY_MIN = 5.0
+        transfer_count = len(final_segments) - 1
+        transfer_time = transfer_count * TRANSFER_PENALTY_MIN
+        
+        # Fare with distance-based jeepney
+        for seg in final_segments:
+            if seg.get('mode') == 'jeepney':
+                # Jeepney: ₱13 first 5km, +₱1.50/km after
+                d = seg.get('distance_km', 0)
+                seg_fare = 13.0 if d <= 5 else 13.0 + (d - 5) * 1.5
+                seg['fare'] = round(seg_fare, 2)
+            elif seg.get('mode') == 'bus':
+                d = seg.get('distance_km', 0)
+                seg_fare = 15.0 if d <= 5 else 15.0 + (d - 5) * 2.0
+                seg['fare'] = round(seg_fare, 2)
+            else:
+                seg['fare'] = FARES.get(seg.get('mode', 'jeepney'), 13.0)
         
         total_fare = 0
         for seg in final_segments:
@@ -283,6 +319,8 @@ def lambda_handler(event, context):
                     'total_distance_km': total_dist,
                     'total_fare': round(total_fare, 2),
                     'transfers': len(final_segments) - 1,
+                    'start_point': {'lat': origin_lat, 'lng': origin_lng, 'name': 'Origin'},
+                    'end_point': {'lat': dest_lat, 'lng': dest_lng, 'name': 'Destination'},
                     'biyahe_score': score,
                 },
                 'reply_text': 'Here are your commute options:',
