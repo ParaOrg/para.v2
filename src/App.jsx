@@ -5,6 +5,7 @@ import { TrackingConsentProvider } from "./context/TrackingConsentContext";
 import HomeNew from "./pages/HomeNew";
 import RoutesExplorer from "./pages/RoutesExplorer";
 import LiveView from "./pages/LiveView";
+import SharedRouteView from "./pages/SharedRouteView";
 import ContributePage from "./pages/ContributePage";
 import WeatherPage from "./components/WeatherPage";
 import Community from "./pages/Community";
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                     <Route path="/live/:code" element={<LiveView />} />
+          <Route path="/routes/shared/:shareId" element={<SharedRouteView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
