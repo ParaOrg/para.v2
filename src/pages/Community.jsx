@@ -9,6 +9,16 @@ const API = getApiBaseUrl();
 const TAGS = ["All", "Routes", "Tips", "Review", "News", "Questions"];
 
 export default function Community() {
+  const [sharedRoutes, setSharedRoutes] = useState([]);
+  
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/saved_routes?is_shared=eq.true&order=created_at.desc&limit=20`, {
+      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+    })
+      .then((r) => r.json())
+      .then((d) => setSharedRoutes(Array.isArray(d) ? d : []))
+      .catch(() => {});
+  }, []);
   const auth = useAuth();
   const [threads, setThreads] = useState([]);
   const [activeTag, setActiveTag] = useState("All");
