@@ -87,7 +87,40 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
     polylines.forEach((line) => {
       const coords = Array.isArray(line) ? line : line?.coordinates;
       if (!coords || coords.length < 2) return;
-      L.polyline(coords, { color: line?.color || "#7A4BC8", weight: line?.weight || 4, opacity: line?.opacity ?? 0.8, dashArray: line?.dashed ? "10, 5" : null }).addTo(polylineLayer.current);
+      const polyline = L.polyline(coords, { 
+        color: line?.color || "#7A4BC8", 
+        weight: line?.weight || 4, 
+        opacity: line?.opacity ?? 0.8, 
+        dashArray: line?.dashed ? "10, 5" : null 
+      }).addTo(polylineLayer.current);
+      
+      // Add hover tooltip with route name
+      if (line?.routeName) {
+        polyline.bindTooltip(line.routeName, { sticky: true });
+      }
+      
+      // Add hop-on marker at start, hop-off at end of each segment
+      if (line?.hopOn) {
+        L.circleMarker(coords[0], {
+          radius: 5,
+          fillColor: "#22c55e",
+          color: "#fff",
+          weight: 2,
+          fillOpacity: 1,
+          zIndexOffset: 500,
+        }).addTo(polylineLayer.current).bindTooltip("Hop on: " + (line.routeName || ""), { permanent: false, direction: "top" });
+      }
+      if (line?.hopOff) {
+        L.circleMarker(coords[coords.length - 1], {
+          radius: 5,
+          fillColor: "#f59e0b",
+          color: "#fff",
+          weight: 2,
+          fillOpacity: 1,
+          zIndexOffset: 500,
+        }).addTo(polylineLayer.current).bindTooltip("Hop off: " + (line.routeName || ""), { permanent: false, direction: "top" });
+      }
+      
       coords.forEach((coord) => bounds.extend(coord));
     });
     if (fitBounds && polylines.length > 0 && bounds.isValid()) map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
@@ -98,6 +131,28 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
     if (!map || !ready || !markerLayer.current) return;
     markerLayer.current.clearLayers();
     markers.forEach((marker) => {
+      if (marker.type === "start") {
+        L.circleMarker([marker.lat, marker.lng], {
+          radius: 8,
+          fillColor: "#22c55e",
+          color: "#fff",
+          weight: 2,
+          fillOpacity: 1,
+          zIndexOffset: 1000,
+        }).addTo(markerLayer.current).bindTooltip("Start", { permanent: true, direction: "top" });
+        return;
+      }
+      if (marker.type === "end") {
+        L.circleMarker([marker.lat, marker.lng], {
+          radius: 8,
+          fillColor: "#ef4444",
+          color: "#fff",
+          weight: 2,
+          fillOpacity: 1,
+          zIndexOffset: 1000,
+        }).addTo(markerLayer.current).bindTooltip("Destination", { permanent: true, direction: "top" });
+        return;
+      }
       const lat = marker.lat ?? marker.latitude ?? marker.position?.[0];
       const lng = marker.lng ?? marker.longitude ?? marker.position?.[1];
       if (lat == null || lng == null) return;

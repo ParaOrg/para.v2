@@ -17,6 +17,7 @@ import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 
 const API = getApiBaseUrl();
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o";
 
 // Fix Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -107,9 +108,11 @@ function RouteDoctorTab() {
   const fetchRoutes = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API}/admin/routes/list`);
+      const res = await fetch(`https://tcvomrkytxnetzijwqad.supabase.co/rest/v1/ph_routes?select=*&order=created_at.desc&limit=2000`, {
+      headers: { apikey: SUPABASE_ANON_KEY }
+    });
       const data = await res.json();
-      setRoutes(data.routes || []);
+      setRoutes(Array.isArray(data) ? data : (data.routes || []));
     } catch (e) {
       setError(e.message);
     } finally {
@@ -272,7 +275,7 @@ function InspectorTab() {
   const fetchRoutes = () => {
     fetch(`${API}/admin/routes/list`)
       .then((r) => r.json())
-      .then((d) => setRoutes(d.routes || []));
+      .then((d) => setRoutes(Array.isArray(d) ? d : (d.routes || [])));
   };
   useEffect(() => { fetchRoutes(); }, []);
 
