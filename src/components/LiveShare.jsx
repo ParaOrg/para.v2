@@ -13,6 +13,7 @@ export default function LiveShare({ routeData, onClose }) {
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [viewers, setViewers] = useState([]);
   const [viewerLocations, setViewerLocations] = useState({});
+  const [allPolylines, setAllPolylines] = useState([]);
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const broadcastInterval = useRef(null);
@@ -94,6 +95,31 @@ export default function LiveShare({ routeData, onClose }) {
         }
       });
       setViewerLocations(byUser);
+      
+      // Build polylines for each user with different colors
+      const colors = ["#ef4444", "#3b82f6", "#22c55e", "#f59e0b", "#8b5cf6"];
+      const lines = [];
+      let colorIdx = 0;
+      
+      Object.entries(byUser).forEach(([email, loc]) => {
+        // Get recent trail for this user
+        const userTrail = locations
+          .filter((l) => l.user_email === email)
+          .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+          .slice(0, 20)
+          .map((l) => [l.lat, l.lng]);
+        
+        if (userTrail.length >= 2) {
+          lines.push({
+            coordinates: userTrail,
+            color: colors[colorIdx % colors.length],
+            weight: 4,
+          });
+        }
+        colorIdx++;
+      });
+      
+      setAllPolylines(lines);
     }, 3000);
   };
 
@@ -115,6 +141,9 @@ export default function LiveShare({ routeData, onClose }) {
       </div>
       
       <div className="p-4 space-y-4">
+        <div className="h-48 rounded-xl overflow-hidden relative">
+          <MapComponent polylines={allPolylines} fitBounds={true} showLegend={false} />
+        </div>
         {!sessionCode && (
           <div className="space-y-3">
             <button

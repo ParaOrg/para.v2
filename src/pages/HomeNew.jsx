@@ -5,8 +5,6 @@ import { RouteCardList } from "../components/TripSummaryCard";
 import ShareRouteCard from "../components/ShareRouteCard";
 import SaveRouteButton from "../components/SaveRouteButton";
 import LiveShare from "../components/LiveShare";
-import SaveRouteButton from "../components/SaveRouteButton";
-import LiveShare from "../components/LiveShare";
 import RouteLoadingAnimation from "../components/RouteLoadingAnimation";
 import StravaRouteCard from "../components/StravaRouteCard";
 import WeatherPage from "../components/WeatherPage";
