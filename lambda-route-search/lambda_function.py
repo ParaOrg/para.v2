@@ -64,13 +64,19 @@ def find_nearest_node(lat, lon, nodes):
             nearest = node_id
     return nearest
 
-def dijkstra(adj, start, end):
+def dijkstra(adj, start, end, weather_penalty=0, time_of_day_penalty=0, flood_zones=None, precipitation=0):
+    """Dijkstra with dynamic penalties applied to edge weights."""
     if start not in adj or end not in adj:
         return []
+    
+    if flood_zones is None:
+        flood_zones = ['españa', 'taft', 'buendia', 'edsa', 'commonwealth', 'recto', 'quezon ave']
+    
     heap = [(0, start)]
     dist = {start: 0}
     prev = {}
     visited = set()
+    
     while heap:
         d, u = heapq.heappop(heap)
         if u in visited:
@@ -78,14 +84,32 @@ def dijkstra(adj, start, end):
         visited.add(u)
         if u == end:
             break
+        
         for edge in adj.get(u, []):
             v = edge[0]
             w = edge[1]
+            
+            # Apply dynamic penalties to this edge
+            route_name_lower = v.lower() if '::' in v else ''
+            
+            # Flood penalty: if raining and route passes through flood zone
+            if precipitation > 0 and any(zone in route_name_lower for zone in flood_zones):
+                w *= 1.20  # 20% slower in flood zones when raining
+            
+            # Weather penalty applied to all edges
+            if weather_penalty > 0:
+                w *= (1.0 + weather_penalty)
+            
+            # Time of day penalty
+            if time_of_day_penalty > 0:
+                w *= (1.0 + time_of_day_penalty)
+            
             nd = d + w
             if nd < dist.get(v, float('inf')):
                 dist[v] = nd
                 prev[v] = u
                 heapq.heappush(heap, (nd, v))
+    
     if end not in prev and start != end:
         return []
     path = []
@@ -256,7 +280,84 @@ def lambda_handler(event, context):
         if not start or not end:
             return error_response('Could not find route nodes')
         
-        path = dijkstra(adj, start, end)
+        # Fetch weather before routing (affects path choice)
+        weather_code = 0
+        precipitation = 0
+        try:
+            weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={dest_lat}&longitude={dest_lng}&current=weather_code,precipitation&timezone=Asia/Manila"
+            weather_req = ur.Request(weather_url, headers={'User-Agent': 'ParaPH/3.0'})
+            with ur.urlopen(weather_req, timeout=3) as wr:
+                wd = json.loads(wr.read())
+                weather_code = wd.get('current', {}).get('weather_code', 0)
+                precipitation = wd.get('current', {}).get('precipitation', 0)
+        except:
+            weather_code = 0
+            precipitation = 0
+        
+        weather_penalty = 0
+        if weather_code >= 95: weather_penalty = 0.35
+        elif weather_code >= 61: weather_penalty = 0.25
+        elif weather_code >= 51: weather_penalty = 0.15
+        elif weather_code in [45, 48]: weather_penalty = 0.10
+        elif precipitation > 0: weather_penalty = 0.12
+        
+        current_hour = datetime.datetime.now().hour
+        if 6 <= current_hour <= 9 or 17 <= current_hour <= 20:
+            time_of_day_penalty = 0.15
+        elif 10 <= current_hour <= 16:
+            time_of_day_penalty = 0.05
+        elif 21 <= current_hour or current_hour <= 5:
+            time_of_day_penalty = 0.10
+        else:
+            time_of_day_penalty = 0
+        
+        # ── ML: Learn from route_ml_stats and adjust edge weights ──
+        ml_weights = {}
+        try:
+            SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+            KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+            
+            # Fetch ML stats for routes near origin and destination
+            ml_url = f"{SUPABASE_URL}/rest/v1/route_ml_stats?select=route_name,avg_time_sec,num_trips,reliability_score&limit=500"
+            ml_req = ur.Request(ml_url, headers={'apikey': KEY, 'Authorization': f'Bearer {KEY}'})
+            with ur.urlopen(ml_req, timeout=3) as mr:
+                ml_stats = json.loads(mr.read())
+                for stat in ml_stats:
+                    route_name = stat.get('route_name', '')
+                    avg_time = stat.get('avg_time_sec', 0)
+                    num_trips = stat.get('num_trips', 0)
+                    reliability = stat.get('reliability_score', 0.5)
+                    
+                    # Build ML weight multiplier for this route
+                    # More trips = more reliable = closer to actual avg
+                    if num_trips >= 5 and avg_time > 0:
+                        ml_weights[route_name] = {
+                            'avg_time_min': avg_time / 60,
+                            'num_trips': num_trips,
+                            'reliability': reliability,
+                        }
+        except:
+            ml_weights = {}
+        
+        # Build ML-adjusted adjacency for Dijkstra
+        adj_ml = {}
+        for node_id, edges in adj.items():
+            adjusted_edges = []
+            for edge in edges:
+                v, w = edge[0], edge[1]
+                route_name = v.split('::')[0] if '::' in v else ''
+                
+                # Apply ML learned multiplier if we have data
+                if route_name in ml_weights:
+                    ml_stat = ml_weights[route_name]
+                    # Routes with lower reliability get penalty
+                    reliability_penalty = 1.0 + (1.0 - ml_stat['reliability']) * 0.3
+                    w *= reliability_penalty
+                
+                adjusted_edges.append([v, w])
+            adj_ml[node_id] = adjusted_edges
+        
+        path = dijkstra(adj_ml, start, end, weather_penalty, time_of_day_penalty, precipitation=precipitation)
         
         if not path:
             return error_response('No path found')
@@ -316,7 +417,16 @@ def lambda_handler(event, context):
         time_penalty = min(max((total_time - 45) / 180, 0), 0.25)
         fare_penalty = min(max((total_fare - 40) / 120, 0), 0.15)
         
-        total_penalty = transfer_penalty + time_penalty + fare_penalty + weather_penalty + time_of_day_penalty
+        # ML reliability penalty
+        ml_penalty = 0
+        for seg in final_segments:
+            route_name = seg.get('route', '')
+            if route_name in ml_weights:
+                reliability = ml_weights[route_name]['reliability']
+                ml_penalty += max(0, (0.5 - reliability))  # Routes below 0.5 reliability get penalized
+        ml_penalty = min(ml_penalty, 0.15)
+        
+        total_penalty = transfer_penalty + time_penalty + fare_penalty + weather_penalty + time_of_day_penalty + ml_penalty
         score = max(0, min(100, int((1.0 - total_penalty) * 100)))
         
         # Alternatives
