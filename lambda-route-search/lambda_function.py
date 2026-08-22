@@ -312,9 +312,9 @@ def lambda_handler(event, context):
             time_of_day_penalty = 0
         
         # Biyahe Score
-        transfer_penalty = min(transfer_count * 0.1, 0.4)
-        time_penalty = min(max((total_time - 30) / 120, 0), 0.3)
-        fare_penalty = min(max((total_fare - 30) / 80, 0), 0.2)
+        transfer_penalty = min(transfer_count * 0.07, 0.25)
+        time_penalty = min(max((total_time - 45) / 180, 0), 0.25)
+        fare_penalty = min(max((total_fare - 40) / 120, 0), 0.15)
         
         total_penalty = transfer_penalty + time_penalty + fare_penalty + weather_penalty + time_of_day_penalty
         score = max(0, min(100, int((1.0 - total_penalty) * 100)))
