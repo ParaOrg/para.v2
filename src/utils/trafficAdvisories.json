@@ -38,17 +38,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MANILA, Philippines — Smartphone applications are being explored by the Metropol",
-      "description": "MANILA, Philippines — Smartphone applications are being explored by the Metropolitan Manila Development Authority (MMDA) as another tool to manage traffic and influence travel behavior in Metro Manila",
-      "updated": "Thu, 20 Aug 2026 12:58:28 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxQWHZnMlVvVHJDMlcyRFVCN2xvTGtHUDVSQ05XNkdHdXVXbGpPeEZNWEVWaXVRNTBzRFdJdlJGMF9icHFxQXl6aWxzb0dxRVp2VkpKN3RSWjhYNEg3MGxaTnIyZzl0b3NSZXN4aVktUFhXa0hBVzNieXdmTDJ2TS1rVHczOWlsdDNVejRDMXM5elpoRGZ2OEQ4ZnZ1emZGZnhNTGVSM0dVdEJaU3FNSE5OeVk0aXRMR1NLYWs1TW5BRXBBdw?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-5",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "Light traffic at EDSA - Daily Tribune",
       "description": "Light traffic at EDSADaily Tribune",
       "updated": "Fri, 21 Aug 2026 06:52:30 GMT",
@@ -56,7 +45,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-6",
+      "id": "traffic-5",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,7 +56,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-6",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,7 +67,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -100,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-10",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +98,19 @@
       "updated": "Thu, 20 Aug 2026 07:01:37 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPc3NvbmZOT0ZpRjQ5NHVSTExTa3NGaHhvQjVMWXdvd1NmbUZRVlg0aTFmbGNxRlZ0Q2IzaWM4MWE5VHZISXF3dXlrQWd6NTJRZ3FUWS14enBVdDlNLTdnMlJjWTRLUjNnWmx0ZUxLWkpLODZMVHZ5V3lnS0FfOGY4SGx1cHdXOG53M19qMEcxT3gtcmhnZ1FuYmJwTUY2ZVZNbnl0dExpQUpBY21ncmREV3g5Zlp5Y0JUaUlPZk9zVEZtblJ1TjN1TjZlUUxNSUs2a2YyN0FwWjg2aGpa?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA enhances ‘MayHuliKa Portal’ with comprehensive NCAP search feature - Daily ",
+      "description": "MMDA enhances ‘MayHuliKa Portal’ with comprehensive NCAP search featureDaily Tribune",
+      "updated": "Fri, 21 Aug 2026 15:10:07 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOLTduUkFtZ3hXX2lpZXljTkNEUll1RFljUkVGaTBPMk5KQkF3ampmay1HMTItOGxYQzROU2c3cmlpQ2tONmFVbE04UVJaSGVFcFN6Qy1mWEgzR1FjYzFHR0VHYUhQLXVDXzFJVjdqc3Y1LVNVR3ZENFNNSW5PYkJvdjJmbzRKeUI2TFFSMTBuS1FCeTFrSDhodXhZWl9IVUZ0WFhkY1FB?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-22T13:00:02.777852",
+  "scraped_at": "2026-08-22T13:30:02.724004",
   "source": "Google News RSS"
 }

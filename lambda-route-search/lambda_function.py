@@ -3,6 +3,8 @@ import gzip
 import heapq
 import math
 import logging
+import urllib.request as ur
+import datetime
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -20,7 +22,6 @@ KNOWN_PLACES = {
     'pasay': ('Pasay', 14.5378, 120.9910),
     'upd': ('UPD', 14.6561, 121.0648),
     'up': ('UPD', 14.6561, 121.0648),
-    'up diliman': ('UPD', 14.6561, 121.0648),
     'up diliman': ('UPD', 14.6561, 121.0648),
     'ust': ('UST', 14.6101, 120.9894),
     'katipunan': ('Katipunan', 14.6225, 121.0785),
@@ -40,13 +41,10 @@ def load_graph():
     global _graph, _nodes
     if _graph is not None:
         return _graph, _nodes
-    
     with gzip.open('graph_full.json.gz', 'rt') as f:
         data = json.load(f)
-    
     _graph = data['adj']
     _nodes = data['nodes']
-    logger.info(f"Loaded graph: {len(_graph)} nodes")
     return _graph, _nodes
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -54,7 +52,7 @@ def haversine(lat1, lon1, lat2, lon2):
     dLat = math.radians(lat2 - lat1)
     dLon = math.radians(lon2 - lon1)
     a = math.sin(dLat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2)**2
-    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 1000  # meters
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 1000
 
 def find_nearest_node(lat, lon, nodes):
     nearest = None
@@ -98,6 +96,77 @@ def dijkstra(adj, start, end):
     path.append(start)
     return path[::-1]
 
+def dijkstra_with_block(adj, start, end, blocked_edges):
+    if start not in adj or end not in adj:
+        return []
+    heap = [(0, start)]
+    dist = {start: 0}
+    prev = {}
+    visited = set()
+    while heap:
+        d, u = heapq.heappop(heap)
+        if u in visited:
+            continue
+        visited.add(u)
+        if u == end:
+            break
+        for edge in adj.get(u, []):
+            v = edge[0]
+            if (u, v) in blocked_edges:
+                continue
+            w = edge[1]
+            nd = d + w
+            if nd < dist.get(v, float('inf')):
+                dist[v] = nd
+                prev[v] = u
+                heapq.heappush(heap, (nd, v))
+    if end not in prev and start != end:
+        return []
+    path = []
+    u = end
+    while u in prev:
+        path.append(u)
+        u = prev[u]
+    path.append(start)
+    return path[::-1]
+
+def build_segments_from_path(path, nodes):
+    segments = []
+    current_route = None
+    current_group = []
+    for node_id in path:
+        if '::' not in node_id:
+            continue
+        route = node_id.split('::')[0]
+        if route != current_route:
+            if current_group:
+                coords = [nodes[n] for n in current_group if n in nodes]
+                if len(coords) >= 2:
+                    dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
+                    time_min = max(dist / 25 * 60, 2)
+                    segments.append({'route': current_route, 'mode': 'bus' if 'bus' in current_route.lower() else 'jeepney', 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+            current_route = route
+            current_group = [node_id]
+        else:
+            current_group.append(node_id)
+    if current_group:
+        coords = [nodes[n] for n in current_group if n in nodes]
+        if len(coords) >= 2:
+            dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
+            time_min = max(dist / 25 * 60, 2)
+            segments.append({'route': current_route, 'mode': 'bus' if 'bus' in current_route.lower() else 'jeepney', 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+    return segments
+
+def seg_fare(seg):
+    mode = seg.get('mode', 'jeepney')
+    d = seg.get('distance_km', 0)
+    if mode == 'jeepney':
+        return round(13.0 if d <= 5 else 13.0 + (d - 5) * 1.5, 2)
+    elif mode == 'bus':
+        return round(15.0 if d <= 5 else 15.0 + (d - 5) * 2.0, 2)
+    else:
+        return 20.0
+
 def error_response(message):
     return {
         'statusCode': 200,
@@ -130,53 +199,48 @@ def lambda_handler(event, context):
         
         adj, nodes = load_graph()
         
-        # Parse message
-        import re
-        
         origin_lat = None
         origin_lng = None
         dest_lat = None
         dest_lng = None
         
-        # Check for "from X to Y"
+        import re
+        
+        # Parse "from X to Y"
         m = re.search(r'from\s+(.+?)\s+to\s+(.+)', message, re.IGNORECASE)
         if m:
             origin_name = m.group(1).strip().lower()
             dest_name = m.group(2).strip().lower()
-            
             if origin_name == 'here' and user_location:
                 origin_lat = float(user_location.get('lat', 14.6225))
                 origin_lng = float(user_location.get('lng', 121.0538))
             elif origin_name in KNOWN_PLACES:
                 origin_lat, origin_lng = KNOWN_PLACES[origin_name][1], KNOWN_PLACES[origin_name][2]
-            
             if dest_name in KNOWN_PLACES:
                 dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
-            else:
-                for name, (label, plat, plng) in KNOWN_PLACES.items():
-                    if name in dest_name or dest_name in name or dest_name.startswith(name):
-                        dest_lat, dest_lng = plat, plng
-                        break
         
-        # Check for "X to Y" without "from"
+        # Parse "X to Y" without "from"
         if (origin_lat is None or dest_lat is None) and ' to ' in message:
             parts = message.lower().split(' to ')
             if len(parts) == 2:
                 origin_name = parts[0].strip()
                 dest_name = parts[1].strip()
-                if origin_name in KNOWN_PLACES:
-                    origin_lat, origin_lng = KNOWN_PLACES[origin_name][1], KNOWN_PLACES[origin_name][2]
-                if dest_name in KNOWN_PLACES:
-                    dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
+                for name, (label, plat, plng) in KNOWN_PLACES.items():
+                    if name in origin_name or origin_name in name or origin_name.startswith(name):
+                        origin_lat, origin_lng = plat, plng
+                        break
+                for name, (label, plat, plng) in KNOWN_PLACES.items():
+                    if name in dest_name or dest_name in name or dest_name.startswith(name):
+                        dest_lat, dest_lng = plat, plng
+                        break
         
-        # Destination only - with fuzzy matching
+        # Destination only with fuzzy matching
         if dest_lat is None:
             dest_name = message.strip().lower()
             if dest_name in KNOWN_PLACES:
                 dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
                 origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
             else:
-                # Fuzzy: check if any known place is in the query
                 for name, (label, plat, plng) in KNOWN_PLACES.items():
                     if name in dest_name or dest_name in name or dest_name.startswith(name):
                         dest_lat, dest_lng = plat, plng
@@ -186,7 +250,6 @@ def lambda_handler(event, context):
         if origin_lat is None or dest_lat is None:
             return error_response(f'Could not find: {message}')
         
-        # Find nodes
         start = find_nearest_node(origin_lat, origin_lng, nodes)
         end = find_nearest_node(dest_lat, dest_lng, nodes)
         
@@ -198,115 +261,94 @@ def lambda_handler(event, context):
         if not path:
             return error_response('No path found')
         
-        # Build segments by grouping consecutive nodes on same route
-        segments = []
-        current_route = None
-        current_group = []
+        # Build segments
+        final_segments = build_segments_from_path(path, nodes)
         
-        for node_id in path:
-            if '::' not in node_id:
-                continue
-            route = node_id.split('::')[0]
-            if route != current_route:
-                if current_group:
-                    segments.append({'route': current_route, 'nodes': current_group})
-                current_route = route
-                current_group = [node_id]
-            else:
-                current_group.append(node_id)
+        if not final_segments:
+            return error_response('No segments found')
         
-        if current_group:
-            segments.append({'route': current_route, 'nodes': current_group})
-        
-        # Build final route_data
-        final_segments = []
-        for seg in segments:
-            coords = []
-            for node_id in seg['nodes']:
-                if node_id in nodes:
-                    lat, lon = nodes[node_id]
-                    coords.append([lat, lon])
-            
-            if len(coords) < 2:
-                continue
-            
-            # Simplify
-            coords = coords[::max(1, len(coords)//20)]
-            
-            # Calculate distance
-            total_dist_km = 0
-            for i in range(len(coords) - 1):
-                total_dist_km += haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) / 1000
-            
-            time_min = max(total_dist_km / 25 * 60, 2)
-            
-            final_segments.append({
-                'route': seg['route'],
-                'mode': 'bus' if 'bus' in seg['route'].lower() else 'jeepney',
-                'distance_km': round(total_dist_km, 2),
-                'time_min': round(time_min, 1),
-                'geometry': coords,
-                'type': 'transit',
-            })
-        
-        # Complete Sakay algorithm
-        FARES = {
-            'jeepney': 13.0,  # base minimum
-            'bus': 15.0,      # aircon
-            'uv_express': 25.0,
-            'train': 20.0,
-            'lrt': 20.0,
-            'mrt': 20.0,
-            'walk': 0.0,
-        }
-        
-        MODE_SPEEDS = {
-            'jeepney': 25,    # km/h
-            'bus': 30,
-            'uv_express': 40,
-            'train': 45,
-            'lrt': 35,
-            'mrt': 40,
-            'walk': 4.5,
-        }
-        
-        # Recalculate time with proper speeds
+        # Fare calculation
         for seg in final_segments:
-            mode = seg.get('mode', 'jeepney')
-            speed = MODE_SPEEDS.get(mode, 25)
-            seg['time_min'] = round(seg['distance_km'] / speed * 60, 1)
+            seg['fare'] = seg_fare(seg)
+        
+        total_fare = sum(seg.get('fare', 0) for seg in final_segments)
         
         # Transfer penalty
         TRANSFER_PENALTY_MIN = 5.0
         transfer_count = len(final_segments) - 1
         transfer_time = transfer_count * TRANSFER_PENALTY_MIN
         
-        # Fare with distance-based jeepney
-        for seg in final_segments:
-            if seg.get('mode') == 'jeepney':
-                # Jeepney: ₱13 first 5km, +₱1.50/km after
-                d = seg.get('distance_km', 0)
-                seg_fare = 13.0 if d <= 5 else 13.0 + (d - 5) * 1.5
-                seg['fare'] = round(seg_fare, 2)
-            elif seg.get('mode') == 'bus':
-                d = seg.get('distance_km', 0)
-                seg_fare = 15.0 if d <= 5 else 15.0 + (d - 5) * 2.0
-                seg['fare'] = round(seg_fare, 2)
-            else:
-                seg['fare'] = FARES.get(seg.get('mode', 'jeepney'), 13.0)
+        # Wait times
+        WAIT_TIMES = {'jeepney': 5, 'bus': 7, 'uv_express': 8, 'train': 3, 'lrt': 3, 'mrt': 3, 'walk': 0}
+        wait_time_total = sum(WAIT_TIMES.get(seg.get('mode', 'jeepney'), 5) for seg in final_segments)
         
-        total_fare = 0
-        for seg in final_segments:
-            mode = seg.get('mode', 'jeepney')
-            total_fare += FARES.get(mode, 13.0)
-        
-        total_time = round(sum(s['time_min'] for s in final_segments) + (len(final_segments) - 1) * 5, 1)  # 5min transfer penalty
+        total_time = round(sum(s['time_min'] for s in final_segments) + transfer_time + wait_time_total, 1)
         total_dist = round(sum(s['distance_km'] for s in final_segments), 2)
         
-        # Biyahe score: 0-100 rating
-        transfer_penalty = (len(final_segments) - 1) * 0.15
-        walk_penalty = 0  # no walk segments in current graph
-        score = max(0, min(100, int((1.0 - transfer_penalty - walk_penalty) * 100)))
+        # Weather penalty
+        weather_penalty = 0
+        try:
+            weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={dest_lat}&longitude={dest_lng}&current=weather_code,precipitation&timezone=Asia/Manila"
+            weather_req = ur.Request(weather_url, headers={'User-Agent': 'ParaPH/3.0'})
+            with ur.urlopen(weather_req, timeout=3) as wr:
+                wd = json.loads(wr.read())
+                wc = wd.get('current', {}).get('weather_code', 0)
+                if wc >= 95: weather_penalty = 0.35
+                elif wc >= 61: weather_penalty = 0.25
+                elif wc >= 51: weather_penalty = 0.15
+                elif wc in [45, 48]: weather_penalty = 0.10
+        except:
+            weather_penalty = 0
+        
+        # Time of day
+        current_hour = datetime.datetime.now().hour
+        if 6 <= current_hour <= 9 or 17 <= current_hour <= 20:
+            time_of_day_penalty = 0.15
+        elif 10 <= current_hour <= 16:
+            time_of_day_penalty = 0.05
+        elif 21 <= current_hour or current_hour <= 5:
+            time_of_day_penalty = 0.10
+        else:
+            time_of_day_penalty = 0
+        
+        # Biyahe Score
+        transfer_penalty = min(transfer_count * 0.1, 0.4)
+        time_penalty = min(max((total_time - 30) / 120, 0), 0.3)
+        fare_penalty = min(max((total_fare - 30) / 80, 0), 0.2)
+        
+        total_penalty = transfer_penalty + time_penalty + fare_penalty + weather_penalty + time_of_day_penalty
+        score = max(0, min(100, int((1.0 - total_penalty) * 100)))
+        
+        # Alternatives
+        alternatives = []
+        if len(path) > 10:
+            for skip_idx in [len(path)//3, 2*len(path)//3]:
+                blocked = set()
+                if skip_idx < len(path) - 1:
+                    blocked.add((path[skip_idx], path[skip_idx+1]))
+                alt_path = dijkstra_with_block(adj, start, end, blocked)
+                if alt_path and len(alt_path) > 5:
+                    alt_segments = build_segments_from_path(alt_path, nodes)
+                    if alt_segments:
+                        alt_time = round(sum(s['time_min'] for s in alt_segments) + transfer_time + wait_time_total, 1)
+                        alt_fare = sum(seg_fare(s) for s in alt_segments)
+                        alternatives.append({
+                            'segments': alt_segments,
+                            'total_time_min': alt_time,
+                            'total_fare': round(alt_fare, 2),
+                            'biyahe_score': max(0, min(100, int((1.0 - total_penalty) * 100))),
+                            'transfers': len(alt_segments) - 1,
+                        })
+        
+        # Mode summary
+        mode_counts = {}
+        for seg in final_segments:
+            mode = seg.get('mode', 'jeepney')
+            mode_counts[mode] = mode_counts.get(mode, 0) + 1
+        mode_summary = ', '.join(f"{count} {mode}{'s' if count != 1 else ''}" for mode, count in mode_counts.items())
+        
+        start_point = {'lat': origin_lat, 'lng': origin_lng, 'name': 'Origin'}
+        end_point = {'lat': dest_lat, 'lng': dest_lng, 'name': 'Destination'}
         
         return {
             'statusCode': 200,
@@ -318,12 +360,16 @@ def lambda_handler(event, context):
                     'total_time_min': total_time,
                     'total_distance_km': total_dist,
                     'total_fare': round(total_fare, 2),
-                    'transfers': len(final_segments) - 1,
-                    'start_point': {'lat': origin_lat, 'lng': origin_lng, 'name': 'Origin'},
-                    'end_point': {'lat': dest_lat, 'lng': dest_lng, 'name': 'Destination'},
+                    'transfers': transfer_count,
                     'biyahe_score': score,
+                    'mode_summary': mode_summary,
+                    'start_point': start_point,
+                    'end_point': end_point,
+                    'weather_penalty': weather_penalty,
+                    'time_of_day_penalty': time_of_day_penalty,
                 },
                 'reply_text': 'Here are your commute options:',
+                'alternatives': alternatives,
                 'path': path,
                 'path_length': len(path),
                 'graph_nodes': len(adj),
