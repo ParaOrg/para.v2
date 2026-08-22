@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { apiPost } from "../utils/api";
+import LiveShare from "./LiveShare";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 
 const OFFLINE_QUEUE_KEY = "para_offline_commutes_v1";
@@ -35,6 +36,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
+  const [showLiveShare, setShowLiveShare] = useState(false);
 
   useEffect(() => { if (onProgress) onProgress(currentSegment); }, [currentSegment, onProgress]);
 
@@ -177,6 +179,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
               <p className="text-sm text-gray-500 mt-1">Waiting for your ride</p>
               <p className="text-xs text-gray-400 mt-2 truncate">Next: {currentSeg?.route || "Transit"} — {currentSeg?.time_min} min est.</p>
               <button onClick={hopOn} className="mt-4 w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors">🚌 Hop On — {currentSeg?.route || "Start Ride"}</button>
+              <button onClick={() => setShowLiveShare(true)} className="mt-2 w-full py-2 bg-red-500 text-white rounded-lg text-[11px] font-bold">📡 Share Live Location</button>
             </div>
           )}
           {phase === "riding" && (
