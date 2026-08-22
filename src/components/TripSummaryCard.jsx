@@ -2,7 +2,7 @@ export default function TripSummaryCard({ routeData, isRecommended = false, rank
   if (!routeData) return null;
   const { segments = [], total_fare = 0, total_time_min = 0, biyahe_score = 0 } = routeData;
   const score = typeof biyahe_score === "object" ? biyahe_score?.biyahe_score : biyahe_score;
-  const scorePercent = score != null ? Math.round(score * 100) : null;
+  const scorePercent = score != null ? Math.round(score) : null;
   const cardBg = isRecommended ? "bg-[#7A4BC81A]" : "bg-white";
   const cardShadow = isRecommended ? "" : "shadow-[0px_4px_6px_rgba(0,0,0,0.05)]";
   const pillGradient = isRecommended ? "linear-gradient(to right, #4B2885 50%, #7A4BC8 50%)" : "#7A4BC8";
