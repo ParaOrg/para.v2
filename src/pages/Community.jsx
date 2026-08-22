@@ -21,6 +21,9 @@ export default function Community() {
   }, []);
   const auth = useAuth();
   const [threads, setThreads] = useState([]);
+  const [votedThreads, setVotedThreads] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("para_voted_threads") || "{}"); } catch { return {}; }
+  });
   const [activeTag, setActiveTag] = useState("All");
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: "", content: "", tag: "Routes", image: "" });
@@ -38,7 +41,34 @@ export default function Community() {
 
   useEffect(() => { fetchThreads(); }, []);
 
-  const filtered = activeTag === "All" ? threads : threads.filter(t => t.tag === activeTag);
+  const handleUpvote = async (threadId) => {
+    if (votedThreads[threadId]) return; // Already voted
+    
+    try {
+      // Update in Supabase
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/community_threads?id=eq.${threadId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ upvotes: (threads.find(t => t.id === threadId)?.upvotes || 0) + 1 }),
+      });
+      
+      // Track local vote
+      const newVoted = { ...votedThreads, [threadId]: true };
+      setVotedThreads(newVoted);
+      localStorage.setItem("para_voted_threads", JSON.stringify(newVoted));
+      
+      // Update local state
+      setThreads(prev => prev.map(t => 
+        t.id === threadId ? { ...t, upvotes: (t.upvotes || 0) + 1 } : t
+      ));
+    } catch (e) {
+      console.error("Upvote failed:", e);
+    }
+  };
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === "new") return (b.created_at || "").localeCompare(a.created_at || "");
@@ -184,7 +214,7 @@ export default function Community() {
                   onError={(e) => e.target.style.display = "none"} />
               )}
               <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                <span>👍 {thread.upvotes || 0}</span>
+                <button onClick={() => handleUpvote(thread.id)} disabled={votedThreads[thread.id]} className={`px-2 py-1 rounded-full text-xs font-bold ${votedThreads[thread.id] ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>👍 {thread.upvotes || 0}</button>
                 <span>💬 {comments.length || 0}</span>
                 <span>{thread.created_at?.slice(0, 10)}</span>
                 <button className="ml-auto text-[#7A4BC8] font-medium">Read more →</button>
