@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MapComponent from "../components/map_component";
 import { RouteCardList } from "../components/TripSummaryCard";
+import ShareRouteCard from "../components/ShareRouteCard";
 import RouteLoadingAnimation from "../components/RouteLoadingAnimation";
 import StravaRouteCard from "../components/StravaRouteCard";
 import WeatherPage from "../components/WeatherPage";
@@ -39,6 +40,7 @@ export default function HomeNew() {
   const [showTracker, setShowTracker] = useState(false);
   const [showStravaCard, setShowStravaCard] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
   const [trackerMinimized, setTrackerMinimized] = useState(false);
   const [currentTrackSegment, setCurrentTrackSegment] = useState(0);
   const [placeholder, setPlaceholder] = useState(FULL_TEXT);
@@ -211,6 +213,7 @@ export default function HomeNew() {
         <div className="absolute bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3" style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))", transform: kbOffset > 0 ? `translateY(${kbOffset}px)` : "none", transition: "transform 120ms ease-out" }}><div className="flex items-end justify-center gap-7 px-4 py-2">{BOTTOM_NAV.map((item) => (<button key={item.id} onClick={() => { if (item.id === "search") { if (input.trim()) send(); } else if (item.to) navigate(item.to); }} className="flex flex-col items-center gap-0.5">{item.primary ? <div className={`px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-1.5 ${chatOpen ? "bg-[#381D65] text-white" : "bg-[#7A4BC8] text-white"}`}><span>{item.icon}</span><span>{item.label}</span></div> : <><span className="text-lg">{item.icon}</span><span className="text-[9px] font-medium text-gray-400">{item.label}</span></>}</button>))}</div></div>
       </div>
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
+      {showShareCard && activeRouteData && <ShareRouteCard routeData={activeRouteData} onClose={() => setShowShareCard(false)} />}
     </div>
   );
 }
