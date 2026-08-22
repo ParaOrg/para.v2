@@ -26,8 +26,8 @@ L.Icon.Default.mergeOptions({
 
 const CENTER = [14.5995, 120.9842];
 const API = getApiBaseUrl();
-const SUPABASE_URL = "https://tcvomrkytxnetzijwqad.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 function useIsMobile() {
   const [m, setM] = useState(() => window.innerWidth < 768);

@@ -7,8 +7,22 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+  
+  // Don't intercept API calls
+  if (url.pathname.includes('/api/')) {
     return;
   }
-  event.respondWith(fetch(event.request));
+  
+  // Don't intercept navigation requests (let browser handle them)
+  if (event.request.mode === 'navigate') {
+    return;
+  }
+  
+  // For everything else, try network first, fallback to cache
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
+  );
 });
