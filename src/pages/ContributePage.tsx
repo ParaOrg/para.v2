@@ -120,7 +120,7 @@ const ContributePage: React.FC = () => {
         fare_amount: amount,
         mode: 'transit',
         route_name: state.currentRouteName || 'Personal Route',
-        city: 'Metro Manila',
+        city: null,  // Will be derived from GPS reverse geocoding
         reported_at: new Date().toISOString(),
       };
       
@@ -559,7 +559,7 @@ const ContributePage: React.FC = () => {
       mode: transportMode || 'jeepney',
       path_coordinates: routePoints,
       submitted_by: 'user',
-      region: 'ncr',
+      region: null,  // Will be derived from GPS location
     };
     
     // Queue in offline buffer regardless
