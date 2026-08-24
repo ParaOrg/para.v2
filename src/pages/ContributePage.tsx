@@ -10,6 +10,7 @@ import { useTrackingConsent } from '../context/TrackingConsentContext';
 import { QuickReply } from '../types/contribute';
 import { edgePost } from '../utils/api';
 import { offlineBuffer } from '../utils/offlineBuffer';
+import { fetchWeather, getWeatherPenalty, isFloodZone } from '../utils/weather';
 
 const MOCK_ROUTES = [
   { id: 'up-ikot', name: 'UP Ikot' },
@@ -42,7 +43,7 @@ const ContributePage: React.FC = () => {
   const [navbarOpen, setNavbarOpen] = useState(false);
   const { location, requestConsentAndLocation } = useTrackingConsent();
   const segmentStartTime = useRef<number | null>(null);
-  const segmentsRef = useRef<Array<{ mode: string; routeName: string | null; startTime: number; endTime: number | null; durationSec: number | null }>>([]);
+  const segmentsRef = useRef<Array<{ mode: string; routeName: string | null; startTime: number; endTime: number | null; durationSec: number | null; weather?: any }>>([]);
 
   useEffect(() => {
     const handlePoiLocation = (e: CustomEvent) => {
@@ -398,7 +399,16 @@ const ContributePage: React.FC = () => {
     });
   }, []);
 
-  const handleHopOn = useCallback(() => {
+  const handleHopOn = useCallback(async () => {
+    // Fetch weather at segment start
+    if (location) {
+      try {
+        const weather = await fetchWeather(location.lat, location.lng);
+        window.__currentSegmentWeather = weather;
+      } catch {
+        window.__currentSegmentWeather = null;
+      }
+    }
     dispatch({ type: 'SET_TRACKING', payload: true });
     dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
     dispatch({
@@ -415,6 +425,7 @@ const ContributePage: React.FC = () => {
       segmentsRef.current.push({
         mode: 'riding',
         routeName: state.currentRouteName,
+        weather: window.__currentSegmentWeather || null,
         startTime: segmentStartTime.current,
         endTime: Date.now(),
         durationSec,
@@ -449,6 +460,7 @@ const ContributePage: React.FC = () => {
       segmentsRef.current.push({
         mode: 'riding',
         routeName: state.currentRouteName,
+        weather: window.__currentSegmentWeather || null,
         startTime: segmentStartTime.current,
         endTime: Date.now(),
         durationSec,
@@ -488,8 +500,18 @@ const ContributePage: React.FC = () => {
     const transferCount = Math.max(0, ridingSegments.length - 1);
     const waitTimeSec = ridingSegments.length * 5 * 60; // 5 min wait per ride
     const transferPenaltySec = transferCount * 5 * 60; // 5 min penalty per transfer
+    // Calculate weather penalty from actual segments
+    let weatherPenalty = 0;
+    for (const seg of segments) {
+      if (seg.weather && seg.weather.code >= 61) {
+        const basePenalty = getWeatherPenalty(seg.weather);
+        const floodMultiplier = isFloodZone(seg.routeName) ? 1.5 : 1.0;
+        weatherPenalty = Math.max(weatherPenalty, basePenalty * floodMultiplier);
+      }
+    }
+
     const totalPenaltySec = waitTimeSec + transferPenaltySec;
-    const biyaheScore = Math.max(10, Math.min(100, Math.round((1 - totalPenaltySec / Math.max(totalDuration + totalPenaltySec, 60)) * 100)));
+    const biyaheScore = Math.max(10, Math.min(100, Math.round((1 - totalPenaltySec / Math.max(totalDuration + totalPenaltySec, 60) - weatherPenalty) * 100)));
 
     // Show Strava-style summary with Biyahe Score
     dispatch({
