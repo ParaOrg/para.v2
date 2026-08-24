@@ -38,6 +38,50 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const gpsTrailRef = useRef<L.Polyline | null>(null);
   const gpsTrailPoints = useRef<[number, number][]>([]);
+  const [routeShapePoints, setRouteShapePoints] = useState<[number, number][]>([]);
+  const routeShapeRef = useRef<L.Polyline | null>(null);
+
+  // Expose route shape points for parent
+  useEffect(() => {
+    window.__routeShapePoints = routeShapePoints;
+  }, [routeShapePoints]);
+
+  // Listen for route-drawing events
+  useEffect(() => {
+    const handleStart = () => {
+      setRouteShapePoints([]);
+      if (routeShapeRef.current) routeShapeRef.current.remove();
+      routeShapeRef.current = null;
+    };
+    const handleStop = () => {
+      if (routeShapeRef.current) routeShapeRef.current.remove();
+      routeShapeRef.current = null;
+    };
+    window.addEventListener('route-drawing-start', handleStart as EventListener);
+    window.addEventListener('route-drawing-stop', handleStop as EventListener);
+    return () => {
+      window.removeEventListener('route-drawing-start', handleStart as EventListener);
+      window.removeEventListener('route-drawing-stop', handleStop as EventListener);
+    };
+  }, []);
+
+  // Track route shape when location updates during drawing
+  useEffect(() => {
+    if (!location || !mapRef.current) return;
+    const isDrawing = window.__isRouteDrawing === true;
+    if (!isDrawing) return;
+    
+    const newPoint: [number, number] = [location.lat, location.lng];
+    setRouteShapePoints(prev => {
+      const updated = [...prev, newPoint];
+      if (!routeShapeRef.current && mapRef.current) {
+        routeShapeRef.current = L.polyline(updated, { color: '#7A4BC8', weight: 4 }).addTo(mapRef.current);
+      } else if (routeShapeRef.current) {
+        routeShapeRef.current.setLatLngs(updated);
+      }
+      return updated;
+    });
+  }, [location]);
   const [pendingPinLocation, setPendingPinLocation] = useState<[number, number] | null>(null);
   const { location, requestConsentAndLocation } = useTrackingConsent();
 

@@ -470,7 +470,12 @@ function ApprovalsTab() {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    fetch(`${API}/admin/pending/list`)
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?is_approved=false&select=*&order=created_at.desc`, {
+      headers: {
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o'
+      }
+    })
       .then((r) => r.json())
       .then((d) => setPending(d.routes || []));
   }, []);
@@ -505,7 +510,16 @@ function ApprovalsTab() {
   };
 
   const approve = async (routeId) => {
-    await fetch(`${API}/admin/pending/approve?route_id=${routeId}`, { method: "POST" });
+    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?route_uuid=eq.${routeId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ is_approved: true })
+    });
     setPending((prev) => prev.filter((r) => r.route_uuid !== routeId));
     setSelected(null);
     layerRef.current?.clearLayers();
@@ -513,7 +527,16 @@ function ApprovalsTab() {
 
   const reject = async (routeId) => {
     const reason = window.prompt("Rejection reason (optional):") || "";
-    await fetch(`${API}/admin/pending/reject?route_id=${routeId}&reason=${encodeURIComponent(reason)}`, { method: "POST" });
+    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?route_uuid=eq.${routeId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ is_approved: false, status: 'rejected', rejection_reason: reason })
+    });
     setPending((prev) => prev.filter((r) => r.route_uuid !== routeId));
     setSelected(null);
     layerRef.current?.clearLayers();
