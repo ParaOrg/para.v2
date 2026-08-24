@@ -15,6 +15,7 @@ interface RouteSummaryReportInlineProps {
     totalDistanceM: number;
     totalFare: number;
     avgSpeedKmh: number;
+    biyaheScore?: number;
     segments: SegmentSummary[];
   };
 }
@@ -24,6 +25,16 @@ export const RouteSummaryReportInline: React.FC<RouteSummaryReportInlineProps> =
     <div className="bg-white rounded-[15px] p-4 shadow-sm border border-gray-100">
       <p className="text-[13px] font-bold text-[#381D65] font-poppins mb-3">Trip Summary</p>
       
+      {summary.biyaheScore !== undefined && (
+        <div className="mb-3 p-3 bg-[#7A4BC8] text-white rounded-[12px] text-center">
+          <p className="text-[10px] font-poppins opacity-80">BIYAHE SCORE</p>
+          <p className="text-[32px] font-black font-poppins leading-tight">{summary.biyaheScore}</p>
+          <p className="text-[10px] font-poppins opacity-80">
+            {summary.biyaheScore >= 80 ? '🌟 Excellent route' : summary.biyaheScore >= 60 ? '👍 Good route' : summary.biyaheScore >= 40 ? '⚠️ Fair route' : '🔴 Difficult route'}
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="bg-[#E6D7FF] rounded-[10px] p-2">
           <p className="text-[10px] text-gray-500">Distance</p>
