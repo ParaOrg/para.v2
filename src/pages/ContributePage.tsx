@@ -543,48 +543,42 @@ const ContributePage: React.FC = () => {
       return;
     }
     
-    // Save to Supabase via direct REST (not Edge Function - it's broken)
+    // Save route to offline buffer first (always works)
+    // Then try Edge Function which uses service_role (bypasses RLS)
+    const routePayload = {
+      route_name: routeName,
+      mode: transportMode || 'jeepney',
+      path_coordinates: routePoints,
+      submitted_by: 'user',
+      region: 'ncr',
+    };
+    
+    // Queue in offline buffer regardless
+    await offlineBuffer.enqueue({
+      type: 'route-save',
+      payload: routePayload,
+      timestamp: Date.now(),
+    });
+    
+    // Try Edge Function (needs DB_SERVICE_KEY set in Supabase Dashboard)
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      const res = await fetch(`${supabaseUrl}/rest/v1/ph_routes`, {
-        method: 'POST',
-        headers: {
-          'apikey': anonKey,
-          'Authorization': `Bearer ${anonKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          name: routeName,
-          mode: transportMode || 'jeepney',
-          is_approved: false,
-          status: 'pending',
-          region: 'ncr',
-          submitted_by: 'user'
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
+      const res = await edgePost('route-save', routePayload);
+      if (res.success) {
         dispatch({
           type: 'ADD_MESSAGE',
-          payload: createMessage('bot', 'text', `✅ Route "${routeName}" submitted for review! Admin will verify it.`),
+          payload: createMessage('bot', 'text', `✅ Route "${routeName}" submitted for review!`),
         });
       } else {
-        console.error('Route save error:', data);
         dispatch({
           type: 'ADD_MESSAGE',
-          payload: createMessage('bot', 'text', `⚠️ Route saved locally but needs review: ${data.message || 'pending'}`),
+          payload: createMessage('bot', 'text', `📦 Route queued for sync: ${res.error || 'pending review'}`),
         });
       }
     } catch (err) {
-      console.error('Failed to save route:', err);
+      console.error('Edge Function failed:', err);
       dispatch({
         type: 'ADD_MESSAGE',
-        payload: createMessage('bot', 'text', '⚠️ Could not save route. Will queue for sync.'),
+        payload: createMessage('bot', 'text', '📦 Route saved offline. Will sync when Edge Function is configured.'),
       });
     }
     
