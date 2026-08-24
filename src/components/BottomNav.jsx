@@ -18,7 +18,7 @@ export default function BottomNav({ onSearchClick }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md rounded-t-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] px-2 py-2"
+    <div className="md:hidden absolute bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md rounded-t-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] px-2 py-2"
       style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))" }}>
       <div className="flex items-end justify-between px-3">
         <div className="flex gap-6">

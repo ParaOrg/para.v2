@@ -70,6 +70,8 @@ export default function Community() {
     }
   };
 
+  const filtered = threads.filter((t) => activeTag === "All" || t.tag === activeTag);
+
   const sorted = [...filtered].sort((a, b) => {
     if (sortBy === "new") return (b.created_at || "").localeCompare(a.created_at || "");
     if (sortBy === "top") return (b.upvotes || 0) - (a.upvotes || 0);

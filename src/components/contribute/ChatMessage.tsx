@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ChatMessage as ChatMessageType, QuickReply } from '../../types/contribute';
+import { POIFormInline } from './POIFormInline';
+import { FareFormInline } from './FareFormInline';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -90,6 +92,30 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           <div className="mt-2 text-[16px] text-[#381D65] italic">
             {message.content}
           </div>
+        )}
+
+        {/* POI Form */}
+        {message.type === 'poi_form' && (
+          <POIFormInline
+            onSubmit={(data) => {
+              window.dispatchEvent(new CustomEvent('poi-form-submitted', { detail: data }));
+            }}
+            onCancel={() => {
+              window.dispatchEvent(new CustomEvent('poi-form-cancelled'));
+            }}
+          />
+        )}
+
+        {/* Fare Form */}
+        {message.type === 'fare_form' && (
+          <FareFormInline
+            onSubmit={(amount) => {
+              window.dispatchEvent(new CustomEvent('fare-form-submitted', { detail: { amount } }));
+            }}
+            onCancel={() => {
+              window.dispatchEvent(new CustomEvent('fare-form-cancelled'));
+            }}
+          />
         )}
       </div>
     </motion.div>
