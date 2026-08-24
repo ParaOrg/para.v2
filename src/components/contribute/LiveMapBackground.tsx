@@ -9,6 +9,8 @@ interface LiveMapBackgroundProps {
   commuteState: string;
   currentRouteName: string | null;
   panelHeight?: string;
+  externalPinMode?: boolean;
+  onExternalPinModeChange?: (active: boolean) => void;
 }
 
 const DEFAULT_CENTER: [number, number] = [14.5995, 120.9842];
@@ -19,15 +21,23 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   commuteState,
   currentRouteName,
   panelHeight = '40vh',
+  externalPinMode = false,
+  onExternalPinModeChange,
 }) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.CircleMarker | null>(null);
   const trailLayerRef = useRef<L.Polyline | null>(null);
+  const pinMarkerRef = useRef<L.Marker | null>(null);
+  const pendingPinMarkerRef = useRef<L.Marker | null>(null);
   const [currentPos, setCurrentPos] = useState<[number, number]>(DEFAULT_CENTER);
   const [hasLocation, setHasLocation] = useState(false);
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [mapReady, setMapReady] = useState(false);
   const [pinMode, setPinMode] = useState(false);
+  const pinModeRef = useRef(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const gpsTrailRef = useRef<L.Polyline | null>(null);
+  const gpsTrailPoints = useRef<[number, number][]>([]);
   const [pendingPinLocation, setPendingPinLocation] = useState<[number, number] | null>(null);
   const { location, requestConsentAndLocation } = useTrackingConsent();
 
@@ -41,6 +51,51 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       window.removeEventListener('navbar-toggle', handleNavToggle as EventListener);
     };
   }, []);
+
+  // Listen for activate-pin-mode event from parent
+  useEffect(() => {
+    const handleActivatePinMode = () => {
+      console.log('🟢 LiveMapBackground received activate-pin-mode event');
+      setPinMode(true);
+      pinModeRef.current = true;
+      console.log('🟢 LiveMapBackground internal pinMode set to true (event)');
+    };
+    window.addEventListener('activate-pin-mode', handleActivatePinMode as EventListener);
+    return () => {
+      window.removeEventListener('activate-pin-mode', handleActivatePinMode as EventListener);
+    };
+  }, []);
+
+  // Listen for poi-form-cancelled to remove pin marker
+  useEffect(() => {
+    const handlePoiFormCancelled = () => {
+      console.log('🟢 Removing pin marker due to form cancellation');
+      if (pendingPinMarkerRef.current) {
+        pendingPinMarkerRef.current.remove();
+        pendingPinMarkerRef.current = null;
+      }
+      setPendingPinLocation(null);
+    };
+    window.addEventListener('poi-form-cancelled', handlePoiFormCancelled as EventListener);
+    return () => {
+      window.removeEventListener('poi-form-cancelled', handlePoiFormCancelled as EventListener);
+    };
+  }, []);
+
+  // Sync external pinMode prop with internal state
+  useEffect(() => {
+    console.log('🟢 LiveMapBackground externalPinMode changed:', externalPinMode);
+    if (externalPinMode) {
+      setPinMode(true);
+      pinModeRef.current = true;
+      console.log('🟢 LiveMapBackground internal pinMode set to true');
+    }
+  }, [externalPinMode]);
+
+  // Keep pinModeRef in sync with pinMode state
+  useEffect(() => {
+    pinModeRef.current = pinMode;
+  }, [pinMode]);
 
   // Initialize Leaflet map
   useEffect(() => {
@@ -63,10 +118,32 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
 
     // Handle map click for pin mode
     map.on('click', (e: L.LeafletMouseEvent) => {
-      if (pinMode) {
+      console.log('🟢 Map clicked. pinModeRef:', pinModeRef.current);
+      if (pinModeRef.current) {
         const { lat, lng } = e.latlng;
+        console.log('🟢 Pin mode active! Dropping pin at:', lat, lng);
         setPendingPinLocation([lat, lng]);
         setPinMode(false);
+        pinModeRef.current = false;
+        onExternalPinModeChange?.(false);
+        
+        // Create visual pin marker on map
+        if (pendingPinMarkerRef.current) {
+          pendingPinMarkerRef.current.remove();
+        }
+        const pinIcon = L.divIcon({
+          className: 'pin-marker',
+          html: '<div style="font-size: 36px; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));">📍</div>',
+          iconSize: [36, 36],
+          iconAnchor: [18, 36],
+        });
+        pendingPinMarkerRef.current = L.marker([lat, lng], { icon: pinIcon })
+          .addTo(mapRef.current!)
+          .bindPopup('📍 New Pin Location', { closeButton: true });
+        pendingPinMarkerRef.current.openPopup();
+        
+        console.log('🟢 Visual pin marker added to map');
+        
         // Dispatch custom event for parent to handle
         window.dispatchEvent(new CustomEvent('poi-location-selected', { 
           detail: { lat, lng } 
@@ -109,6 +186,44 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       return () => clearTimeout(timer);
     }
   }, [location]);
+
+  // Timer for tracking
+  useEffect(() => {
+    if (!isTracking) {
+      setElapsedTime(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isTracking]);
+
+  // GPS trail when tracking
+  useEffect(() => {
+    if (!isTracking || !location || !mapRef.current) {
+      if (gpsTrailRef.current) {
+        gpsTrailRef.current.remove();
+        gpsTrailRef.current = null;
+        gpsTrailPoints.current = [];
+      }
+      return;
+    }
+    
+    const newPoint: [number, number] = [location.lat, location.lng];
+    gpsTrailPoints.current = [...gpsTrailPoints.current, newPoint];
+    
+    if (!gpsTrailRef.current && mapRef.current) {
+      gpsTrailRef.current = L.polyline(gpsTrailPoints.current, {
+        color: '#4285F4',
+        weight: 3,
+        opacity: 0.6,
+        dashArray: '5, 5',
+      }).addTo(mapRef.current);
+    } else if (gpsTrailRef.current) {
+      gpsTrailRef.current.setLatLngs(gpsTrailPoints.current);
+    }
+  }, [location, isTracking]);
 
   // GPS marker — only when location is available
   useEffect(() => {
@@ -179,7 +294,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   return (
     <div className="relative w-full h-full">
       {/* Leaflet Map */}
-      <div id="contribute-map" className="absolute inset-0 z-0" style={{ zIndex: 1 }} />
+      <div id="contribute-map" className="absolute inset-0 z-0" style={{ zIndex: 0 }} />
 
       {/* Map Controls — top right */}
       <div className="absolute top-20 right-4 z-[9999] flex flex-col gap-2">
@@ -223,9 +338,22 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
 
 
 
+      {/* Recording Timer Pill */}
+      {isTracking && (
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[9999] bg-red-500 text-white rounded-full px-5 py-2 flex items-center gap-2 shadow-2xl">
+          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+          <span className="font-black text-lg tabular-nums">
+            {Math.floor(elapsedTime / 60)}:{String(elapsedTime % 60).padStart(2, '0')}
+          </span>
+          <span className="text-xs font-bold">
+            {commuteState === 'riding' ? `🚐 ${currentRouteName || 'Riding'}` : '🚶 Walking'}
+          </span>
+        </div>
+      )}
+
       {/* Pin Mode Prompt */}
       {pinMode && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[500] bg-[#7A4BC8] text-white rounded-full px-5 py-3 shadow-lg pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] bg-[#7A4BC8] text-white rounded-full px-5 py-3 shadow-lg pointer-events-none">
           <p className="text-[13px] font-poppins font-medium whitespace-nowrap">
             Click anywhere to add pin
           </p>

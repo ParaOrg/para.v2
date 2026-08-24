@@ -472,6 +472,8 @@ export default function RoutesExplorer() {
                 const name = route.name || route.route_name || "Unknown";
                 const mode = route.mode || route.agency || "";
                 const active = (selected?.route_uuid || selected?.id) === id;
+                const lastUpdated = route.updated_at || route.created_at;
+                const needsUpdate = !lastUpdated || new Date(lastUpdated) < new Date(Date.now() - 90 * 86400000);
                 const isMatched = tab === "reference" || tab === "unverified" ? route.is_matched : route.is_approved;
                 return (
                   <button key={id || name} onClick={() => selectRoute(route)}
@@ -486,7 +488,11 @@ export default function RoutesExplorer() {
                     </span>
                     <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ background: getModeColor(route.mode || "default") }} />
                     <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
                       <p className="text-xs font-semibold truncate text-gray-900">{name}</p>
+                      {needsUpdate && <span className="text-[8px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-bold shrink-0">NEEDS UPDATE</span>}
+                      {lastUpdated && <span className="text-[8px] text-gray-400 shrink-0">Updated: {new Date(lastUpdated).toLocaleDateString()}</span>}
+                    </div>
                       {mode && <p className="text-[10px] text-gray-400 truncate capitalize">{mode}</p>}
                     </div>
                   </button>

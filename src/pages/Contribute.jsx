@@ -4,6 +4,7 @@ import WeatherPage from "../components/WeatherPage";
 import BottomNav from "../components/BottomNav";
 import GpsIcon from "../components/GpsIcon";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
+import ContributeChatPanel from "../components/ContributeChatPanel";
 import { useAuth } from "../context/AuthContext";
 import { apiPost } from "../utils/api";
 import { offlineBuffer } from "../utils/offlineBuffer";
@@ -28,7 +29,57 @@ const POI_TYPES = [
 export default function Contribute() {
   const [showWeather, setShowWeather] = useState(false);
   // Main mode
-  const [mode, setMode] = useState(null); // null | personal | route | poi | upload
+  const [mode, setMode] = useState(null);
+  const [viewMode, setViewMode] = useState("buttons");
+  const [chatInput, setChatInput] = useState("");
+
+  const handleSendMessage = (text) => {
+    if (!text.trim()) return;
+    
+    const userMsg = { id: `user-${Date.now()}`, sender: "user", type: "text", content: text };
+    setMessages(prev => [...prev, userMsg]);
+    
+    // Parse intent
+    const lower = text.toLowerCase();
+    
+    if (/(rain|ulan|flood|baha|weather|panahon)/.test(lower)) {
+      setMessages(prev => [...prev, { id: `bot-${Date.now()}`, sender: "bot", type: "text", content: "Check the weather button on the map for current conditions. Stay safe!" }]);
+    } else if (lower.includes("help")) {
+      setMessages(prev => [...prev, { id: `bot-${Date.now()}`, sender: "bot", type: "text", content: "🚐 Transport modes:\n• jeep | bus | train | uv | trike | angkas | grab\n\n📋 Actions:\n• hop on | hop off | end route | add pin | log fare | my stop | record route | upload" }]);
+    } else if (lower.includes("privacy")) {
+      setMessages(prev => [...prev, { id: `bot-${Date.now()}`, sender: "bot", type: "text", content: "🔒 Your location data is only collected with consent and anonymized for community insights. See full privacy policy: https://www.para-commute.org/privacy-policy" }]);
+    } else if (lower.includes("record route") || lower.includes("track commute")) {
+      setMode("personal_setup");
+      setViewMode("buttons");
+      setMessages(prev => [...prev, { id: `bot-${Date.now()}`, sender: "bot", type: "text", content: "📍 Starting route recording. Tap the GPS button to center the map, then choose your transport mode." }]);
+    } else if (lower.includes("add pin") || lower.includes("poi")) {
+      setMode("poi");
+      setViewMode("buttons");
+      setMessages(prev => [...prev, { id: `bot-${Date.now()}`, sender: "bot", type: "text", content: "📌 POI mode activated. Tap the map to drop a pin." }]);
+    } else if (lower.includes("upload")) {
+      setMode("upload");
+      setViewMode("buttons");
+    } else {
+      setMessages(prev => [...prev, { id: `bot-${Date.now()}`, sender: "bot", type: "text", content: "Got it! Use the buttons above or type help for commands." }]);
+    }
+    
+    setChatInput("");
+  };
+
+  const contextualButtons = (() => {
+    if (!mode) {
+      return [
+        { id: "track-commute", label: "Track Commute", icon: "🚶", action: () => { setMode("personal_setup"); setViewMode("buttons"); } },
+        { id: "record-route", label: "Record Route", icon: "🗺️", action: () => { setMode("personal_setup"); setViewMode("buttons"); } },
+        { id: "add-pin", label: "Add Pin", icon: "📍", action: () => { setMode("poi"); setViewMode("buttons"); } },
+        { id: "upload-file", label: "Upload File", icon: "📁", action: () => { setMode("upload"); setViewMode("buttons"); } },
+      ];
+    }
+    return [];
+  })();
+  const [messages, setMessages] = useState([
+    { id: "msg-1", sender: "bot", type: "text", content: "Welcome to Contribute! Here you can help improve Para PH by sharing your commute data.\n\nYou can either:\n📱 TAP the buttons above\n⌨️ TYPE the equivalent text\n\nTransport modes (type or tap):\n🚐 \"jeep\" | 🚌 \"bus\" | 🚆 \"train\" | 🚐 \"uv\" | 🛺 \"trike\" | 🏍️ \"angkas\" | 🚗 \"grab\"\n\nActions (type or tap):\n\"hop on\" | \"hop off\" | \"end route\" | \"add pin\" | \"log fare\" | \"my stop\" | \"record route\" | \"upload\"\n\nOr just type naturally — \"help\" for emergency.\n\n🔒 Your location data is only collected with consent and anonymized for community insights. Type \"privacy\" for more info.", options: undefined }
+  ]); // null | personal | route | poi | upload
   
   // Personal commute state machine
   const [transitState, setTransitState] = useState("walking"); // walking | riding
@@ -285,6 +336,18 @@ export default function Contribute() {
             <span className="text-xs font-bold">{transitState === "walking" ? "🚶 Walking" : `🚐 ${currentVehicle}`}</span>
           </div>
         )}
+
+        {/* Toggle buttons - aligned with weather at top-4 */}
+        <div className="absolute top-4 left-4 z-[999] flex gap-2">
+          <button onClick={() => setViewMode("buttons")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${viewMode === "buttons" ? "bg-purple-800 text-white" : "bg-white text-gray-500"}`}>
+            Buttons
+          </button>
+          <button onClick={() => setViewMode("chat")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-lg ${viewMode === "chat" ? "bg-purple-800 text-white" : "bg-white text-gray-500"}`}>
+            Chat
+          </button>
+        </div>
 
         <button onClick={() => window.dispatchEvent(new Event("para-show-weather"))}
           className="absolute top-4 right-16 z-[999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center">
@@ -545,6 +608,7 @@ export default function Contribute() {
         )}
       </div>
 
+      {viewMode === "chat" && <ContributeChatPanel messages={messages} onSendMessage={handleSendMessage} contextualButtons={contextualButtons} onQuickReply={(btn) => btn.action && btn.action()} appMode={mode || "idle"} />}
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
       <BottomNav />
     </div>
