@@ -10,7 +10,7 @@ import StravaRouteCard from "../components/StravaRouteCard";
 import WeatherPage from "../components/WeatherPage";
 import GpsIcon from "../components/GpsIcon";
 import CommuteTracker from "../components/CommuteTracker";
-import { getApiBaseUrl } from "../utils/api";
+import { getApiBaseUrl, lambdaRouteSearch } from "../utils/api";
 import { normalizeQuery } from "../utils/queryNormalizer";
 import paralogo from "../assets/images/Para1P.png";
 import GpsPrompt from "../components/GpsPrompt";
@@ -157,7 +157,7 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const LAMBDA_URL = "/api/route-search";
+      const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "/api/route-search";
       console.log('Fetching:', LAMBDA_URL);
       console.log('Body:', body);
       const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

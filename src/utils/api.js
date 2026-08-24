@@ -35,6 +35,25 @@ export function apiPatch(path, body, options) { return request("PATCH", path, bo
 export function apiDelete(path, options) { return request("DELETE", path, null, options); }
 
 // Supabase Edge Functions for migrated CRUD
+// Lambda Route Search URL
+const LAMBDA_ROUTE_SEARCH_URL = import.meta.env.VITE_LAMBDA_URL || "/api/route-search";
+
+export async function lambdaRouteSearch(body, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 15000);
+  try {
+    const res = await fetch(LAMBDA_ROUTE_SEARCH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    return await res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export async function edgePost(functionName, body, options = {}) {
   const SUPABASE_EDGE = "https://tcvomrkytxnetzijwqad.supabase.co/functions/v1";
   const url = `${SUPABASE_EDGE}/${functionName}`;
