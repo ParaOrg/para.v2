@@ -65,23 +65,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     };
   }, []);
 
-  // Track route shape when location updates during drawing
-  useEffect(() => {
-    if (!location || !mapRef.current) return;
-    const isDrawing = window.__isRouteDrawing === true;
-    if (!isDrawing) return;
-    
-    const newPoint: [number, number] = [location.lat, location.lng];
-    setRouteShapePoints(prev => {
-      const updated = [...prev, newPoint];
-      if (!routeShapeRef.current && mapRef.current) {
-        routeShapeRef.current = L.polyline(updated, { color: '#7A4BC8', weight: 4 }).addTo(mapRef.current);
-      } else if (routeShapeRef.current) {
-        routeShapeRef.current.setLatLngs(updated);
-      }
-      return updated;
-    });
-  }, [location]);
+
   const [pendingPinLocation, setPendingPinLocation] = useState<[number, number] | null>(null);
   const { location, requestConsentAndLocation } = useTrackingConsent();
 
