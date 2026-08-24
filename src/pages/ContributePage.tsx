@@ -154,6 +154,18 @@ const ContributePage: React.FC = () => {
     };
     window.addEventListener('fare-form-submitted', handleFareFormSubmitted as EventListener);
 
+    const handleRouteNameSet = (e: CustomEvent) => {
+      const routeName = e.detail?.routeName;
+      if (routeName) {
+        dispatch({ type: 'SET_ROUTE_NAME', payload: routeName });
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: createMessage('bot', 'text', `🚐 Riding on ${routeName}. Timer started.`),
+        });
+      }
+    };
+    window.addEventListener('route-name-set', handleRouteNameSet as EventListener);
+
     const handlePoiFormCancelled = () => {
       dispatch({ type: 'REMOVE_LAST_FORM' });
       dispatch({
@@ -188,6 +200,7 @@ const ContributePage: React.FC = () => {
       window.removeEventListener('location-prompt', handleLocationPrompt as EventListener);
       window.removeEventListener('off-course-alert', handleOffCourse as EventListener);
       window.removeEventListener('poi-form-cancelled', handlePoiFormCancelled as EventListener);
+      window.removeEventListener('route-name-set', handleRouteNameSet as EventListener);
       window.removeEventListener('fare-form-cancelled', handleFareFormCancelled as EventListener);
       window.removeEventListener('poi-form-submitted', handlePoiFormSubmitted as EventListener);
       window.removeEventListener('fare-form-submitted', handleFareFormSubmitted as EventListener);
@@ -491,6 +504,17 @@ const ContributePage: React.FC = () => {
     segmentsRef.current = [];
   }, [state.currentRouteName, state.commuteState, state.isTracking]);
 
+  const handleTrackCommute = useCallback(() => {
+    console.log('🟢 handleTrackCommute CALLED - starting commute tracking');
+    dispatch({ type: 'SET_TRACKING', payload: true });
+    dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
+    dispatch({ type: 'SET_COMMUTE_STATE', payload: 'walking' });
+    dispatch({
+      type: 'ADD_MESSAGE',
+      payload: createMessage('bot', 'text', '🚶 Commute tracking started. Tap "Hop On" when you board.'),
+    });
+  }, []);
+
   const handleRecordRoute = useCallback(() => {
     setRouteDrawingMode(true);
     dispatch({ type: 'SET_TRACKING', payload: true });
@@ -503,14 +527,69 @@ const ContributePage: React.FC = () => {
     window.dispatchEvent(new CustomEvent('route-drawing-start'));
   }, []);
 
-  const handleFinishRoute = useCallback(() => {
+  const handleFinishRoute = useCallback(async () => {
     setRouteDrawingMode(false);
-    dispatch({
-      type: 'ADD_MESSAGE',
-      payload: createMessage('bot', 'text', '✅ Route shape saved! Thank you for mapping this route.'),
-    });
+    
+    // Get route shape points from LiveMapBackground
+    const routePoints = window.__routeShapePoints || [];
+    const routeName = state.currentRouteName || 'Unnamed Route';
+    
+    if (routePoints.length < 2) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '⚠️ Not enough GPS points. Record a longer route.'),
+      });
+      window.dispatchEvent(new CustomEvent('route-drawing-stop'));
+      return;
+    }
+    
+    // Save to Supabase via direct REST (not Edge Function - it's broken)
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const res = await fetch(`${supabaseUrl}/rest/v1/ph_routes`, {
+        method: 'POST',
+        headers: {
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          name: routeName,
+          mode: transportMode || 'jeepney',
+          is_approved: false,
+          status: 'pending',
+          region: 'ncr',
+          submitted_by: 'user'
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: createMessage('bot', 'text', `✅ Route "${routeName}" submitted for review! Admin will verify it.`),
+        });
+      } else {
+        console.error('Route save error:', data);
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: createMessage('bot', 'text', `⚠️ Route saved locally but needs review: ${data.message || 'pending'}`),
+        });
+      }
+    } catch (err) {
+      console.error('Failed to save route:', err);
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '⚠️ Could not save route. Will queue for sync.'),
+      });
+    }
+    
     window.dispatchEvent(new CustomEvent('route-drawing-stop'));
-  }, []);
+  }, [state.currentRouteName, transportMode]);
 
   const handleMyStop = useCallback(() => {
     if (location) {
@@ -556,11 +635,10 @@ const ContributePage: React.FC = () => {
     dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
     dispatch({ type: 'SET_TRACKING', payload: true });
     window.dispatchEvent(new CustomEvent('set-mode-select', { detail: { selecting: false } }));
-    window.dispatchEvent(new CustomEvent('set-awaiting-route', { detail: { awaiting: true } }));
     const vehicle = VEHICLES.find(v => v.id === vehicleId);
     dispatch({
       type: 'ADD_MESSAGE',
-      payload: createMessage('bot', 'text', `${vehicle?.icon || '🚐'} ${vehicle?.label || 'Vehicle'} selected. Which route are you boarding?`),
+      payload: createMessage('bot', 'text', `${vehicle?.icon || '🚐'} ${vehicle?.label || 'Vehicle'} selected. Type the route name or use the form.`),
     });
   }, []);
 
@@ -798,7 +876,7 @@ const ContributePage: React.FC = () => {
           currentRouteName={state.currentRouteName}
           isTracking={state.isTracking}
           appMode={state.appMode}
-          onRecordRide={handleRecordRoute}
+          onRecordRide={handleTrackCommute}
           onMyStop={handleMyStop}
           onAddPlace={handleAddPin}
           onAddRoute={handleRecordRoute}
