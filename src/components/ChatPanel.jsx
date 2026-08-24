@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { getApiBaseUrl, lambdaRouteSearch } from "../utils/api";
 import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
@@ -56,6 +57,7 @@ function SendIcon() {
 }
 
 export default function ChatPanel() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([{ sender: "bot", text: WELCOME_MESSAGE }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -167,6 +169,17 @@ export default function ChatPanel() {
 
       if (data.route_data) {
         setActiveRouteData(data.route_data);
+        // Check for unverified routes in segments
+        const unverifiedSegments = data.route_data.segments?.filter(seg => !seg.is_verified && seg.type === 'transit') || [];
+        if (unverifiedSegments.length > 0) {
+          const routeNames = [...new Set(unverifiedSegments.map(seg => seg.route))];
+          setMessages((prev) => [...prev, {
+            sender: "bot",
+            text: `⚠️ Heads up: ${routeNames.join(', ')} ${routeNames.length === 1 ? 'is' : 'are'} unverified community route${routeNames.length === 1 ? '' : 's'}. Tap below to help verify!`,
+            routeData: null,
+            showVerifyCTA: true,
+          }]);
+        }
         drawRoute(data.route_data);
       }
     } catch {
@@ -210,6 +223,14 @@ export default function ChatPanel() {
                 <div className="max-w-[95%]">
                   {/* Bot text — plain, no bubble */}
                   <div className="text-[16px] leading-[24px] text-[#381D65] whitespace-pre-wrap">
+                    {m.showVerifyCTA && (
+                      <button
+                        onClick={() => navigate("/contribute")}
+                        className="mt-2 px-4 py-2 bg-[#7A4BC8] text-white rounded-full text-[12px] font-bold font-poppins shadow-sm"
+                      >
+                        🔍 Verify Route
+                      </button>
+                    )}
                     {m.sender === "bot" && i === messages.length - 1 && !loading ? (
                       <TypewriterText text={m.text} />
                     ) : (
