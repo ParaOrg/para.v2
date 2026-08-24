@@ -483,7 +483,15 @@ const ContributePage: React.FC = () => {
       }))),
     });
     
-    // Show Strava-style summary
+    // Calculate Biyahe Score
+    const ridingSegments = segments.filter(seg => seg.mode === 'riding');
+    const transferCount = Math.max(0, ridingSegments.length - 1);
+    const waitTimeSec = ridingSegments.length * 5 * 60; // 5 min wait per ride
+    const transferPenaltySec = transferCount * 5 * 60; // 5 min penalty per transfer
+    const totalPenaltySec = waitTimeSec + transferPenaltySec;
+    const biyaheScore = Math.max(10, Math.min(100, Math.round((1 - totalPenaltySec / Math.max(totalDuration + totalPenaltySec, 60)) * 100)));
+
+    // Show Strava-style summary with Biyahe Score
     dispatch({
       type: 'ADD_MESSAGE',
       payload: createMessage('bot', 'strava_summary', '', [{
@@ -491,6 +499,7 @@ const ContributePage: React.FC = () => {
         totalDistanceM: totalDistance,
         totalFare: 0,
         avgSpeedKmh: totalDuration > 0 ? (totalDistance / 1000) / (totalDuration / 3600) : 0,
+        biyaheScore,
         segments: segments.map(seg => ({
           type: seg.mode === 'riding' ? 'riding' : 'walking',
           routeName: seg.routeName || 'Walking',
