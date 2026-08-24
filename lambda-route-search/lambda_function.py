@@ -41,7 +41,9 @@ def load_graph():
     global _graph, _nodes
     if _graph is not None:
         return _graph, _nodes
-    with gzip.open('graph_full.json.gz', 'rt') as f:
+    import os
+    graph_path = os.path.join(os.environ.get('LAMBDA_TASK_ROOT', '/var/task'), 'graph_full.json.gz')
+    with gzip.open(graph_path, 'rt') as f:
         data = json.load(f)
     _graph = data['adj']
     _nodes = data['nodes']
