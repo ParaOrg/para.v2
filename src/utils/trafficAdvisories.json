@@ -93,10 +93,10 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 6:15pm WHEN: August 24, 2026 A. MAJOR ROADS: *EDS",
-      "description": "METROBASE Traffic Update as of 6:15pm WHEN: August 24, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - 5th St. to 8th Ave, moderate to slow moving (due to DPWH EDSA Rehabilitation) - Balintawak to Bansalangi",
-      "updated": "Mon, 24 Aug 2026 10:17:07 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOenJRbzF6VjVaYVRFQkd4UHpFUXlJUk1WVG9VUE4xLWhiMzNPeTcydmktRHNCQk8zTnZ5QTh0Q1I0R3Q3WlI0RUlsWGdjQWdXSlV3TjVncHNEQTRraHBRZDR1R3k5SDRCMGlkRzNTWjBPTEVsS1BzNXpwLUhfalZJaEcxRVpyMWQ1MUdDOGtYWXloaGtxOXJqc2EzZXhfUmRBRzhxUE02UEprVUZJTFU2MFlDaHlFM2JrUVA0bFBpYU9jcHpTWU5VUzZBUGE0cFQ2cEE?oc=5",
+      "title": "METROBASE Traffic Update as of 6:00am WHEN: DATE: 8/24/2026 A. MAJOR ROADS: EDSA",
+      "description": "METROBASE Traffic Update as of 6:00am WHEN: DATE: 8/24/2026 A. MAJOR ROADS: EDSA SB Monte de Piedad light to moderate traffic EDSA Santolan Moderate traffic EDSA SB Ortigas light to moderate traffic E",
+      "updated": "Sun, 23 Aug 2026 22:08:00 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOenVzeEh3Z1NIa3BHc1NiN2J4VjY4WGFfYjQ2X0VGY1ZjVkdHSUl4aHhLN2xtMnM4dEw4SlpaTWdiYXdLV01wTVMxTUcwTkUxWk1FcjZjTTFSZTdtVnRLRkExZkVJOTJYeld3WXh3U0pySF9tNDRjN0I0dVk2NVJUUHZzVnlEQ1FvVDFDR2k3V0RVZWRCbE8yTnd4eWhsZ3N4RHZYLUVrSVU0aTJBczFweEM5aE8yNXVQRng4cmxoUVFNV3NqRV83QkZXcGdWQmhoU3c?oc=5",
       "source_name": "Google News"
     },
     {
@@ -104,13 +104,13 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 6:00am WHEN: DATE: 8/24/2026 A. MAJOR ROADS: EDSA",
-      "description": "METROBASE Traffic Update as of 6:00am WHEN: DATE: 8/24/2026 A. MAJOR ROADS: EDSA SB Monte de Piedad light to moderate traffic EDSA Santolan Moderate traffic EDSA SB Ortigas light to moderate traffic E",
-      "updated": "Sun, 23 Aug 2026 22:08:00 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOenVzeEh3Z1NIa3BHc1NiN2J4VjY4WGFfYjQ2X0VGY1ZjVkdHSUl4aHhLN2xtMnM4dEw4SlpaTWdiYXdLV01wTVMxTUcwTkUxWk1FcjZjTTFSZTdtVnRLRkExZkVJOTJYeld3WXh3U0pySF9tNDRjN0I0dVk2NVJUUHZzVnlEQ1FvVDFDR2k3V0RVZWRCbE8yTnd4eWhsZ3N4RHZYLUVrSVU0aTJBczFweEM5aE8yNXVQRng4cmxoUVFNV3NqRV83QkZXcGdWQmhoU3c?oc=5",
+      "title": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSA - ABS-CBN",
+      "description": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSAABS-CBN",
+      "updated": "Mon, 24 Aug 2026 04:56:00 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxQSXNDS0x3bXNVNXktVVJQc0tmb1RNRlFtcEdQWXhIR1p6MktRR3BIRlNMR2QxM1NBU3lJNFJJVEpwNGQ1NmtxN1FTWFBfdDNqdFhXRjd1ZGxIZXVaM3hWTm5xMWVheGgxRnFvN2tYNHZ4MFVEZkVzbHZDbmk2VEpJNE5FSFZiVUpMM2t0YzVadkZBYVhTa2EzZ3o4Zk80UDREMVBDQ0JvbWIwSzdrS1BSZ0lrZkl2OFR2aXRpTTVB?oc=5",
       "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-24T20:30:03.165306",
+  "scraped_at": "2026-08-24T21:00:02.359526",
   "source": "Google News RSS"
 }
