@@ -5,15 +5,27 @@ import BottomNav from '../components/BottomNav';
 import { LiveMapBackground } from '../components/contribute/LiveMapBackground';
 import { ChatPanel } from '../components/contribute/ChatPanel';
 import { ButtonVersionUI } from '../components/contribute/ButtonVersionUI';
-import ContributeOriginal from './Contribute';
 import { contributeReducer, initialState, createMessage } from '../reducers/contributeReducer';
+import { useTrackingConsent } from '../context/TrackingConsentContext';
 import { QuickReply } from '../types/contribute';
+import { edgePost } from '../utils/api';
+import { offlineBuffer } from '../utils/offlineBuffer';
 
 const MOCK_ROUTES = [
   { id: 'up-ikot', name: 'UP Ikot' },
   { id: 'up-katipunan', name: 'UP Katipunan' },
   { id: 'up-philcoa', name: 'UP Philcoa' },
   { id: 'add-new', name: '+ Add New Route' },
+];
+
+const VEHICLES = [
+  { id: 'jeepney', label: 'Jeep', icon: '🚐' },
+  { id: 'bus', label: 'Bus', icon: '🚌' },
+  { id: 'train', label: 'Train', icon: '🚆' },
+  { id: 'trike', label: 'Trike', icon: '🛺' },
+  { id: 'uv_express', label: 'UV Express', icon: '🚐' },
+  { id: 'grab', label: 'Grab', icon: '🚗' },
+  { id: 'angkas', label: 'Angkas', icon: '🏍️' },
 ];
 
 const ContributePage: React.FC = () => {
@@ -25,18 +37,21 @@ const ContributePage: React.FC = () => {
   const [awaitingFareReport, setAwaitingFareReport] = useState(false);
   const [awaitingRouteSelection, setAwaitingRouteSelection] = useState(false);
   const [routeDrawingMode, setRouteDrawingMode] = useState(false);
+  const [pinMode, setPinMode] = useState(false);
   const [uiVersion, setUiVersion] = useState<'chat' | 'buttons'>('chat');
   const [navbarOpen, setNavbarOpen] = useState(false);
+  const { location, requestConsentAndLocation } = useTrackingConsent();
   const segmentStartTime = useRef<number | null>(null);
   const segmentsRef = useRef<Array<{ mode: string; routeName: string | null; startTime: number; endTime: number | null; durationSec: number | null }>>([]);
 
   useEffect(() => {
     const handlePoiLocation = (e: CustomEvent) => {
       const { lat, lng } = e.detail;
+      window.__lastPinLocation = { lat, lng };
       dispatch({ type: 'ADD_MESSAGE', payload: createMessage('user', 'text', `📍 Pin location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`) });
       dispatch({
         type: 'ADD_MESSAGE',
-        payload: createMessage('bot', 'text', 'What type of pin would you like to add? Select from the buttons above.'),
+        payload: createMessage('bot', 'poi_form', 'Fill in the pin details:'),
       });
     };
     window.addEventListener('poi-location-selected', handlePoiLocation as EventListener);
@@ -59,6 +74,104 @@ const ContributePage: React.FC = () => {
     };
     window.addEventListener('location-prompt', handleLocationPrompt as EventListener);
     
+    const handlePoiFormSubmitted = async (e: CustomEvent) => {
+      const data = e.detail;
+      const pinLocation = window.__lastPinLocation || { lat: null, lng: null };
+      const payload = {
+        ...data,
+        lat: pinLocation.lat,
+        lng: pinLocation.lng,
+        reported_at: new Date().toISOString(),
+      };
+      
+      console.log('🟢 POI form submitted:', payload);
+      
+      if (!navigator.onLine) {
+        await offlineBuffer.addPoi(payload);
+        dispatch({ type: 'REMOVE_LAST_FORM' });
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: createMessage('bot', 'text', `✅ Pin saved offline! Will sync when online.`),
+        });
+      } else {
+        try {
+          await edgePost('poi-add', payload);
+          dispatch({ type: 'REMOVE_LAST_FORM' });
+          dispatch({
+            type: 'ADD_MESSAGE',
+            payload: createMessage('bot', 'text', `✅ Pin saved: ${data.name} (${data.type})`),
+          });
+        } catch (err) {
+          console.error('Failed to save POI:', err);
+          await offlineBuffer.addPoi(payload);
+          dispatch({ type: 'REMOVE_LAST_FORM' });
+          dispatch({
+            type: 'ADD_MESSAGE',
+            payload: createMessage('bot', 'text', '⚠️ Could not save pin online. Queued for sync.'),
+          });
+        }
+      }
+    };
+    window.addEventListener('poi-form-submitted', handlePoiFormSubmitted as EventListener);
+
+    const handleFareFormSubmitted = async (e: CustomEvent) => {
+      const { amount } = e.detail;
+      const payload = {
+        fare_amount: amount,
+        mode: 'transit',
+        route_name: state.currentRouteName || 'Personal Route',
+        city: 'Metro Manila',
+        reported_at: new Date().toISOString(),
+      };
+      
+      console.log('🟢 Fare form submitted:', payload);
+      
+      if (!navigator.onLine) {
+        await offlineBuffer.addFareReport(payload);
+        dispatch({ type: 'REMOVE_LAST_FORM' });
+        dispatch({
+          type: 'ADD_MESSAGE',
+          payload: createMessage('bot', 'text', `✅ Fare ₱${amount} saved offline! Will sync when online.`),
+        });
+      } else {
+        try {
+          await edgePost('fare-report', payload);
+          dispatch({ type: 'REMOVE_LAST_FORM' });
+          dispatch({
+            type: 'ADD_MESSAGE',
+            payload: createMessage('bot', 'text', `✅ Fare ₱${amount} recorded. Thank you!`),
+          });
+        } catch (err) {
+          console.error('Failed to save fare:', err);
+          await offlineBuffer.addFareReport(payload);
+          dispatch({ type: 'REMOVE_LAST_FORM' });
+          dispatch({
+            type: 'ADD_MESSAGE',
+            payload: createMessage('bot', 'text', '⚠️ Could not save fare online. Queued for sync.'),
+          });
+        }
+      }
+    };
+    window.addEventListener('fare-form-submitted', handleFareFormSubmitted as EventListener);
+
+    const handlePoiFormCancelled = () => {
+      dispatch({ type: 'REMOVE_LAST_FORM' });
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', 'Pin cancelled.'),
+      });
+    };
+    window.addEventListener('poi-form-cancelled', handlePoiFormCancelled as EventListener);
+
+    const handleFareFormCancelled = () => {
+      dispatch({ type: 'REMOVE_LAST_FORM' });
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', 'Fare report cancelled.'),
+      });
+    };
+    window.addEventListener('fare-form-cancelled', handleFareFormCancelled as EventListener);
+
     const handleOffCourse = (e: CustomEvent) => {
       const { deviation, routeName } = e.detail;
       dispatch({
@@ -74,6 +187,10 @@ const ContributePage: React.FC = () => {
       window.removeEventListener('set-fare-report', handleAwaitingFare as EventListener);
       window.removeEventListener('location-prompt', handleLocationPrompt as EventListener);
       window.removeEventListener('off-course-alert', handleOffCourse as EventListener);
+      window.removeEventListener('poi-form-cancelled', handlePoiFormCancelled as EventListener);
+      window.removeEventListener('fare-form-cancelled', handleFareFormCancelled as EventListener);
+      window.removeEventListener('poi-form-submitted', handlePoiFormSubmitted as EventListener);
+      window.removeEventListener('fare-form-submitted', handleFareFormSubmitted as EventListener);
     };
   }, []);
 
@@ -137,26 +254,11 @@ const ContributePage: React.FC = () => {
         break;
 
       case 'poi-business':
-        dispatch({ type: 'SET_POI_TYPE', payload: 'business' });
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: createMessage('bot', 'inline_form', 'What type of business is this? (e.g., Lugawan, Sari-sari store, Cafe, Pharmacy)'),
-        });
-        break;
-
       case 'poi-landmark':
-        dispatch({ type: 'SET_POI_TYPE', payload: 'landmark' });
-        dispatch({
-          type: 'ADD_MESSAGE',
-          payload: createMessage('bot', 'inline_form', 'Optional: Add an image URL for this landmark (direct link ending in .jpg/.png)'),
-        });
-        break;
-
       case 'poi-amenity':
-        dispatch({ type: 'SET_POI_TYPE', payload: 'amenity' });
         dispatch({
           type: 'ADD_MESSAGE',
-          payload: createMessage('bot', 'inline_form', 'Optional: Add an image URL for this amenity (direct link ending in .jpg/.png)'),
+          payload: createMessage('bot', 'poi_form', 'Fill in the pin details:'),
         });
         break;
 
@@ -248,6 +350,7 @@ const ContributePage: React.FC = () => {
         break;
 
       case 'add-pin':
+      case 'add-poi':
         handleAddPin();
         break;
 
@@ -284,11 +387,11 @@ const ContributePage: React.FC = () => {
 
   const handleHopOn = useCallback(() => {
     dispatch({ type: 'SET_TRACKING', payload: true });
+    dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
     dispatch({
       type: 'ADD_MESSAGE',
       payload: createMessage('bot', 'text', 'Which route are you boarding? Select from the buttons above.'),
     });
-    window.dispatchEvent(new CustomEvent('set-awaiting-route', { detail: { awaiting: true } }));
     window.dispatchEvent(new CustomEvent('set-awaiting-route', { detail: { awaiting: true } }));
   }, []);
 
@@ -340,17 +443,12 @@ const ContributePage: React.FC = () => {
       segmentStartTime.current = null;
     }
 
-    // Build summary
+    // Build segments
     const segments = segmentsRef.current;
     const totalDuration = segments.reduce((sum, seg) => sum + (seg.durationSec || 0), 0);
-    const summary = segments.map((seg, i) => 
-      `${i + 1}. ${seg.mode === 'riding' ? '🚐' : '🚶'} ${seg.routeName || 'Walking'} — ${seg.durationSec}s`
-    ).join('\n');
+    const totalDistance = 0; // TODO: Calculate from GPS points
 
     console.log('Saving commute payload...', {
-      routeName: state.currentRouteName,
-      commuteState: state.commuteState,
-      isTracking: state.isTracking,
       segments,
       totalDurationSec: totalDuration,
       timestamp: new Date().toISOString(),
@@ -361,9 +459,32 @@ const ContributePage: React.FC = () => {
     dispatch({ type: 'SET_ROUTE_NAME', payload: null });
     dispatch({ type: 'SET_APP_MODE', payload: 'idle' });
     
+    // Show segment timeline
     dispatch({
       type: 'ADD_MESSAGE',
-      payload: createMessage('bot', 'text', `Trip saved!\n\nSegment breakdown:\n${summary}\n\nTotal duration: ${totalDuration}s\n\nThank you for contributing to Para PH! 🎉`),
+      payload: createMessage('bot', 'segment_timeline', '', segments.map(seg => ({
+        type: seg.mode === 'riding' ? 'riding' : 'walking',
+        routeName: seg.routeName || 'Walking',
+        durationSec: seg.durationSec || 0,
+        startTime: seg.startTime,
+      }))),
+    });
+    
+    // Show Strava-style summary
+    dispatch({
+      type: 'ADD_MESSAGE',
+      payload: createMessage('bot', 'strava_summary', '', [{
+        totalTimeSec: totalDuration,
+        totalDistanceM: totalDistance,
+        totalFare: 0,
+        avgSpeedKmh: totalDuration > 0 ? (totalDistance / 1000) / (totalDuration / 3600) : 0,
+        segments: segments.map(seg => ({
+          type: seg.mode === 'riding' ? 'riding' : 'walking',
+          routeName: seg.routeName || 'Walking',
+          durationSec: seg.durationSec || 0,
+          distanceM: 0,
+        })),
+      }]),
     });
     
     // Reset segments
@@ -372,6 +493,9 @@ const ContributePage: React.FC = () => {
 
   const handleRecordRoute = useCallback(() => {
     setRouteDrawingMode(true);
+    dispatch({ type: 'SET_TRACKING', payload: true });
+    dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
+    dispatch({ type: 'SET_COMMUTE_STATE', payload: 'walking' });
     dispatch({
       type: 'ADD_MESSAGE',
       payload: createMessage('bot', 'text', '🗺️ Route recording started. Walk or ride the route. Type "finish route" when done.'),
@@ -403,21 +527,40 @@ const ContributePage: React.FC = () => {
       }));
     } else {
       requestConsentAndLocation();
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '📍 Please allow location access to mark your stop. Tap the GPS button.'),
+      });
     }
-  }, [location]);
+  }, [location, requestConsentAndLocation]);
 
   const handleStandaloneFare = useCallback(() => {
     dispatch({
       type: 'ADD_MESSAGE',
-      payload: createMessage('bot', 'text', 'How much was the fare? Type the amount or select from buttons.'),
+      payload: createMessage('bot', 'fare_form', 'Enter fare amount:'),
     });
-    window.dispatchEvent(new CustomEvent('set-fare-report', { detail: { awaiting: true } }));
   }, []);
 
   const handleAddPin = useCallback(() => {
+    setPinMode(true);
+    window.dispatchEvent(new CustomEvent('activate-pin-mode'));
     dispatch({
       type: 'ADD_MESSAGE',
-      payload: createMessage('bot', 'text', 'What type of pin would you like to add? Select from the buttons above.'),
+      payload: createMessage('bot', 'text', '📍 Tap the map to drop a pin.'),
+    });
+  }, []);
+
+  const handleSelectVehicle = useCallback((vehicleId: string) => {
+    setTransportMode(vehicleId);
+    dispatch({ type: 'SET_COMMUTE_STATE', payload: 'riding' });
+    dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
+    dispatch({ type: 'SET_TRACKING', payload: true });
+    window.dispatchEvent(new CustomEvent('set-mode-select', { detail: { selecting: false } }));
+    window.dispatchEvent(new CustomEvent('set-awaiting-route', { detail: { awaiting: true } }));
+    const vehicle = VEHICLES.find(v => v.id === vehicleId);
+    dispatch({
+      type: 'ADD_MESSAGE',
+      payload: createMessage('bot', 'text', `${vehicle?.icon || '🚐'} ${vehicle?.label || 'Vehicle'} selected. Which route are you boarding?`),
     });
   }, []);
 
@@ -601,7 +744,10 @@ const ContributePage: React.FC = () => {
       {!navbarOpen && (
       <div className="fixed top-20 left-4 z-[5000] flex items-center gap-1 bg-white rounded-full shadow-lg px-2 py-1">
         <button
-          onClick={() => setUiVersion('chat')}
+          onClick={() => {
+            console.log('🟢 Toggle Chat clicked');
+            setUiVersion('chat');
+          }}
           className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
             uiVersion === 'chat' ? 'bg-[#7A4BC8] text-white' : 'bg-gray-100 text-gray-500'
           }`}
@@ -609,7 +755,10 @@ const ContributePage: React.FC = () => {
           Chat
         </button>
         <button
-          onClick={() => setUiVersion('buttons')}
+          onClick={() => {
+            console.log('🟢 Toggle Buttons clicked');
+            setUiVersion('buttons');
+          }}
           className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
             uiVersion === 'buttons' ? 'bg-[#7A4BC8] text-white' : 'bg-gray-100 text-gray-500'
           }`}
@@ -626,6 +775,8 @@ const ContributePage: React.FC = () => {
           commuteState={state.commuteState}
           currentRouteName={state.currentRouteName}
           panelHeight={uiVersion === 'chat' ? '40vh' : '230px'}
+          externalPinMode={pinMode}
+          onExternalPinModeChange={setPinMode}
         />
       </div>
 
@@ -641,7 +792,22 @@ const ContributePage: React.FC = () => {
           onSendMessage={handleSendMessage}
         />
       ) : (
-        <ContributeOriginal />
+        <ButtonVersionUI
+          commuteState={state.commuteState}
+          transportMode={transportMode}
+          currentRouteName={state.currentRouteName}
+          isTracking={state.isTracking}
+          appMode={state.appMode}
+          onRecordRide={handleRecordRoute}
+          onMyStop={handleMyStop}
+          onAddPlace={handleAddPin}
+          onAddRoute={handleRecordRoute}
+          onHopOn={handleHopOn}
+          onHopOff={handleHopOff}
+          onEndRoute={handleEndRoute}
+          onReportFare={handleStandaloneFare}
+          onSelectVehicle={handleSelectVehicle}
+        />
       )}
 
       {/* Bottom Navigation */}
