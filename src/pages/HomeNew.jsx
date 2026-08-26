@@ -158,13 +158,11 @@ export default function HomeNew() {
     const { normalized } = normalizeQuery(text, gpsLoc ? { lat: gpsLoc[0], lng: gpsLoc[1] } : null);
     
     // ENHANCED: Use NLP preferences to modify the search
-    // Replace "here" with actual coordinates
-    let finalNormalized = normalized;
-    if (gpsLoc && /\bhere\b/i.test(finalNormalized)) {
-      finalNormalized = finalNormalized.replace(/\bhere\b/gi, `${gpsLoc[0]},${gpsLoc[1]}`);
+    // Keep message clean - Lambda uses user_location for "here"
+    let backendMessage = normalized;
+    if (needsGPS && gpsLoc) {
+      backendMessage = `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}`;
     }
-    
-    let backendMessage = needsGPS ? `from ${gpsLoc[0]},${gpsLoc[1]} to ${finalNormalized.replace(/^(to |papunta |punta )/i, "")}` : finalNormalized;
     
     // Append preferences to the message so Lambda can use them
     if (preferences.avoid_modes.length > 0) {
