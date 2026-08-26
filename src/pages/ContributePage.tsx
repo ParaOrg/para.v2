@@ -7,10 +7,13 @@ import { ChatPanel } from '../components/contribute/ChatPanel';
 import { ButtonVersionUI } from '../components/contribute/ButtonVersionUI';
 import { contributeReducer, initialState, createMessage } from '../reducers/contributeReducer';
 import { useTrackingConsent } from '../context/TrackingConsentContext';
+import { useAuth } from '../context/AuthContext';
 import { QuickReply } from '../types/contribute';
 import { edgePost } from '../utils/api';
 import { offlineBuffer } from '../utils/offlineBuffer';
+import SuccessModal from '../components/SuccessModal';
 import { fetchWeather, getWeatherPenalty, isFloodZone } from '../utils/weather';
+import { getGuestUuid, addPendingContribution } from '../utils/guestLink';
 
 const MOCK_ROUTES = [
   { id: 'up-ikot', name: 'UP Ikot' },
@@ -39,9 +42,14 @@ const ContributePage: React.FC = () => {
   const [awaitingRouteSelection, setAwaitingRouteSelection] = useState(false);
   const [routeDrawingMode, setRouteDrawingMode] = useState(false);
   const [pinMode, setPinMode] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [saving, setSaving] = useState(false);
   const [uiVersion, setUiVersion] = useState<'chat' | 'buttons'>('chat');
   const [navbarOpen, setNavbarOpen] = useState(false);
   const { location, requestConsentAndLocation } = useTrackingConsent();
+  const { user, isLoggedIn } = useAuth();
   const segmentStartTime = useRef<number | null>(null);
   const segmentsRef = useRef<Array<{ mode: string; routeName: string | null; startTime: number; endTime: number | null; durationSec: number | null; weather?: any }>>([]);
 
@@ -87,6 +95,11 @@ const ContributePage: React.FC = () => {
       
       console.log('🟢 POI form submitted:', payload);
       
+      // Track for guest claiming
+      if (!isLoggedIn) {
+        addPendingContribution({ type: 'poi', payload });
+      }
+      
       if (!navigator.onLine) {
         await offlineBuffer.addPoi(payload);
         dispatch({ type: 'REMOVE_LAST_FORM' });
@@ -126,6 +139,11 @@ const ContributePage: React.FC = () => {
       };
       
       console.log('🟢 Fare form submitted:', payload);
+      
+      // Track for guest claiming
+      if (!isLoggedIn) {
+        addPendingContribution({ type: 'fare', payload });
+      }
       
       if (!navigator.onLine) {
         await offlineBuffer.addFareReport(payload);
@@ -399,6 +417,23 @@ const ContributePage: React.FC = () => {
     });
   }, []);
 
+  const handlePause = useCallback(() => {
+    setIsPaused(!isPaused);
+    if (!isPaused) {
+      dispatch({ type: 'SET_TRACKING', payload: false });
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '⏸️ Commute paused. Timer stopped.'),
+      });
+    } else {
+      dispatch({ type: 'SET_TRACKING', payload: true });
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '▶️ Commute resumed. Timer restarted.'),
+      });
+    }
+  }, [isPaused]);
+
   const handleHopOn = useCallback(async () => {
     // Fetch weather at segment start
     if (location) {
@@ -513,6 +548,30 @@ const ContributePage: React.FC = () => {
     const totalPenaltySec = waitTimeSec + transferPenaltySec;
     const biyaheScore = Math.max(10, Math.min(100, Math.round((1 - totalPenaltySec / Math.max(totalDuration + totalPenaltySec, 60) - weatherPenalty) * 100)));
 
+    // Optimistic UI - show success immediately
+    setSuccessMessage('Commute Saved!');
+    setShowSuccess(true);
+
+    // Save to Supabase via commute-save Edge Function
+    const commutePayload = {
+      route_name: state.currentRouteName || 'Personal Commute',
+      total_time_sec: totalDuration,
+      distance_m: totalDistance,
+      gps_points: segments.map(seg => seg.gpsPoints || []).flat(),
+      segments: segments,
+      user_id: user?.id || null,
+      submitted_by: user?.email || 'guest',
+    };
+
+    try {
+      const res = await edgePost('commute-save', commutePayload);
+      console.log('✅ Commute saved:', res);
+    } catch (err) {
+      console.error('❌ Failed to save commute:', err);
+      await offlineBuffer.addCommute(commutePayload);
+      console.log('📦 Queued in offline buffer');
+    }
+
     // Show Strava-style summary with Biyahe Score
     dispatch({
       type: 'ADD_MESSAGE',
@@ -537,6 +596,20 @@ const ContributePage: React.FC = () => {
 
   const handleTrackCommute = useCallback(() => {
     console.log('🟢 handleTrackCommute CALLED - starting commute tracking');
+    
+    // Show offline/background warning
+    if (!navigator.onLine) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '⚠️ You are offline. GPS points will be queued and synced when online.'),
+      });
+    }
+    
+    dispatch({
+      type: 'ADD_MESSAGE',
+      payload: createMessage('bot', 'text', '📱 Keep this app open for accurate tracking. Minimizing may pause GPS.'),
+    });
+    
     dispatch({ type: 'SET_TRACKING', payload: true });
     dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
     dispatch({ type: 'SET_COMMUTE_STATE', payload: 'walking' });
@@ -584,6 +657,11 @@ const ContributePage: React.FC = () => {
       region: null,  // Will be derived from GPS location
     };
     
+    // Track as pending contribution for later claiming
+    if (!isLoggedIn) {
+      addPendingContribution({ type: 'route', payload: routePayload });
+    }
+
     // Queue in offline buffer regardless
     await offlineBuffer.enqueue({
       type: 'route-save',
@@ -594,7 +672,15 @@ const ContributePage: React.FC = () => {
     // Try Edge Function (needs DB_SERVICE_KEY set in Supabase Dashboard)
     try {
       const res = await edgePost('route-save', routePayload);
-      if (res.success) {
+      // Optimistic UI - show success immediately with auth state
+    if (isLoggedIn && user?.email) {
+      setSuccessMessage('Route Saved!');
+    } else {
+      setSuccessMessage('Route Saved as Guest!');
+    }
+    setShowSuccess(true);
+
+    if (res.success) {
         dispatch({
           type: 'ADD_MESSAGE',
           payload: createMessage('bot', 'text', `✅ Route "${routeName}" submitted for review!`),
@@ -914,6 +1000,12 @@ const ContributePage: React.FC = () => {
       )}
 
       {/* Bottom Navigation */}
+      <SuccessModal
+        show={showSuccess}
+        message={successMessage}
+        subtitle="Your contribution helps the community!"
+        onClose={() => setShowSuccess(false)}
+      />
       <BottomNav />
     </div>
   );

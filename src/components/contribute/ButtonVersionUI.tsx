@@ -46,6 +46,16 @@ export const ButtonVersionUI: React.FC<ButtonVersionUIProps> = ({
   onSelectVehicle,
 }) => {
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
+  const [savingAction, setSavingAction] = useState<string | null>(null);
+
+  const handleAction = (action: string, callback: () => void) => {
+    if (savingAction) return;
+    setSavingAction(action);
+    setTimeout(() => {
+      callback();
+      setSavingAction(null);
+    }, 300);
+  };
   const [allRoutes, setAllRoutes] = useState<string[]>([]);
   const [routeSuggestions, setRouteSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);

@@ -1,5 +1,5 @@
 export type AppMode = 'idle' | 'tracking' | 'recording' | 'uploading';
-export type CommuteState = 'walking' | 'riding';
+export type CommuteState = 'walking' | 'riding' | 'waiting' | 'paused';
 export type MessageSender = 'bot' | 'user';
 export type MessageType = 'text' | 'quick_replies' | 'inline_form' | 'route_recording' | 'stop_autofill' | 'strava_summary' | 'segment_timeline' | 'poi_form' | 'fare_form';
 

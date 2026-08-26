@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { getApiBaseUrl } from "../utils/api";
+import { claimContributions, getPendingContributions } from "../utils/guestLink";
 
 const AuthContext = createContext(null);
 const USER_KEY = "para_auth_user_v1";
@@ -13,97 +14,90 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check existing session
     const storedUser = safeParse(localStorage.getItem(USER_KEY));
-    if (storedUser && storedUser.email) {
-      fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: storedUser.email }),
-      })
-        .then(r => r.json())
-        .then(d => {
-          if (d.user) {
-            const updated = { ...storedUser, ...(d.user.role ? { role: d.user.role } : {}) };
-            localStorage.setItem(USER_KEY, JSON.stringify(updated));
-            setUser(updated);
-          }
-        })
-        .catch(() => {});
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedUser && storedToken) {
+      setUser(storedUser);
     }
     setLoading(false);
   }, []);
 
   const login = useCallback(async (email) => {
-    const normalizedEmail = String(email || "").trim().toLowerCase();
-    if (!normalizedEmail) throw new Error("Email is required");
-
     const res = await fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalizedEmail }),
+      body: JSON.stringify({ email }),
     });
-
-    if (!res.ok) throw new Error("Sign in failed");
     const data = await res.json();
-
-    if (data.status === "error") throw new Error(data.message || "Sign in failed");
-
-    const userData = data.user || { email: normalizedEmail, name: normalizedEmail.split("@")[0] };
-    // Always trust backend role — it's the source of truth
-    if (data.user?.role) userData.role = data.user.role;
-    if (!userData.role) userData.role = null;
-    try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
-    setUser(userData);
+    
+    if (data.user) {
+      setUser(data.user);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      
+      // Claim guest contributions
+      try {
+        const pendingCount = getPendingContributions().length;
+        if (pendingCount > 0 && data.user?.id) {
+          await claimContributions(data.user.id, data.user.email || email);
+        }
+      } catch {}
+    }
+    
     return data;
   }, []);
 
   const signup = useCallback(async (email, name) => {
-    const normalizedEmail = String(email || "").trim().toLowerCase();
-    if (!normalizedEmail) throw new Error("Email is required");
-
     const res = await fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: normalizedEmail, name: name || normalizedEmail.split("@")[0] }),
+      body: JSON.stringify({ email, name }),
     });
-
-    if (!res.ok) throw new Error("Sign up failed");
     const data = await res.json();
-
-    if (data.status === "error") throw new Error(data.message || "Sign up failed");
-
-    const userData = data.user || { email: normalizedEmail, name };
-    try { localStorage.setItem(USER_KEY, JSON.stringify(userData)); } catch {}
-    setUser(userData);
+    
+    if (data.user) {
+      setUser(data.user);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      
+      // Claim guest contributions after signup
+      try {
+        const pendingCount = getPendingContributions().length;
+        if (pendingCount > 0 && data.user?.id) {
+          await claimContributions(data.user.id, data.user.email || email);
+        }
+      } catch {}
+    }
+    
     return data;
   }, []);
 
   const loginWithCustomToken = useCallback(async (customToken) => {
-    // Backend doesn't have custom tokens — treat as email login
     return login(customToken);
   }, [login]);
 
   const logout = useCallback(() => {
-    try { localStorage.removeItem(USER_KEY); localStorage.removeItem(TOKEN_KEY); } catch {}
     setUser(null);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   }, []);
 
-  const isAuthenticated = Boolean(user);
-  const isGuest = !user;
-  const checkPermission = useCallback((level) => {
-    if (level === "admin") return user?.role === "admin" || user?.role === "founder";
-    return isAuthenticated;
-  }, [user, isAuthenticated]);
+  const checkPermission = useCallback((requiredPermission) => {
+    if (!user) return false;
+    return true;
+  }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, isAuthenticated, isGuest, login, signup, logout, checkPermission, loginWithCustomToken }}>
+    <AuthContext.Provider value={{ 
+      user, setUser, loading, 
+      isAuthenticated: !!user, 
+      isGuest: !user,
+      login, signup, logout, checkPermission, loginWithCustomToken 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
-  return context;
+  return useContext(AuthContext);
 }
