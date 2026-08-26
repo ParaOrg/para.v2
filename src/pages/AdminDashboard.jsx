@@ -5,6 +5,7 @@
  *   Approvals — review pending community submissions
  */
 
+import SystemHealthCheck from '../components/SystemHealthCheck';
 import { useState, useEffect, useRef, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -34,6 +35,7 @@ const TABS = [
   { id: "doctor", label: "🩺 Route Doctor" },
   { id: "inspector", label: "🔍 Inspector" },
   { id: "approvals", label: "📋 Approvals" },
+  { id: "health", label: "🔧 Health" },
 ];
 
 export default function AdminDashboard() {
@@ -90,6 +92,7 @@ export default function AdminDashboard() {
         {tab === "doctor" && <RouteDoctorTab key="doctor" />}
         {tab === "inspector" && <InspectorTab key="inspector" />}
         {tab === "approvals" && <ApprovalsTab key="approvals" />}
+        {tab === "health" && <SystemHealthCheck key="health" />}
       </div>
     </div>
   );
