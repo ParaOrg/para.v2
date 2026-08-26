@@ -252,6 +252,12 @@ def lambda_handler(event, context):
             body = event
         
         message = body.get('message', '')
+        
+        # Handle "here" keyword - replace with user_location
+        if 'here' in message.lower() and body.get('user_location'):
+            user_loc = body['user_location']
+            message = message.lower().replace('here', f"{user_loc.get('lat')},{user_loc.get('lng')}")
+            print(f"Converted 'here' to coordinates: {message}")
         user_location = body.get('user_location', {})
         
         adj, nodes = load_graph()
