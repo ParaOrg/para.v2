@@ -162,7 +162,7 @@ export default function RoutesExplorer() {
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
     const map = L.map(mapRef.current, { zoomControl: false, attributionControl: false }).setView(CENTER, 12);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(map);
     L.control.zoom({ position: "bottomright" }).addTo(map);
     layerRef.current = L.layerGroup().addTo(map);
     mapInst.current = map;
