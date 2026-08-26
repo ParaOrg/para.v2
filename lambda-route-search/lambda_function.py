@@ -54,6 +54,22 @@ def haversine(lat1, lon1, lat2, lon2):
     a = math.sin(dLat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2)**2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 1000
 
+def find_rail_station(place_name, nodes):
+    """Search rail stations by name in the graph nodes."""
+    place_lower = place_name.lower().strip()
+    matches = []
+    
+    for node_id, coords in nodes.items():
+        if node_id.startswith('rail::'):
+            # Format: rail::StationName::lat_lng
+            parts = node_id.split('::')
+            if len(parts) >= 2:
+                station_name = parts[1].lower()
+                if place_lower in station_name or station_name in place_lower:
+                    matches.append(node_id)
+    
+    return matches[0] if matches else None
+
 def find_nearest_node(lat, lon, nodes):
     nearest = None
     min_dist = float('inf')
@@ -291,8 +307,8 @@ def lambda_handler(event, context):
         if origin_lat is None or dest_lat is None:
             return error_response(f'Could not find: {message}')
         
-        start = find_nearest_node(origin_lat, origin_lng, nodes)
-        end = find_nearest_node(dest_lat, dest_lng, nodes)
+        start = find_rail_station(origin_name, nodes) or find_nearest_node(origin_lat, origin_lng, nodes)
+        end = find_rail_station(dest_name, nodes) or find_nearest_node(dest_lat, dest_lng, nodes)
         
         if not start or not end:
             return error_response('Could not find route nodes')
