@@ -1,5 +1,11 @@
 {
+  "functions": {
+    "api/route-search.js": {
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
+    { "source": "/api/route-search", "destination": "/api/route-search" },
     { "source": "/((?!assets|api|sw.js|manifest.json|favicon).*)", "destination": "/index.html" }
   ]
 }
