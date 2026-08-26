@@ -26,6 +26,11 @@ KNOWN_PLACES = {
     'ust': ('UST', 14.6101, 120.9894),
     'katipunan': ('Katipunan', 14.6225, 121.0785),
     'moa': ('SM MOA', 14.5351, 120.9820),
+    'sm mall of asia': ('SM MOA', 14.5351, 120.9820),
+    'mall of asia': ('SM MOA', 14.5351, 120.9820),
+    'sm moa': ('SM MOA', 14.5351, 120.9820),
+    'sm mall of asia': ('SM MOA', 14.5351, 120.9820),
+    'mall of asia': ('SM MOA', 14.5351, 120.9820),
     'sm moa': ('SM MOA', 14.5351, 120.9820),
     'sm north': ('SM North', 14.6568, 121.0364),
     'monumento': ('Monumento', 14.6544, 120.9842),
@@ -252,6 +257,12 @@ def lambda_handler(event, context):
             body = event
         
         message = body.get('message', '')
+        user_location = body.get('user_location', {})
+        
+        # Handle "here" keyword - use user_location
+        if 'here' in message.lower() and user_location:
+            message = message.lower().replace('here', f"{user_location.get('lat')},{user_location.get('lng')}")
+            print(f"Converted 'here' to coordinates: {message}")
         
         # Handle "here" keyword - replace with user_location
         if 'here' in message.lower() and body.get('user_location'):
