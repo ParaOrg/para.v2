@@ -186,7 +186,7 @@ export default function HomeNew() {
       backendMessage += ' | weather_aware';
     }
     
-    const body = { user_id: "guest", message: backendMessage, preferences };
+    const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
       const LAMBDA_URL = "/api/route-search";
