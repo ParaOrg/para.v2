@@ -136,7 +136,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       attributionControl: false,
     });
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
 
