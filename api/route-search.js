@@ -1,12 +1,15 @@
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
 const lambdaClient = new LambdaClient({
-  region: "ap-southeast-2",
+  region: process.env.AWS_REGION || "ap-southeast-2",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
   },
+  requestTimeout: 25000, // 25 second timeout for Lambda cold start
 });
+
+export const maxDuration = 30; // Vercel max duration in seconds
 
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
