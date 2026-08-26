@@ -6,10 +6,10 @@ const lambdaClient = new LambdaClient({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
   },
-  requestTimeout: 25000, // 25 second timeout for Lambda cold start
+  requestTimeout: 25000,
 });
 
-export const maxDuration = 30; // Vercel max duration in seconds
+export const maxDuration = 30;
 
 export default async function handler(req, res) {
   if (req.method === "OPTIONS") {
@@ -32,6 +32,7 @@ export default async function handler(req, res) {
     res.setHeader("Access-Control-Allow-Origin", "*");
     return res.status(200).json(lambdaBody);
   } catch (error) {
+    console.error("Lambda proxy error:", error);
     res.setHeader("Access-Control-Allow-Origin", "*");
     return res.status(500).json({ error: error.message });
   }
