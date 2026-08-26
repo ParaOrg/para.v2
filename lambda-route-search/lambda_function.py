@@ -27,17 +27,6 @@ KNOWN_PLACES = {
     'katipunan': ('Katipunan', 14.6225, 121.0785),
     'moa': ('SM MOA', 14.5351, 120.9820),
     'sm moa': ('SM MOA', 14.5351, 120.9820),
-    'sm mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'sm moa': ('SM MOA', 14.5351, 120.9820),
-    'sm mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'sm mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'sm moa': ('SM MOA', 14.5351, 120.9820),
-    'sm mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'mall of asia': ('SM MOA', 14.5351, 120.9820),
-    'sm moa': ('SM MOA', 14.5351, 120.9820),
     'sm north': ('SM North', 14.6568, 121.0364),
     'monumento': ('Monumento', 14.6544, 120.9842),
     'baclaran': ('Baclaran', 14.5378, 120.9910),
@@ -64,22 +53,6 @@ def haversine(lat1, lon1, lat2, lon2):
     dLon = math.radians(lon2 - lon1)
     a = math.sin(dLat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2)**2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a)) * 1000
-
-def find_rail_station(place_name, nodes):
-    """Search rail stations by name in the graph nodes."""
-    place_lower = place_name.lower().strip()
-    matches = []
-    
-    for node_id, coords in nodes.items():
-        if node_id.startswith('rail::'):
-            # Format: rail::StationName::lat_lng
-            parts = node_id.split('::')
-            if len(parts) >= 2:
-                station_name = parts[1].lower()
-                if place_lower in station_name or station_name in place_lower:
-                    matches.append(node_id)
-    
-    return matches[0] if matches else None
 
 def find_nearest_node(lat, lon, nodes):
     nearest = None
@@ -219,23 +192,6 @@ def seg_fare(seg):
         return 20.0
 
 def error_response(message):
-    # Add walk segment for first mile
-    if final_segments and user_location and user_location.get('lat'):
-        first_geom = final_segments[0].get('geometry', [])
-        if first_geom:
-            first_point = first_geom[0]
-            dist = haversine(user_location['lat'], user_location['lng'], first_point[0], first_point[1])
-            if dist > 20:
-                final_segments.insert(0, {
-                    'route': 'Walk to stop',
-                    'mode': 'walk',
-                    'distance_km': round(dist / 1000, 2),
-                    'time_min': round(dist / 80, 1),
-                    'geometry': [[user_location['lat'], user_location['lng']], first_point],
-                    'type': 'walk',
-                    'fare': 0,
-                })
-
     return {
         'statusCode': 200,
         'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -265,16 +221,13 @@ def lambda_handler(event, context):
         message = body.get('message', '')
         user_location = body.get('user_location', {})
         
-        # Handle "here" keyword - use user_location
-        if 'here' in message.lower() and user_location:
-            message = message.lower().replace('here', f"{user_location.get('lat')},{user_location.get('lng')}")
-            print(f"Converted 'here' to coordinates: {message}")
-        
-        # Handle "here" keyword - replace with user_location
-        if 'here' in message.lower() and body.get('user_location'):
-            user_loc = body['user_location']
-            message = message.lower().replace('here', f"{user_loc.get('lat')},{user_loc.get('lng')}")
-            print(f"Converted 'here' to coordinates: {message}")
+        # Handle "here" keyword - mark origin as user_location
+        if 'here' in message.lower() and user_location.get('lat'):
+            # Extract destination (after "to")
+            parts = message.lower().split(' to ')
+            if len(parts) == 2:
+                message = f"from {user_location['lat']},{user_location['lng']} to {parts[1]}"
+            print(f"Using GPS origin: {message}")
         user_location = body.get('user_location', {})
         
         adj, nodes = load_graph()
@@ -330,8 +283,8 @@ def lambda_handler(event, context):
         if origin_lat is None or dest_lat is None:
             return error_response(f'Could not find: {message}')
         
-        start = find_rail_station(origin_name, nodes) or find_nearest_node(origin_lat, origin_lng, nodes)
-        end = find_rail_station(dest_name, nodes) or find_nearest_node(dest_lat, dest_lng, nodes)
+        start = find_nearest_node(origin_lat, origin_lng, nodes)
+        end = find_nearest_node(dest_lat, dest_lng, nodes)
         
         if not start or not end:
             return error_response('Could not find route nodes')
