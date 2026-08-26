@@ -49,17 +49,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA flags asphalt contractor over heavy traffic on Edsa - Inquirer.net",
-      "description": "MMDA flags asphalt contractor over heavy traffic on EdsaInquirer.net",
-      "updated": "Mon, 24 Aug 2026 07:09:00 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPZ0FqekNMbUdDYXF6ZUtDQVh6MGF6TWxPUXZOaVBSZmhGU2NJWnBKVzViLXo4TlZzVHpHbmtzN3EyVTc5N2RSYWswVU5IaGtkWm9lUHAxWEpYVlNuY29vcTFFX1YwYWlTVFFWTUg5bEN6MTBfQl9kYnBIdmxkRlBfZ0tXeThsUXNISTRTa202aUlKVTBlR2x2T0dB0gGfAUFVX3lxTFBXZlVqMjhORERRNUczMDRtRkhHOFpyeHZXaHdtLWNSVWlHcndCMXZnTmVXMWdVZE5rVE1VY1dCa0lnNl9LdUR2TjNKaWpBcm0wX0VRcGZuX0RfWHA5dHZwSG41dU9CUGMzLTBueTJLOTJRNVdQc2FCYlF1M1dRMm41aHhYTW9VTnZieHZ4TXhxYWFpSnI4eGFUUUtOeVlLcw?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-6",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "MMDA eyes P50,000 fine for EDSA rehab contractor over traffic jam - Philstar.com",
       "description": "MMDA eyes P50,000 fine for EDSA rehab contractor over traffic jamPhilstar.com",
       "updated": "Mon, 24 Aug 2026 10:06:00 GMT",
@@ -67,7 +56,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-6",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,7 +67,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -100,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-10",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +98,19 @@
       "updated": "Mon, 24 Aug 2026 07:49:05 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQV2ZVajI4TkREUTVHMzA0bUZIRzhacnh2V2h3bS1jUlVpR3J3QjF2Z05lVzFnVWROa1RNVWNXQmtJZzZfS3VEdk4zSmlqQXJtMF9FUXBmbl9EX1hwOXR2cEhuNXVPQlBjMy0wbnkySzkyUTVXUHNhQmJRdTNXUTJuNWh4WE1vVU52Ynh2eE14cWFhaUpyOHhhVFFLTnlZS3PSAZ8BQVVfeXFMUFdmVWoyOE5ERFE1RzMwNG1GSEc4WnJ4dldod20tY1JVaUdyd0IxdmdOZVcxZ1VkTmtUTVVjV0JrSWc2X0t1RHZOM0ppakFybTBfRVFwZm5fRF9YcDl0dnBIbjV1T0JQYzMtMG55Mks5MlE1V1BzYUJiUXUzV1EybjVoeFhNb1VOdmJ4dnhNeHFhYWlKcjh4YVRRS055WUtz?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Jakarta's New LRT Line Finished, Sets Rp5,000 Flat Fare - Tempo.co English",
+      "description": "Jakarta's New LRT Line Finished, Sets Rp5,000 Flat FareTempo.co English",
+      "updated": "Mon, 24 Aug 2026 12:49:59 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNV2R6dTdPbHRUMVpPb25DU1R1bk5yc2FQTGM2MFhDb1JsWHhUdmdZTm92OTNIbjMwZUZfTVg5UHFCYmduakhGbGlIUGtEWWlOcDJTV2xzZm8wajBLSi1uSHZGajVfcVk3SDdtdEdPRVhxU0lfTkt3U3lmbW42eC1haHprNktvdVpEVmpqdEZR?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-26T12:30:03.357328",
+  "scraped_at": "2026-08-26T14:30:03.641886",
   "source": "Google News RSS"
 }
