@@ -154,6 +154,33 @@ def dijkstra_with_block(adj, start, end, blocked_edges):
     path.append(start)
     return path[::-1]
 
+def get_rail_line_name(node_id):
+    """Get proper rail line name from node ID."""
+    if not node_id.startswith('rail::'):
+        return None
+    
+    parts = node_id.split('::')
+    if len(parts) >= 2:
+        station_name = parts[1]
+        
+        # Map stations to lines
+        LRT1_STATIONS = ['Baclaran', 'EDSA', 'Libertad', 'Gil Puyat', 'Vito Cruz', 'Quirino', 'Pedro Gil', 'United Nations', 'Central Terminal', 'Carriedo', 'Doroteo Jose', 'Bambang', 'Tayuman', 'Blumentritt', 'Abad Santos', 'R. Papa', '5th Avenue', 'Monumento', 'Balintawak', 'Roosevelt', 'Fernando Poe Jr']
+        LRT2_STATIONS = ['Recto', 'Legarda', 'Pureza', 'V. Mapa', 'J. Ruiz', 'Gilmore', 'Betty Go-Belmonte', 'Araneta Center-Cubao', 'Anonas', 'Katipunan', 'Santolan', 'Marikina', 'Antipolo']
+        MRT3_STATIONS = ['North Avenue', 'Quezon Avenue', 'GMA Kamuning', 'Araneta Center-Cubao', 'Santolan-Annapolis', 'Ortigas', 'Shaw Boulevard', 'Boni', 'Guadalupe', 'Buendia', 'Ayala', 'Magallanes', 'Taft Avenue']
+        
+        if station_name in LRT1_STATIONS or any(s in station_name for s in LRT1_STATIONS):
+            return 'LRT Line 1'
+        elif station_name in LRT2_STATIONS or any(s in station_name for s in LRT2_STATIONS):
+            return 'LRT Line 2'
+        elif station_name in MRT3_STATIONS or any(s in station_name for s in MRT3_STATIONS):
+            return 'MRT Line 3'
+        elif 'LRT' in station_name:
+            return 'LRT'
+        elif 'MRT' in station_name:
+            return 'MRT'
+    
+    return 'Rail Transit'
+
 def build_segments_from_path(path, nodes):
     segments = []
     current_route = None
@@ -168,7 +195,16 @@ def build_segments_from_path(path, nodes):
                 if len(coords) >= 2:
                     dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
                     time_min = max(dist / 25 * 60, 2)
-                    segments.append({'route': current_route, 'mode': 'bus' if 'bus' in current_route.lower() else 'jeepney', 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+                    route_name = current_route
+                    mode = 'jeepney'
+                    if 'rail::' in current_route:
+                        route_name = get_rail_line_name(current_route)
+                        mode = 'rail'
+                    elif 'bus' in current_route.lower():
+                        mode = 'bus'
+                    elif 'LRT' in current_route.upper() or 'MRT' in current_route.upper():
+                        mode = 'rail'
+                    segments.append({'route': route_name, 'mode': mode, 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
             current_route = route
             current_group = [node_id]
         else:
@@ -219,8 +255,6 @@ def lambda_handler(event, context):
             body = event
         
         message = body.get('message', '')
-        user_location = body.get('user_location', {})
-        
         # Handle "here" keyword - mark origin as user_location
         if 'here' in message.lower() and user_location.get('lat'):
             # Extract destination (after "to")
@@ -280,8 +314,14 @@ def lambda_handler(event, context):
                         origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
                         break
         
-        if origin_lat is None or dest_lat is None:
-            return error_response(f'Could not find: {message}')
+        # If no origin, use user_location
+        if origin_lat is None and user_location.get('lat'):
+            origin_lat = user_location['lat']
+            origin_lng = user_location['lng']
+            origin_name = 'current location'
+        
+        if dest_lat is None:
+            return error_response(f'Could not find destination: {message}')
         
         start = find_nearest_node(origin_lat, origin_lng, nodes)
         end = find_nearest_node(dest_lat, dest_lng, nodes)
@@ -389,7 +429,7 @@ def lambda_handler(event, context):
         transfer_time = transfer_count * TRANSFER_PENALTY_MIN
         
         # Wait times
-        WAIT_TIMES = {'jeepney': 5, 'bus': 7, 'uv_express': 8, 'train': 3, 'lrt': 3, 'mrt': 3, 'walk': 0}
+        WAIT_TIMES = {'jeepney': 5, 'bus': 7, 'uv_express': 8, 'train': 3, 'lrt': 3, 'mrt': 5, 'rail': 5, 'walk': 0}
         wait_time_total = sum(WAIT_TIMES.get(seg.get('mode', 'jeepney'), 5) for seg in final_segments)
         
         total_time = round(sum(s['time_min'] for s in final_segments) + transfer_time + wait_time_total, 1)
