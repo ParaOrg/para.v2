@@ -762,6 +762,59 @@ const ContributePage: React.FC = () => {
     const preferences = extractPreferences(text);
     const lower = normalize(text);
     
+    // ACTUALLY USE NLP results
+    // Check for preference intents
+    const hasTimeIntent = intents.some(i => i.intent === 'MINIMIZE_TIME');
+    const hasFareIntent = intents.some(i => i.intent === 'MINIMIZE_FARE');
+    const hasWalkingIntent = intents.some(i => i.intent === 'MINIMIZE_WALKING');
+    const hasTransferIntent = intents.some(i => i.intent === 'MINIMIZE_TRANSFERS');
+    const hasWeatherIntent = intents.some(i => i.intent === 'WEATHER_AWARE' || i.intent === 'FLOOD_AWARE');
+    const hasHassleIntent = intents.some(i => i.intent === 'ASK_CLARIFICATION');
+    
+    // Respond with preference acknowledgment
+    if (hasHassleIntent) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', 'Anong hassle ang gusto mong iwasan?\n\n⏳ Long waiting\n🚶 Walking\n🔄 Transfers\n👥 Crowding\n💰 High fare'),
+      });
+      return;
+    }
+    
+    if (hasWeatherIntent) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '🌧️ Weather-aware mode activated. I will avoid flood-prone areas if raining.'),
+      });
+    }
+    
+    if (hasTimeIntent) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '⚡ Got it! I will prioritize the fastest route.'),
+      });
+    }
+    
+    if (hasFareIntent) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '💰 Got it! I will prioritize the cheapest route.'),
+      });
+    }
+    
+    if (hasWalkingIntent) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '🚶 Got it! I will minimize walking.'),
+      });
+    }
+    
+    if (hasTransferIntent) {
+      dispatch({
+        type: 'ADD_MESSAGE',
+        payload: createMessage('bot', 'text', '🔄 Got it! I will minimize transfers.'),
+      });
+    }
+    
     // Check if this is a fare amount being typed
     const fareMatch = lower.match(/(?:fare|bayad|pamasahe)?\s*(?:is|was|:|₱|p)?\s*(\d+(?:\.\d+)?)/);
     if (awaitingFareReport && fareMatch) {

@@ -158,8 +158,33 @@ export default function HomeNew() {
     const hasTo = /\bto\b/i.test(text);
     const needsGPS = (!hasExplicitOrigin && !hasTo && gpsLoc);
     const { normalized } = normalizeQuery(text, gpsLoc ? { lat: gpsLoc[0], lng: gpsLoc[1] } : null);
-    const backendMessage = needsGPS ? `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}` : normalized;
-    const body = { user_id: "guest", message: backendMessage };
+    
+    // ENHANCED: Use NLP preferences to modify the search
+    let backendMessage = needsGPS ? `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}` : normalized;
+    
+    // Append preferences to the message so Lambda can use them
+    if (preferences.avoid_modes.length > 0) {
+      backendMessage += ` | avoid: ${preferences.avoid_modes.join(', ')}`;
+    }
+    if (preferences.prefer_modes.length > 0) {
+      backendMessage += ` | prefer: ${preferences.prefer_modes.join(', ')}`;
+    }
+    if (preferences.max_walking) {
+      backendMessage += ` | max_walking: ${preferences.max_walking}m`;
+    }
+    if (preferences.max_transfers) {
+      backendMessage += ` | max_transfers: ${preferences.max_transfers}`;
+    }
+    if (preferences.fare_tolerance === 'low') {
+      backendMessage += ' | cheapest';
+    } else if (preferences.fare_tolerance === 'high') {
+      backendMessage += ' | fare_tolerant';
+    }
+    if (preferences.weather_aware) {
+      backendMessage += ' | weather_aware';
+    }
+    
+    const body = { user_id: "guest", message: backendMessage, preferences };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
       const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "/api/route-search";
