@@ -151,8 +151,6 @@ export default function HomeNew() {
     // Use NLP engine for intent detection
     const intents = detectIntent(text);
     const preferences = extractPreferences(text);
-    const nlpNormalized = normalize(text);
-    
     const hasExplicitOrigin = /from|mula|galing|papunta/i.test(text);
     const isDestinationOnly = /^(to |papunta |punta )/i.test(text);
     const hasTo = /\bto\b/i.test(text);
@@ -160,7 +158,13 @@ export default function HomeNew() {
     const { normalized } = normalizeQuery(text, gpsLoc ? { lat: gpsLoc[0], lng: gpsLoc[1] } : null);
     
     // ENHANCED: Use NLP preferences to modify the search
-    let backendMessage = needsGPS ? `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}` : normalized;
+    // Replace "here" with actual coordinates
+    let finalNormalized = normalized;
+    if (gpsLoc && /\bhere\b/i.test(finalNormalized)) {
+      finalNormalized = finalNormalized.replace(/\bhere\b/gi, `${gpsLoc[0]},${gpsLoc[1]}`);
+    }
+    
+    let backendMessage = needsGPS ? `from ${gpsLoc[0]},${gpsLoc[1]} to ${finalNormalized.replace(/^(to |papunta |punta )/i, "")}` : finalNormalized;
     
     // Append preferences to the message so Lambda can use them
     if (preferences.avoid_modes.length > 0) {
