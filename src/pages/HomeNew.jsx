@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { detectIntent, extractPreferences, normalize } from "../utils/nlpEngine";
 import MapComponent from "../components/map_component";
 import { RouteCardList } from "../components/TripSummaryCard";
 import ShareRouteCard from "../components/ShareRouteCard";
@@ -147,10 +148,14 @@ export default function HomeNew() {
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setInput(""); setLoading(true); setShowChat(true);
     const gpsLoc = location ? [location.lat, location.lng] : null;
+    // Use NLP engine for intent detection
+    const intents = detectIntent(text);
+    const preferences = extractPreferences(text);
+    const nlpNormalized = normalize(text);
+    
     const hasExplicitOrigin = /from|mula|galing|papunta/i.test(text);
     const isDestinationOnly = /^(to |papunta |punta )/i.test(text);
     const hasTo = /\bto\b/i.test(text);
-    // Only prepend "here" if NO origin word AND NO "to" separator (pure destination)
     const needsGPS = (!hasExplicitOrigin && !hasTo && gpsLoc);
     const { normalized } = normalizeQuery(text, gpsLoc ? { lat: gpsLoc[0], lng: gpsLoc[1] } : null);
     const backendMessage = needsGPS ? `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}` : normalized;
