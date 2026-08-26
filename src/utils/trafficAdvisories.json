@@ -49,6 +49,17 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Motorists crawl through heavy morning rush hour traffic along the southbound lan",
+      "description": "Motorists crawl through heavy morning rush hour traffic along the southbound lane of EDSA in Quezon City on Wednesday. The Metropolitan Manila Development Authority (MMDA) recently announced its partn",
+      "updated": "Wed, 26 Aug 2026 06:35:08 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxNUURhc0Y0LWM1aExlcURNWjgwQ0Z5Ri1SNjk4clEzRXZwZGNMR0hiWi12emlFS0M5YnF6aXg1QWpDb2RJb21pQzFBM1dhb0R5VDkxM3BReWh3Vll0T1N5LUVwOThBa2d3QWRybkFwTEZoS3d0bGVzcDd6cDBFNkYzakpPZF9RTS0xQ3pOSndMNW83Y3phcEtfczZ4bk95M3htZGZ4dWxHenFKU0FpbF94M0VudmxNS2pnUlk4NWx6aVp0SVhmQ28xb0EtRG9CeWJWYnJkcmVYU19JNkg2eHc?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-6",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "MMDA eyes P50,000 fine for EDSA rehab contractor over traffic jam - Philstar.com",
       "description": "MMDA eyes P50,000 fine for EDSA rehab contractor over traffic jamPhilstar.com",
       "updated": "Mon, 24 Aug 2026 10:06:00 GMT",
@@ -56,7 +67,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-6",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -86,17 +97,6 @@
       "description": "MMDA seeks P50,000 fine against EDSA rehab contractor over Sunday traffic snarlPhilippine Canadian Inquirer",
       "updated": "Tue, 25 Aug 2026 11:57:15 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPVFc0eFNrcHpSNFlTMmxXN3FWVzlya1g1Q0tCampzeUQ5cnFLVWlwc2E4X01wRVNraFZWakl2d0o3aDVIb05RWEFtbHlLaEkycnNGMXpUNy04MkxOQmZHb3Z2bG5lWElKcnJ0aDhOOWsyNmpva0FjUE90WEVSdlNwVS0wVUVWSU9aTXNvQmFNRWVmcWdjWlh2ejJONWIwVmFTSnYtblllOHkwNUxseDhRRkNGU19oZV9GbVRJ?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-9",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA flags asphalt contractor over heavy traffic on Edsa - Inquirer.net",
-      "description": "MMDA flags asphalt contractor over heavy traffic on EdsaInquirer.net",
-      "updated": "Mon, 24 Aug 2026 07:49:05 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQV2ZVajI4TkREUTVHMzA0bUZIRzhacnh2V2h3bS1jUlVpR3J3QjF2Z05lVzFnVWROa1RNVWNXQmtJZzZfS3VEdk4zSmlqQXJtMF9FUXBmbl9EX1hwOXR2cEhuNXVPQlBjMy0wbnkySzkyUTVXUHNhQmJRdTNXUTJuNWh4WE1vVU52Ynh2eE14cWFhaUpyOHhhVFFLTnlZS3PSAZ8BQVVfeXFMUFdmVWoyOE5ERFE1RzMwNG1GSEc4WnJ4dldod20tY1JVaUdyd0IxdmdOZVcxZ1VkTmtUTVVjV0JrSWc2X0t1RHZOM0ppakFybTBfRVFwZm5fRF9YcDl0dnBIbjV1T0JQYzMtMG55Mks5MlE1V1BzYUJiUXUzV1EybjVoeFhNb1VOdmJ4dnhNeHFhYWlKcjh4YVRRS055WUtz?oc=5",
       "source_name": "Google News"
     },
     {
@@ -111,6 +111,6 @@
       "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-26T14:30:03.641886",
+  "scraped_at": "2026-08-26T15:00:03.456554",
   "source": "Google News RSS"
 }
