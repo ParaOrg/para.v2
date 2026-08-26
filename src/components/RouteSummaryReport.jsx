@@ -197,7 +197,7 @@ export default function RouteSummaryReport({ routeData, onClose }) {
             <div className="absolute inset-0" ref={(el) => {
               if (el && !el._map) {
                 el._map = L.map(el, { zoomControl: false, attributionControl: false });
-                L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png", { maxZoom: 19 }).addTo(el._map);
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(el._map);
                 const coords = stats.allGps.map(p => [p.lat, p.lng]);
                 if (coords.length > 1) {
                   L.polyline(coords, { color: "#7A4BC8", weight: 4, opacity: 0.7 }).addTo(el._map);

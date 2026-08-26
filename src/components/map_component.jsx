@@ -53,7 +53,7 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
     const map = L.map(mapRef.current, { zoomControl: false, attributionControl: true }).setView(DEFAULT_CENTER, 13);
-    const primaryTiles = L.tileLayer("https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+    const primaryTiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 20,
       attribution: "&copy; CartoDB &copy; OpenStreetMap",
     }).addTo(map);
@@ -68,7 +68,7 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
       }
     });
 
-    const _unused = L.tileLayer("https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", { maxZoom: 20, attribution: "&copy; CartoDB &copy; OpenStreetMap" }).addTo(map);
+    const _unused = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 20, attribution: "&copy; CartoDB &copy; OpenStreetMap" }).addTo(map);
     L.control.zoom({ position: "bottomright" }).addTo(map);
     polylineLayer.current = L.layerGroup().addTo(map);
     markerLayer.current = L.layerGroup().addTo(map);
