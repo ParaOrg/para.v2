@@ -186,10 +186,12 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     };
   }, []);
 
-  // GPS Locate
+  // GPS Locate - ONLY manual button press triggers this
   const locateMap = () => {
-    if (location) {
-      mapRef.current?.setView([location.lat, location.lng], 17, { animate: true });
+    if (location && mapRef.current) {
+      // Auto-center removed - user controls map view
+      setCurrentPos([location.lat, location.lng]);
+      setHasLocation(true);
     } else {
       requestConsentAndLocation();
     }
@@ -198,7 +200,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   // Auto-center when location becomes available
   useEffect(() => {
     if (location && mapRef.current) {
-      mapRef.current.setView([location.lat, location.lng], 17, { animate: true });
+      // Auto-center removed - user controls map view
       setCurrentPos([location.lat, location.lng]);
       setHasLocation(true);
     }
@@ -242,14 +244,16 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     gpsTrailPoints.current = [...gpsTrailPoints.current, newPoint];
     
     if (!gpsTrailRef.current && mapRef.current) {
-      gpsTrailRef.current = L.polyline(gpsTrailPoints.current, {
-        color: '#4285F4',
-        weight: 3,
-        opacity: 0.6,
-        dashArray: '5, 5',
-      }).addTo(mapRef.current);
+      const trailStyle = commuteState === 'riding' 
+        ? { color: '#7A4BC8', weight: 5, opacity: 0.9, dashArray: '' }
+        : commuteState === 'waiting'
+        ? { color: '#F59E0B', weight: 3, opacity: 0.7, dashArray: '1, 5' }
+        : { color: '#9CA3AF', weight: 3, opacity: 0.6, dashArray: '5, 5' };
+        
+      gpsTrailRef.current = L.polyline(gpsTrailPoints.current, trailStyle).addTo(mapRef.current);
     } else if (gpsTrailRef.current) {
       gpsTrailRef.current.setLatLngs(gpsTrailPoints.current);
+      gpsTrailRef.current.setStyle(trailStyle);
     }
   }, [location, isTracking]);
 
