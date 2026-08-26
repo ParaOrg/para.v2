@@ -13,6 +13,7 @@ import { edgePost } from '../utils/api';
 import { offlineBuffer } from '../utils/offlineBuffer';
 import SuccessModal from '../components/SuccessModal';
 import { fetchWeather, getWeatherPenalty, isFloodZone } from '../utils/weather';
+import { detectIntent, extractPreferences, normalize } from '../utils/nlpEngine';
 import { getGuestUuid, addPendingContribution } from '../utils/guestLink';
 
 const MOCK_ROUTES = [
@@ -756,7 +757,10 @@ const ContributePage: React.FC = () => {
   const handleSendMessage = useCallback((text: string) => {
     dispatch({ type: 'ADD_MESSAGE', payload: createMessage('user', 'text', text) });
     
-    const lower = text.toLowerCase();
+    // Use NLP engine for intent detection
+    const intents = detectIntent(text);
+    const preferences = extractPreferences(text);
+    const lower = normalize(text);
     
     // Check if this is a fare amount being typed
     const fareMatch = lower.match(/(?:fare|bayad|pamasahe)?\s*(?:is|was|:|₱|p)?\s*(\d+(?:\.\d+)?)/);

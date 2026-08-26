@@ -60,17 +60,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 6:00am WHEN: DATE: 8/26/2026 EDSA SB Monte de Pie",
-      "description": "METROBASE Traffic Update as of 6:00am WHEN: DATE: 8/26/2026 EDSA SB Monte de Piedad to Santolan light traffic EDSA SB Ortigas light traffic EDSA NB Guadalupe to Boni light traffic C5 SB light traffic ",
-      "updated": "Tue, 25 Aug 2026 22:17:25 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOd2ExVnNKZE5GYVRPUmVQSWhFUDNzRHZuTERSbUp0VUJuX3NJQTl1UlhtSUg4RllCZWdKcUFxb09wQW5WRm5abktkSFZUeUY3emc3YXhCdGJfeFNSTF9ieTFTRk5rY3FxNmNsV01qRDFORHhYVmI2WlFQRjZwYU1wRDJjcjV6QXZZcF9vNGhPenIyanN2V0lwTkJfV2ZzMUlDTC1idzRocjJScEM2TmxmbGRHTzViRlNBUngzbVhvVERha0hLS1Y4amgtLWlfVzA0LUE?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-7",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSA - ABS-CBN",
       "description": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSAABS-CBN",
       "updated": "Tue, 25 Aug 2026 06:04:19 GMT",
@@ -78,7 +67,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -100,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-10",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +98,19 @@
       "updated": "Tue, 25 Aug 2026 11:57:15 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPVFc0eFNrcHpSNFlTMmxXN3FWVzlya1g1Q0tCampzeUQ5cnFLVWlwc2E4X01wRVNraFZWakl2d0o3aDVIb05RWEFtbHlLaEkycnNGMXpUNy04MkxOQmZHb3Z2bG5lWElKcnJ0aDhOOWsyNmpva0FjUE90WEVSdlNwVS0wVUVWSU9aTXNvQmFNRWVmcWdjWlh2ejJONWIwVmFTSnYtblllOHkwNUxseDhRRkNGU19oZV9GbVRJ?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA flags asphalt contractor over heavy traffic on Edsa - Inquirer.net",
+      "description": "MMDA flags asphalt contractor over heavy traffic on EdsaInquirer.net",
+      "updated": "Mon, 24 Aug 2026 07:49:05 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxQV2ZVajI4TkREUTVHMzA0bUZIRzhacnh2V2h3bS1jUlVpR3J3QjF2Z05lVzFnVWROa1RNVWNXQmtJZzZfS3VEdk4zSmlqQXJtMF9FUXBmbl9EX1hwOXR2cEhuNXVPQlBjMy0wbnkySzkyUTVXUHNhQmJRdTNXUTJuNWh4WE1vVU52Ynh2eE14cWFhaUpyOHhhVFFLTnlZS3PSAZ8BQVVfeXFMUFdmVWoyOE5ERFE1RzMwNG1GSEc4WnJ4dldod20tY1JVaUdyd0IxdmdOZVcxZ1VkTmtUTVVjV0JrSWc2X0t1RHZOM0ppakFybTBfRVFwZm5fRF9YcDl0dnBIbjV1T0JQYzMtMG55Mks5MlE1V1BzYUJiUXUzV1EybjVoeFhNb1VOdmJ4dnhNeHFhYWlKcjh4YVRRS055WUtz?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-26T09:30:03.045041",
+  "scraped_at": "2026-08-26T10:00:02.238869",
   "source": "Google News RSS"
 }
