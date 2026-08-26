@@ -98,8 +98,19 @@
       "updated": "Tue, 25 Aug 2026 01:52:40 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxPLXRCdUYzblVQbWhrU3BSUU9ab0FtUF9UWloxMnZidExEeXZTdHlPVFFEOUZYa0E3NzJSOTBoNWs4RU9wNVN6WnZsTzd3VmlaVHV1QUI4ZGgtZ1h1LTRocjViZ09pQ2ViV2FEX3VhQlJXMkVVajVVX1liUkVxMWRkdHF3WUlLSjVoY09vbTRVa0Q0M2VCVWFnZklvRTRPTU4yOUNUVE9vdnZJTFNYblN1ZV9WSHdIdGdNQjFILXlkaWluQmVY?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "As the Philippines scraps jeepneys, operators struggle with costs - Rappler",
+      "description": "As the Philippines scraps jeepneys, operators struggle with costsRappler",
+      "updated": "Mon, 24 Aug 2026 11:56:37 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPWkRRcDU0OVE4SUpVXzNRZ2Q0NncwN3Z3MHduME11ekJRY3BZWWVLOUZWdFVzTHVZMjJBRWJxUGZGMFYzSHBURUNibEUzNnFIYlJCYWRNbFVJQjllNktkTzVpR0hlRUF3VlFkX1E3WVFVbDBIUHpYaWJPWTh3cXptcUEzT2c4QVFMbG1Ia0NFZmxPWG8?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-26T16:00:02.574041",
+  "scraped_at": "2026-08-26T16:30:04.406300",
   "source": "Google News RSS"
 }

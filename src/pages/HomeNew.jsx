@@ -161,7 +161,8 @@ export default function HomeNew() {
     // Keep message clean - Lambda uses user_location for "here"
     let backendMessage = normalized;
     if (needsGPS && gpsLoc) {
-      backendMessage = `from here to ${normalized.replace(/^(to |papunta |punta )/i, "")}`;
+      // Send destination only - Lambda uses user_location as origin
+      backendMessage = normalized.replace(/^(to |papunta |punta )/i, "");
     }
     
     // Append preferences to the message so Lambda can use them
