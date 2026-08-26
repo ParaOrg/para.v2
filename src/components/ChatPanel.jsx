@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApiBaseUrl, lambdaRouteSearch } from "../utils/api";
+import { getApiBaseUrl } from "../utils/api";
 import MapComponent from "./map_component";
 import TripSummaryCard from "./TripSummaryCard";
 import CommuteTracker from "./CommuteTracker";
@@ -152,7 +152,7 @@ export default function ChatPanel() {
       const payload = { user_id: "guest", message: backendMessage };
       if (gps) payload.user_location = { lat: gps[0], lng: gps[1] };
 
-      const res = await lambdaRouteSearch({
+      const res = await fetch("/api/route-search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
