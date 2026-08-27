@@ -4,6 +4,7 @@ import heapq
 import math
 import logging
 import urllib.request as ur
+import urllib.parse
 import datetime
 import os
 import sys
@@ -215,6 +216,24 @@ def geocode_with_pois(place_name, dynamic_pois):
     if place_lower in KNOWN_PLACES:
         return KNOWN_PLACES[place_lower][1], KNOWN_PLACES[place_lower][2], KNOWN_PLACES[place_lower][0]
     
+    return None, None, None
+
+def geocode_with_nominatim(place_name):
+    """Geocode using OpenStreetMap Nominatim API."""
+    try:
+        query = urllib.parse.quote(place_name + ', Metro Manila, Philippines')
+        url = f"https://nominatim.openstreetmap.org/search?q={query}&format=json&limit=1"
+        req = ur.Request(url, headers={'User-Agent': 'ParaPH/3.0'})
+        with ur.urlopen(req, timeout=5) as resp:
+            results = json.loads(resp.read())
+            if results:
+                lat = float(results[0]['lat'])
+                lng = float(results[0]['lon'])
+                display_name = results[0].get('display_name', place_name)
+                logger.info(f"Nominatim geocoded '{place_name}' -> ({lat}, {lng})")
+                return lat, lng, display_name
+    except Exception as e:
+        logger.warning(f"Nominatim geocoding failed for '{place_name}': {e}")
     return None, None, None
 
 def parse_with_nlp_terms(message, dynamic_nlp_terms):
@@ -531,17 +550,35 @@ def lambda_handler(event, context):
         if m:
             origin_name = m.group(1).strip().lower()
             dest_name = m.group(2).strip().lower()
+            logger.info(f"Parsed: origin='{origin_name}' dest='{dest_name}'")
+            
             if origin_name == 'here' and user_location:
                 origin_lat = float(user_location.get('lat', 14.6225))
                 origin_lng = float(user_location.get('lng', 121.0538))
+                logger.info(f"Using user location: {origin_lat}, {origin_lng}")
             else:
+                # Try POIs first
                 origin_lat, origin_lng, origin_poi_name = geocode_with_pois(origin_name, dynamic_pois)
                 if origin_poi_name:
-                    logger.info(f"Geocoded origin '{origin_name}' -> {origin_poi_name} via POIs")
-            if dest_name:
-                dest_lat, dest_lng, dest_poi_name = geocode_with_pois(dest_name, dynamic_pois)
+                    logger.info(f"Origin '{origin_name}' -> POI: {origin_poi_name}")
+                else:
+                    # Fallback to Nominatim
+                    origin_lat, origin_lng, origin_poi_name = geocode_with_nominatim(origin_name)
+                    if origin_poi_name:
+                        logger.info(f"Origin '{origin_name}' -> Nominatim: {origin_poi_name}")
+                    else:
+                        logger.warning(f"Failed to geocode origin '{origin_name}'")
+            
+            # Geocode destination
+            dest_lat, dest_lng, dest_poi_name = geocode_with_pois(dest_name, dynamic_pois)
+            if dest_poi_name:
+                logger.info(f"Destination '{dest_name}' -> POI: {dest_poi_name}")
+            else:
+                dest_lat, dest_lng, dest_poi_name = geocode_with_nominatim(dest_name)
                 if dest_poi_name:
-                    logger.info(f"Geocoded destination '{dest_name}' -> {dest_poi_name} via POIs")
+                    logger.info(f"Destination '{dest_name}' -> Nominatim: {dest_poi_name}")
+                else:
+                    logger.warning(f"Failed to geocode destination '{dest_name}'")
         
         # Parse "X to Y" without "from"
         if (origin_lat is None or dest_lat is None) and ' to ' in message:
