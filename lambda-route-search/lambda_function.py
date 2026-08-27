@@ -553,7 +553,8 @@ def build_segments_from_path(path, nodes, line_geoms=None):
                 # Skip coordinate-looking names and None
                 if station and station.lower() not in ('none', 'null', '') and 'entrance' not in station.lower():
                     # Skip if station looks like coordinates (contains digits and dots)
-                    if not any(c.isdigit() for c in station):
+                    # Only skip if the ENTIRE station name is a coordinate (contains dots AND digits)
+                    if not ('.' in station and any(c.isdigit() for c in station)):
                         if station not in stations:
                             stations.append(station)
             
@@ -568,7 +569,7 @@ def build_segments_from_path(path, nodes, line_geoms=None):
                 # But for the label, we can infer from station positions
                 if any(s in first_station for s in ('katipunan', 'anonas', 'santolan', 'marikina', 'antipolo', 'recto', 'legarda', 'pureza', 'v. mapa', 'j. ruiz', 'gilmore', 'betty go')):
                     line_name = 'LRT-2'
-                elif any(s in first_station for s in ('north avenue', 'quezon avenue', 'gma kamuning', 'ortigas', 'shaw', 'boni', 'guadalupe', 'buendia', 'ayala', 'magallanes', 'taft')):
+                elif any(s in first_station for s in ('north avenue', 'quezon avenue', 'gma kamuning', 'araneta center - cubao', 'ortigas', 'shaw', 'boni', 'guadalupe', 'buendia', 'ayala', 'magallanes', 'taft')):
                     line_name = 'MRT-3'
                 elif any(s in first_station for s in ('fernando poe', 'balintawak', 'monumento', '5th avenue', 'r. papa', 'abad santos', 'blumentritt', 'tayuman', 'bambang', 'doroteo jose', 'carriedo', 'united nations', 'pedro gil', 'quirino', 'vito cruz', 'gil puyat', 'libertad', 'edsa', 'baclaran', 'redemptorist', 'mia road', 'pitx', 'ninoy aquino', 'dr. santos')):
                     line_name = 'LRT-1'
@@ -604,8 +605,11 @@ def build_segments_from_path(path, nodes, line_geoms=None):
             'type': 'transit'
         })
     
-    # Transfer stations where rail lines meet
-    transfer_stations = {'araneta center - cubao', 'doroteo jose', 'recto', 'edsa', 'taft avenue'}
+    # Transfer stations only split when the LINE changes
+    # Araneta Center-Cubao = LRT-2/MRT-3 transfer
+    # Doroteo Jose/Recto = LRT-1/LRT-2 transfer (but LRT-1 continues through Doroteo Jose)
+    # EDSA/Taft = LRT-1/MRT-3 transfer
+    transfer_stations = {'araneta center - cubao', 'recto', 'edsa', 'taft avenue'}
     
     for node_id in path:
         if '::' not in node_id:
