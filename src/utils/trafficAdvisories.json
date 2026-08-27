@@ -38,17 +38,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "LOOK: DPWH Sec Vince Dizon and NLEX Corp President Luis Reñon inspect the draina",
-      "description": "LOOK: DPWH Sec Vince Dizon and NLEX Corp President Luis Reñon inspect the drainage system along Balintawak after the thoroughfare was flooded last week, causing heavy traffic in the area. | via Andrea",
-      "updated": "Thu, 27 Aug 2026 00:30:57 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPRUtYVmEwcmROZzllMDhNN01VZzYwMEVuOXNtYzR4TTdGQ01sSFhYQWVRV19GZ3p1Z1RRdmxNNFV4TzI1Zk1aZzN3WW9WS3c3aDBZVVdHNW9PZFNmTkRmYVUxRklQa0pjRjE1LU5OektuNlBtSHdNRjIwcUVzRVM3Nm9tdTgtS3ZrbHRNUGhKVHI3b1hxSEllNk9IN1lvc0c4aWxYWlhUQjFLVjRsYS1YeHZsUEtUaDhBWFFvZFJ4TzZSSTJEMkdLN0dKbHFyejZnWUR2OVZmN1FhS2lDcmc?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-5",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "MMDA, 4 LGUs ink coordinated traffic response pact along Marcos Highway - Inquir",
       "description": "MMDA, 4 LGUs ink coordinated traffic response pact along Marcos HighwayInquirer.net",
       "updated": "Wed, 26 Aug 2026 07:43:00 GMT",
@@ -56,7 +45,29 @@
       "source_name": "Google News"
     },
     {
+      "id": "traffic-5",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "LOOK: DPWH Sec Vince Dizon and NLEX Corp President Luis Reñon inspect the draina",
+      "description": "LOOK: DPWH Sec Vince Dizon and NLEX Corp President Luis Reñon inspect the drainage system along Balintawak after the thoroughfare was flooded last week, causing heavy traffic in the area. | via Andrea",
+      "updated": "Thu, 27 Aug 2026 00:30:57 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPRUtYVmEwcmROZzllMDhNN01VZzYwMEVuOXNtYzR4TTdGQ01sSFhYQWVRV19GZ3p1Z1RRdmxNNFV4TzI1Zk1aZzN3WW9WS3c3aDBZVVdHNW9PZFNmTkRmYVUxRklQa0pjRjE1LU5OektuNlBtSHdNRjIwcUVzRVM3Nm9tdTgtS3ZrbHRNUGhKVHI3b1hxSEllNk9IN1lvc0c4aWxYWlhUQjFLVjRsYS1YeHZsUEtUaDhBWFFvZFJ4TzZSSTJEMkdLN0dKbHFyejZnWUR2OVZmN1FhS2lDcmc?oc=5",
+      "source_name": "Google News"
+    },
+    {
       "id": "traffic-6",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSA - ABS-CBN",
+      "description": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSAABS-CBN",
+      "updated": "Tue, 25 Aug 2026 07:45:35 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPVlNEVVNDSUdzczVsTkd0RjBuMl9tbHVneVloR0FFcm91bFFpVFJ6NVRpVWU5WE5tREo4M0tRRTVuRlpEN0p6V1BveTQ2TGx1YS11Rml6c0NSVWxWMDdTd0xJdkhONmlfT0xjbTJnaGdmbXQtQWNxQTV6SlVIdENqRVdmRTFOTnlTX0R3LUYyRmQ0Y2R3dlgxTTByQ0R1UHpuTHQyYV9vNVkxczdyZFBXV1hCQWprRWh4SWJHNw?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +100,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-10",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -98,19 +109,8 @@
       "updated": "Thu, 27 Aug 2026 00:33:08 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxON05lNF9pZlRheVRMRGZrRnM3Y29LR1JqTEZrV0hwdTV0ZEJ1Nk5iMnVURWJMd2txTmZiWmUwMlpoa242NFhNVURQZ1hVNEEwTlNIMVg1SGlPMGozYlBwLVJmVmxSVXk4bTB2ZDduZ3U4NjA5Yk14aFliVUQ1c1Q5TzJHbTM4V2J3M3YxZGJRZw?oc=5",
       "source_name": "Google News"
-    },
-    {
-      "id": "traffic-10",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "Your EDSA commute is getting an upgrade at My SM - Inquirer.net",
-      "description": "Your EDSA commute is getting an upgrade at My SMInquirer.net",
-      "updated": "Wed, 26 Aug 2026 04:11:00 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPSzkwalhCdkJ1RWFyZnRJQXRSc2Z2d3M0V0tvekZmeldsVG1zLUk2MjZ5ckdwVkU2RTNTXzJmMG8wbHZHQUFaZVp3aGUzUG8xMFllMUEzRUtHU1ExUExoQTluU1BTNm1ZaVFERG94Z1JadHpCeXloeEZ3elgxNHBkQVJfZmRoYWtQZ2hOODhPMVY1YmPSAZgBQVVfeXFMT3lMQjQzSWEzVHJaa085dXZEZ2s5RV91c0hrQmRzT3ZROS1zQWxlTVozU09mOFFMNWlzeW9rZ3dnYXk2cFh3aGNyM0FjaDV0LVpKcDlVMjM3bXBQUU52aUhBWURkOUh5Wi1VRlZCZUk0Y2ZiZGNwZzE3QldJMnhJZjRUdDFKTmZDRFpMVERoQ0U4ODdfQnhNeXM?oc=5",
-      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-27T14:30:02.816511",
+  "scraped_at": "2026-08-27T15:00:04.656364",
   "source": "Google News RSS"
 }

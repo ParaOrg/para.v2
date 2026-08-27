@@ -275,7 +275,7 @@ export default function HomeNew() {
   return (
     <div className="fixed inset-0">
       <GpsPrompt />
-      <div className="absolute inset-0 z-0" style={{ height: "100dvh", width: "100%" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
+      <div className="absolute inset-0 z-0" style={{ height: "100vh", height: "100dvh", width: "100%" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
       {polylines.length === 0 && <RailNetworkOverlay map={window.__paraMap} />}</div>
       <div className="hidden md:block absolute inset-0 z-50 pointer-events-none"><div className="pointer-events-auto"><Navbar /><ChatPanel /></div><button onClick={locateMap} className="pointer-events-auto fixed top-20 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="pointer-events-auto fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
       <div className="md:hidden absolute inset-0 z-50 pointer-events-none">
