@@ -5,6 +5,16 @@ import math
 import logging
 import urllib.request as ur
 import datetime
+import os
+import sys
+
+# Try to import supabase for dynamic queries
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    print("Supabase client not available, using static graph only")
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -34,10 +44,199 @@ KNOWN_PLACES = {
     'quiapo': ('Quiapo', 14.5983, 120.9830),
 }
 
+# ── Dynamic Data Caches ──
+_dynamic_pois = None
+_dynamic_nlp_terms = None
+_dynamic_routes_cache = None
+_cache_timestamp = 0
+_CACHE_TTL = 300  # 5 minutes
+
+def get_supabase_client():
+    """Create Supabase client if credentials are available."""
+    if not SUPABASE_AVAILABLE:
+        return None
+    
+    url = os.environ.get("SUPABASE_URL", "")
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    
+    if not url or not key:
+        return None
+    
+    try:
+        return create_client(url, key)
+    except:
+        return None
+
+def fetch_dynamic_pois(supabase):
+    """Fetch POIs from ph_places table for geocoding."""
+    global _dynamic_pois, _cache_timestamp
+    
+    if _dynamic_pois and (datetime.datetime.now().timestamp() - _cache_timestamp) < _CACHE_TTL:
+        return _dynamic_pois
+    
+    if not supabase:
+        return {}
+    
+    try:
+        response = supabase.table("ph_places").select("name,lat,lng,poi_type,relevance_score").gte("relevance_score", 10).execute()
+        pois = {}
+        for poi in response.data:
+            name = poi.get("name", "").lower()
+            if name:
+                pois[name] = {
+                    "name": poi.get("name"),
+                    "lat": poi.get("lat"),
+                    "lng": poi.get("lng"),
+                    "type": poi.get("poi_type", "general"),
+                    "score": poi.get("relevance_score", 10),
+                }
+        _dynamic_pois = pois
+        _cache_timestamp = datetime.datetime.now().timestamp()
+        logger.info(f"Loaded {len(pois)} POIs from Supabase")
+        return pois
+    except Exception as e:
+        logger.warning(f"Failed to fetch POIs: {e}")
+        return {}
+
+def fetch_dynamic_nlp_terms(supabase):
+    """Fetch NLP terms from nlp_terms table for Taglish parsing."""
+    global _dynamic_nlp_terms
+    
+    if _dynamic_nlp_terms:
+        return _dynamic_nlp_terms
+    
+    if not supabase:
+        return {}
+    
+    try:
+        response = supabase.table("nlp_terms").select("term,canonical_form,term_type,weight").execute()
+        terms = {}
+        for term in response.data:
+            key = term.get("term", "").lower()
+            if key:
+                terms[key] = {
+                    "canonical": term.get("canonical_form", key),
+                    "type": term.get("term_type", "place"),
+                    "weight": term.get("weight", 1.0),
+                }
+        _dynamic_nlp_terms = terms
+        logger.info(f"Loaded {len(terms)} NLP terms from Supabase")
+        return terms
+    except Exception as e:
+        logger.warning(f"Failed to fetch NLP terms: {e}")
+        return {}
+
+def fetch_dynamic_routes(supabase):
+    """Fetch verified and unverified routes from ph_routes for dynamic weights."""
+    global _dynamic_routes_cache
+    
+    if _dynamic_routes_cache:
+        return _dynamic_routes_cache
+    
+    if not supabase:
+        return {}
+    
+    try:
+        # Fetch verified routes (weight 1.0)
+        verified = supabase.table("ph_routes").select("route_name,is_approved,avg_speed_kmh").eq("is_approved", True).execute()
+        
+        # Fetch unverified routes (weight 1.3)
+        unverified = supabase.table("ph_routes").select("route_name,is_approved,avg_speed_kmh").eq("is_approved", False).execute()
+        
+        routes = {}
+        for route in verified.data:
+            name = route.get("route_name", "")
+            if name:
+                routes[name] = {
+                    "weight_multiplier": 1.0,
+                    "is_verified": True,
+                    "avg_speed": route.get("avg_speed_kmh", 15),
+                }
+        
+        for route in unverified.data:
+            name = route.get("route_name", "")
+            if name:
+                routes[name] = {
+                    "weight_multiplier": 1.3,  # Unverified penalty
+                    "is_verified": False,
+                    "avg_speed": route.get("avg_speed_kmh", 12),
+                }
+        
+        _dynamic_routes_cache = routes
+        logger.info(f"Loaded {len(routes)} routes from Supabase (verified: {sum(1 for r in routes.values() if r['is_verified'])}, unverified: {sum(1 for r in routes.values() if not r['is_verified'])})")
+        return routes
+    except Exception as e:
+        logger.warning(f"Failed to fetch routes: {e}")
+        return {}
+
+def apply_dynamic_route_weights(adj, dynamic_routes):
+    """Apply dynamic weights to graph edges based on Supabase data."""
+    if not dynamic_routes:
+        return adj
+    
+    adj_weighted = {}
+    for node_id, edges in adj.items():
+        adjusted_edges = []
+        for edge in edges:
+            v, w = edge[0], edge[1]
+            route_name = v.split('::')[0] if '::' in v else ''
+            
+            if route_name in dynamic_routes:
+                route_info = dynamic_routes[route_name]
+                w *= route_info["weight_multiplier"]
+                
+                # Adjust for speed if available
+                avg_speed = route_info.get("avg_speed", 15)
+                if avg_speed > 0:
+                    # Speed adjustment: faster routes get lower effective weight
+                    speed_factor = 15 / avg_speed
+                    w *= speed_factor
+            
+            adjusted_edges.append([v, w])
+        adj_weighted[node_id] = adjusted_edges
+    
+    return adj_weighted
+
+def geocode_with_pois(place_name, dynamic_pois):
+    """Geocode a place name using dynamic POIs first, then fallback to KNOWN_PLACES."""
+    place_lower = place_name.lower().strip()
+    
+    # Check dynamic POIs first
+    if place_lower in dynamic_pois:
+        poi = dynamic_pois[place_lower]
+        return poi["lat"], poi["lng"], poi["name"]
+    
+    # Fuzzy match against POIs
+    for poi_name, poi in dynamic_pois.items():
+        if place_lower in poi_name or poi_name in place_lower:
+            return poi["lat"], poi["lng"], poi["name"]
+    
+    # Fallback to KNOWN_PLACES
+    if place_lower in KNOWN_PLACES:
+        return KNOWN_PLACES[place_lower][1], KNOWN_PLACES[place_lower][2], KNOWN_PLACES[place_lower][0]
+    
+    return None, None, None
+
+def parse_with_nlp_terms(message, dynamic_nlp_terms):
+    """Parse message using dynamic NLP terms for better Taglish understanding."""
+    if not dynamic_nlp_terms:
+        return message
+    
+    # Replace Taglish terms with canonical forms
+    words = message.lower().split()
+    for i, word in enumerate(words):
+        if word in dynamic_nlp_terms:
+            canonical = dynamic_nlp_terms[word]["canonical"]
+            words[i] = canonical
+    
+    return ' '.join(words)
+
 _graph = None
 _nodes = None
+_graph_loaded_at = 0
+_GRAPH_TTL = 300  # 5 minutes cache
 
-def load_graph():
+def load_graph_static():
     global _graph, _nodes
     if _graph is not None:
         return _graph, _nodes
@@ -45,6 +244,88 @@ def load_graph():
         data = json.load(f)
     _graph = data['adj']
     _nodes = data['nodes']
+    return _graph, _nodes
+
+def load_graph_from_supabase():
+    """Dynamically load graph from Supabase."""
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    
+    if not supabase_url or not supabase_key:
+        return load_graph_static()
+    
+    try:
+        adj = {}
+        nodes = {}
+        page_size = 5000
+        offset = 0
+        
+        # Load edges
+        while True:
+            edges_url = f"{supabase_url}/rest/v1/graph_edges?select=from_node,to_node,weight&limit={page_size}&offset={offset}"
+            edges_req = ur.Request(edges_url, headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'})
+            with ur.urlopen(edges_req, timeout=15) as er:
+                edges_data = json.loads(er.read())
+            
+            if not edges_data:
+                break
+            
+            for edge in edges_data:
+                from_node = edge.get('from_node', '')
+                to_node = edge.get('to_node', '')
+                weight = edge.get('weight', 1.0)
+                
+                if not from_node or not to_node:
+                    continue
+                
+                if from_node not in adj:
+                    adj[from_node] = []
+                adj[from_node].append([to_node, weight])
+            
+            offset += page_size
+            if len(edges_data) < page_size:
+                break
+        
+        # Load nodes
+        offset = 0
+        while True:
+            nodes_url = f"{supabase_url}/rest/v1/graph_nodes?select=node_id,lat,lon&limit={page_size}&offset={offset}"
+            nodes_req = ur.Request(nodes_url, headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'})
+            with ur.urlopen(nodes_req, timeout=15) as nr:
+                nodes_data = json.loads(nr.read())
+            
+            if not nodes_data:
+                break
+            
+            for node in nodes_data:
+                node_id = node.get('node_id', '')
+                lat = node.get('lat', 0)
+                lon = node.get('lon', 0)
+                if node_id:
+                    nodes[node_id] = [lat, lon]
+            
+            offset += page_size
+            if len(nodes_data) < page_size:
+                break
+        
+        logger.info(f"Dynamically loaded graph: {len(nodes)} nodes, {len(adj)} with edges")
+        return adj, nodes
+    
+    except Exception as e:
+        logger.warning(f"Supabase graph load failed: {e}. Using static file.")
+        return load_graph_static()
+
+def load_graph():
+    global _graph, _nodes, _graph_loaded_at
+    
+    now = datetime.datetime.now().timestamp()
+    
+    if _graph is not None and (now - _graph_loaded_at) < _GRAPH_TTL:
+        return _graph, _nodes
+    
+    _graph, _nodes = load_graph_from_supabase()
+    _graph_loaded_at = now
+    
     return _graph, _nodes
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -221,7 +502,22 @@ def lambda_handler(event, context):
         message = body.get('message', '')
         user_location = body.get('user_location', {})
         
+        # Initialize Supabase client for dynamic data
+        supabase = get_supabase_client()
+        
+        # Fetch dynamic data
+        dynamic_pois = fetch_dynamic_pois(supabase)
+        dynamic_nlp_terms = fetch_dynamic_nlp_terms(supabase)
+        dynamic_routes = fetch_dynamic_routes(supabase)
+        
+        # Apply NLP terms to message
+        message = parse_with_nlp_terms(message, dynamic_nlp_terms)
+        
         adj, nodes = load_graph()
+        
+        # Apply dynamic route weights
+        if dynamic_routes:
+            adj = apply_dynamic_route_weights(adj, dynamic_routes)
         
         origin_lat = None
         origin_lng = None
@@ -238,10 +534,14 @@ def lambda_handler(event, context):
             if origin_name == 'here' and user_location:
                 origin_lat = float(user_location.get('lat', 14.6225))
                 origin_lng = float(user_location.get('lng', 121.0538))
-            elif origin_name in KNOWN_PLACES:
-                origin_lat, origin_lng = KNOWN_PLACES[origin_name][1], KNOWN_PLACES[origin_name][2]
-            if dest_name in KNOWN_PLACES:
-                dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
+            else:
+                origin_lat, origin_lng, origin_poi_name = geocode_with_pois(origin_name, dynamic_pois)
+                if origin_poi_name:
+                    logger.info(f"Geocoded origin '{origin_name}' -> {origin_poi_name} via POIs")
+            if dest_name:
+                dest_lat, dest_lng, dest_poi_name = geocode_with_pois(dest_name, dynamic_pois)
+                if dest_poi_name:
+                    logger.info(f"Geocoded destination '{dest_name}' -> {dest_poi_name} via POIs")
         
         # Parse "X to Y" without "from"
         if (origin_lat is None or dest_lat is None) and ' to ' in message:
@@ -311,6 +611,43 @@ def lambda_handler(event, context):
         else:
             time_of_day_penalty = 0
         
+        # ── Dynamic Route Weights from ph_routes ──
+        dynamic_route_weights = {}
+        try:
+            supabase_url = os.environ.get("SUPABASE_URL", "")
+            supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+            
+            if supabase_url and supabase_key:
+                # Fetch verified routes (weight 1.0)
+                verified_url = f"{supabase_url}/rest/v1/ph_routes?select=name,reliability_score&is_approved=eq.true&limit=2000"
+                verified_req = ur.Request(verified_url, headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'})
+                with ur.urlopen(verified_req, timeout=5) as vr:
+                    verified_routes = json.loads(vr.read())
+                    for route in verified_routes:
+                        name = route.get('name', '')
+                        if name:
+                            dynamic_route_weights[name] = {
+                                'weight_multiplier': 1.0,
+                                'reliability': route.get('reliability_score', 0.5),
+                            }
+                
+                # Fetch unverified routes (weight 1.3)
+                unverified_url = f"{supabase_url}/rest/v1/ph_routes?select=name,reliability_score&is_approved=eq.false&limit=2000"
+                unverified_req = ur.Request(unverified_url, headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'})
+                with ur.urlopen(unverified_req, timeout=5) as ur_resp:
+                    unverified_routes = json.loads(ur_resp.read())
+                    for route in unverified_routes:
+                        name = route.get('name', '')
+                        if name:
+                            dynamic_route_weights[name] = {
+                                'weight_multiplier': 1.3,
+                                'reliability': route.get('reliability_score', 0.3),
+                            }
+                
+                logger.info(f"Loaded {len(dynamic_route_weights)} dynamic route weights")
+        except Exception as e:
+            logger.warning(f"Failed to load dynamic route weights: {e}")
+        
         # ── ML: Learn from route_ml_stats and adjust edge weights ──
         ml_weights = {}
         try:
@@ -347,10 +684,19 @@ def lambda_handler(event, context):
                 v, w = edge[0], edge[1]
                 route_name = v.split('::')[0] if '::' in v else ''
                 
+                # Apply dynamic route weights from ph_routes
+                if route_name in dynamic_route_weights:
+                    route_info = dynamic_route_weights[route_name]
+                    w *= route_info['weight_multiplier']
+                    
+                    # Apply reliability penalty
+                    reliability = route_info.get('reliability', 0.5)
+                    if reliability < 0.5:
+                        w *= (1.0 + (0.5 - reliability) * 0.5)
+                
                 # Apply ML learned multiplier if we have data
                 if route_name in ml_weights:
                     ml_stat = ml_weights[route_name]
-                    # Routes with lower reliability get penalty
                     reliability_penalty = 1.0 + (1.0 - ml_stat['reliability']) * 0.3
                     w *= reliability_penalty
                 
@@ -457,8 +803,15 @@ def lambda_handler(event, context):
             mode_counts[mode] = mode_counts.get(mode, 0) + 1
         mode_summary = ', '.join(f"{count} {mode}{'s' if count != 1 else ''}" for mode, count in mode_counts.items())
         
-        start_point = {'lat': origin_lat, 'lng': origin_lng, 'name': 'Origin'}
-        end_point = {'lat': dest_lat, 'lng': dest_lng, 'name': 'Destination'}
+        start_name = 'Origin'
+        end_name = 'Destination'
+        if 'origin_poi_name' in locals() and origin_poi_name:
+            start_name = origin_poi_name
+        if 'dest_poi_name' in locals() and dest_poi_name:
+            end_name = dest_poi_name
+        
+        start_point = {'lat': origin_lat, 'lng': origin_lng, 'name': start_name}
+        end_point = {'lat': dest_lat, 'lng': dest_lng, 'name': end_name}
         
         return {
             'statusCode': 200,

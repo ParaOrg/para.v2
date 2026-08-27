@@ -189,14 +189,14 @@ export default function ChatPanel() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col">
+    <div className="fixed inset-0 flex flex-col pointer-events-none">
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
-      <div className="hidden md:block absolute inset-0 z-0">
+      <div className="hidden md:block absolute inset-0 z-0 pointer-events-none">
         {/* Route drawn on main map in HomeNew */}
       </div>
 
       <div
-        className={`absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] border border-gray-100 overflow-hidden transition-all duration-300 ${collapsed ? "max-h-12" : "h-[50vh] md:h-auto md:max-h-[80vh]"}`}
+        className={`pointer-events-auto absolute bottom-4 left-4 right-4 md:left-4 md:right-auto md:w-96 z-10 flex flex-col bg-white/95 backdrop-blur-md rounded-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] border border-gray-100 overflow-hidden transition-all duration-300 ${collapsed ? "max-h-12" : "h-[50vh] md:h-auto md:max-h-[80vh]"}`}
       >
         {/* Header */}
         <div
