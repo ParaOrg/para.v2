@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Build rail graph from Supabase and merge with existing transit graph.
-Creates graph_full.json.gz with rail stations + connections.
+Build rail graph with proper station chaining.
 """
 
 import json
@@ -13,8 +12,27 @@ import math
 SUPABASE_URL = "https://tcvomrkytxnetzijwqad.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o"
 
-def fetch_supabase(table, select="*"):
-    url = f"{SUPABASE_URL}/rest/v1/{table}?select={select}"
+LRT1_ORDER = [
+    "Fernando Poe Jr.", "Balintawak", "Yamaha Monumento", "5th Avenue",
+    "R. Papa", "Abad Santos", "Blumentritt", "Tayuman", "Bambang",
+    "Doroteo Jose", "Carriedo", "United Nations", "Pedro Gil", "Quirino",
+    "Vito Cruz", "Gil Puyat", "Libertad", "EDSA", "Baclaran"
+]
+
+LRT2_ORDER = [
+    "Antipolo", "Marikina-Pasig", "Santolan", "Katipunan", "Anonas",
+    "Araneta Center - Cubao", "Betty Go - Belmonte", "Gilmore", "J. Ruiz",
+    "V. Mapa", "Pureza", "Legarda", "Recto"
+]
+
+MRT3_ORDER = [
+    "North Avenue", "Quezon Avenue", "GMA Kamuning", "Araneta Center - Cubao",
+    "Santolan-Annapolis", "Ortigas", "Shaw Boulevard", "Boni", "Guadalupe",
+    "Buendia", "Ayala", "Magallanes", "Taft Avenue"
+]
+
+def fetch_supabase(table, select="*", limit=1000):
+    url = f"{SUPABASE_URL}/rest/v1/{table}?select={select}&limit={limit}"
     headers = {
         "apikey": SUPABASE_ANON_KEY,
         "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
@@ -23,7 +41,7 @@ def fetch_supabase(table, select="*"):
     with urllib.request.urlopen(req) as resp:
         return json.loads(resp.read())
 
-def haversine(lat1, lng1, lat2, lng2):
+def haversine_m(lat1, lng1, lat2, lng2):
     R = 6371000
     phi1, phi2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -31,153 +49,134 @@ def haversine(lat1, lng1, lat2, lng2):
     a = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlmbda/2)**2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 
-def main():
+def parse_geom(geom):
+    if isinstance(geom, str):
+        try:
+            geom = json.loads(geom)
+        except:
+            return []
+    if geom is None:
+        return []
+    return geom.get("coordinates", [])
+
+def build_rail_graph():
     print("🚂 Building rail graph...")
     
-    # 1. Fetch rail stations
-    print("📥 Fetching rail stations...")
-    stations = fetch_supabase("rail_station_points", "id,fid,name,railway,geom")
-    print(f"  Found {len(stations)} stations")
-    
-    # 2. Fetch rail lines
-    print("📥 Fetching rail lines...")
-    lines = fetch_supabase("rail_network_lines", "id,name,railway,geom")
-    print(f"  Found {len(lines)} lines")
-    
-    # 3. Build rail graph nodes
-    rail_nodes = {}
+    stations = fetch_supabase("rail_station_points", "id,fid,name,railway,geom", 200)
+    station_coords = {}
     for station in stations:
-        geom = station.get("geom", {})
-        if isinstance(geom, str):
-            geom = json.loads(geom)
-        coords = geom.get("coordinates", [])
+        name = station.get("name")
+        railway = station.get("railway")
+        if not name or railway != "stop":
+            continue
+        coords = parse_geom(station.get("geom", {}))
         if len(coords) >= 2:
             lng, lat = coords[0], coords[1]
-            node_id = f"rail::{station['name']}::{lat:.5f}_{lng:.5f}"
-            rail_nodes[node_id] = [lat, lng]
+            station_coords[name] = (lat, lng)
     
-    print(f"✅ Created {len(rail_nodes)} rail nodes")
+    print(f"  Found {len(station_coords)} station stops")
     
-    # 4. Connect stations on same line
-    rail_adj = {node: [] for node in rail_nodes}
+    nodes = {}
+    adj = {}
     
-    # Group stations by line
-    for line in lines:
-        line_name = line.get("name", "")
-        line_geom = line.get("geom", {})
-        if isinstance(line_geom, str):
-            line_geom = json.loads(line_geom)
-        line_coords = line_geom.get("coordinates", [])
-        
-        # Find stations near this line
-        stations_on_line = []
-        for station in stations:
-            s_geom = station.get("geom", {})
-            if isinstance(s_geom, str):
-                s_geom = json.loads(s_geom)
-            s_coords = s_geom.get("coordinates", [])
-            if len(s_coords) < 2:
+    def add_station(name, lat, lng, line_name):
+        node_id = f"rail::{name}::{lat:.5f}_{lng:.5f}"
+        nodes[node_id] = [lat, lng]
+        if node_id not in adj:
+            adj[node_id] = []
+        return node_id, lat, lng
+    
+    def connect_line(stations_ordered, line_name, speed_kmh=35):
+        chain = []
+        for name in stations_ordered:
+            if name not in station_coords:
+                print(f"  ⚠️  Missing: {name}")
                 continue
-            s_lat, s_lng = s_coords[1], s_coords[0]
-            
-            for lng, lat in line_coords:
-                dist = haversine(s_lat, s_lng, lat, lng)
-                if dist < 200:  # Within 200m of line
-                    stations_on_line.append(station)
-                    break
+            lat, lng = station_coords[name]
+            node_id, _, _ = add_station(name, lat, lng, line_name)
+            chain.append((node_id, lat, lng, name))
         
-        # Connect consecutive stations
-        for i in range(len(stations_on_line) - 1):
-            s1 = stations_on_line[i]
-            s2 = stations_on_line[i + 1]
-            
-            g1 = s1.get("geom", {})
-            g2 = s2.get("geom", {})
-            if isinstance(g1, str): g1 = json.loads(g1)
-            if isinstance(g2, str): g2 = json.loads(g2)
-            
-            c1 = g1.get("coordinates", [])
-            c2 = g2.get("coordinates", [])
-            if len(c1) < 2 or len(c2) < 2:
-                continue
-            
-            lat1, lng1 = c1[1], c1[0]
-            lat2, lng2 = c2[1], c2[0]
-            dist = haversine(lat1, lng1, lat2, lng2)
-            
-            node1 = f"rail::{s1['name']}::{lat1:.5f}_{lng1:.5f}"
-            node2 = f"rail::{s2['name']}::{lat2:.5f}_{lng2:.5f}"
-            
-            if node1 in rail_adj and node2 in rail_adj:
-                travel_time_min = dist / (30 * 1000 / 60)  # 30 km/h average train speed
-                rail_adj[node1].append([node2, travel_time_min])
-                rail_adj[node2].append([node1, travel_time_min])
+        for i in range(len(chain) - 1):
+            node1, lat1, lng1, name1 = chain[i]
+            node2, lat2, lng2, name2 = chain[i+1]
+            dist_m = haversine_m(lat1, lng1, lat2, lng2)
+            time_min = dist_m / 1000 / speed_kmh * 60
+            weight = max(time_min, 0.5)
+            adj[node1].append([node2, weight, line_name, 'rail'])
+            adj[node2].append([node1, weight, line_name, 'rail'])
+        
+        print(f"  ✅ Connected {len(chain)} stations on {line_name}")
+        return chain
     
-    print(f"✅ Built rail connections")
+    lrt1_chain = connect_line(LRT1_ORDER, "LRT Line 1")
+    lrt2_chain = connect_line(LRT2_ORDER, "LRT Line 2")
+    mrt3_chain = connect_line(MRT3_ORDER, "MRT Line 3")
     
-    # 5. Load existing graph
-    graph_path = "/home/aegis/para-frontend/lambda-route-search/graph_full.json.gz"
+    # Transfer connections
+    print("🔗 Connecting transfers...")
+    all_rail_nodes = {}
+    for chain in [lrt1_chain, lrt2_chain, mrt3_chain]:
+        for node_id, lat, lng, name in chain:
+            all_rail_nodes[node_id] = (lat, lng, name)
+    
+    transfer_pairs = [
+        ("Doroteo Jose", "Recto"),
+        ("EDSA", "Taft Avenue"),
+    ]
+    
+    for station_a, station_b in transfer_pairs:
+        nodes_a = [nid for nid, (lat, lng, name) in all_rail_nodes.items() if name == station_a]
+        nodes_b = [nid for nid, (lat, lng, name) in all_rail_nodes.items() if name == station_b]
+        for na in nodes_a:
+            for nb in nodes_b:
+                if na != nb:
+                    adj[na].append([nb, 3.0, "Transfer Walk", "walk"])
+                    adj[nb].append([na, 3.0, "Transfer Walk", "walk"])
+        print(f"  {station_a} ↔ {station_b}")
+    
+    # Load existing graph
+    graph_path = "graph_full.json.gz"
     if os.path.exists(graph_path):
-        print("📥 Loading existing graph...")
-        with gzip.open(graph_path, "rt") as f:
+        with gzip.open(graph_path, 'rt') as f:
             existing = json.load(f)
         existing_adj = existing.get("adj", {})
         existing_nodes = existing.get("nodes", {})
-        print(f"  Existing: {len(existing_nodes)} nodes, {len(existing_adj)} adj entries")
     else:
         existing_adj = {}
         existing_nodes = {}
-        print("  No existing graph - starting fresh")
     
-    # 5b. Connect rail stations to nearby existing jeepney/bus nodes
-    print("🔗 Connecting rail stations to existing graph...")
-    connection_count = 0
+    # Walk connections to road
+    print("🚶 Connecting rail to road...")
+    WALK_SPEED_KMH = 5
+    MAX_WALK_M = 500
     
-    for rail_node_id, rail_coords in rail_nodes.items():
-        rail_lat, rail_lng = rail_coords[0], rail_coords[1]
+    for node_id, (lat, lng, name) in all_rail_nodes.items():
+        nearest_road = []
+        for road_node_id, (road_lat, road_lng) in existing_nodes.items():
+            if 'rail::' in road_node_id:
+                continue
+            dist = haversine_m(lat, lng, road_lat, road_lng)
+            if dist < MAX_WALK_M:
+                nearest_road.append((road_node_id, dist))
         
-        # Find nearest existing nodes within 500m
-        for existing_node_id, existing_coords in existing_nodes.items():
-            ex_lat, ex_lng = existing_coords[0], existing_coords[1]
-            dist = haversine(rail_lat, rail_lng, ex_lat, ex_lng)
-            
-            if dist < 500:  # Within 500m walk
-                walk_time_min = dist / 80  # 80 m/min walking speed
-                
-                # Add walk connection using LIST format (matches existing graph)
-                # rail -> existing
-                if rail_node_id not in rail_adj:
-                    rail_adj[rail_node_id] = []
-                rail_adj[rail_node_id].append([existing_node_id, walk_time_min])
-                
-                # existing -> rail
-                existing_entry = existing_adj.get(existing_node_id)
-                if existing_entry is None:
-                    existing_adj[existing_node_id] = [[rail_node_id, walk_time_min]]
-                elif isinstance(existing_entry, list):
-                    existing_adj[existing_node_id].append([rail_node_id, walk_time_min])
-                else:
-                    existing_adj[existing_node_id] = [[rail_node_id, walk_time_min]]
-                
-                connection_count += 1
+        nearest_road.sort(key=lambda x: x[1])
+        for road_node_id, dist in nearest_road[:3]:
+            walk_time = (dist / 1000) / WALK_SPEED_KMH * 60
+            adj[node_id].append([road_node_id, walk_time, "Walk", "walk"])
+            if road_node_id not in existing_adj:
+                existing_adj[road_node_id] = []
+            existing_adj[road_node_id].append([node_id, walk_time, "Walk", "walk"])
     
-    print(f"  ✅ Created {connection_count} rail-to-graph walk connections")
-
-    # 6. Merge rail nodes and edges
-    merged_nodes = {**existing_nodes, **rail_nodes}
-    merged_adj = {**existing_adj, **rail_adj}
+    merged_adj = {**existing_adj, **adj}
+    merged_nodes = {**existing_nodes, **nodes}
     
-    print(f"✅ Merged: {len(merged_nodes)} nodes total")
+    output = {"adj": merged_adj, "nodes": merged_nodes}
     
-    # 7. Save merged graph
-    output_path = "/home/aegis/para-frontend/lambda-route-search/graph_full_rail.json.gz"
-    with gzip.open(output_path, "wt") as f:
-        json.dump({"adj": merged_adj, "nodes": merged_nodes}, f)
+    with gzip.open("graph_full_rail.json.gz", 'wt') as f:
+        json.dump(output, f)
     
-    print(f"✅ Saved merged graph to {output_path}")
-    print(f"  Total nodes: {len(merged_nodes)}")
-    print(f"  Rail nodes: {len(rail_nodes)}")
-    print(f"  Existing nodes: {len(existing_nodes)}")
+    print(f"✅ Saved: {len(merged_nodes)} nodes")
+    return output
 
 if __name__ == "__main__":
-    main()
+    build_rail_graph()

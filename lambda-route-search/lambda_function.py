@@ -458,62 +458,58 @@ def build_segments_from_path(path, nodes):
     segments = []
     current_route = None
     current_group = []
+    
+    def append_segment(route_name, group, node_list):
+        """Build and append a segment from a group of nodes."""
+        if not route_name or not group:
+            return
+        coords = [node_list[n] for n in group if n in node_list]
+        if len(coords) < 2:
+            return
+        
+        dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
+        time_min = max(dist / 25 * 60, 2)
+        
+        route_lower = route_name.lower()
+        if 'rail' in route_lower or 'lrt' in route_lower or 'mrt' in route_lower:
+            mode = 'rail'
+            stations = []
+            for n in group:
+                if '::' in n:
+                    station = n.split('::')[1].replace('_', ' ').replace('  ', ' ')
+                    if station not in stations:
+                        stations.append(station)
+            if stations:
+                route_label = f"Take {'LRT' if 'lrt' in route_lower else 'MRT'} from {stations[0]} to {stations[-1]}"
+            else:
+                route_label = route_name
+        else:
+            mode = 'bus' if 'bus' in route_lower else 'jeepney'
+            route_label = route_name
+        
+        segments.append({
+            'route': route_label,
+            'mode': mode,
+            'distance_km': round(dist, 2),
+            'time_min': round(time_min, 1),
+            'geometry': coords,
+            'type': 'transit'
+        })
+    
     for node_id in path:
         if '::' not in node_id:
             continue
         route = node_id.split('::')[0]
         if route != current_route:
-            if current_group:
-                coords = [nodes[n] for n in current_group if n in nodes]
-                if len(coords) >= 2:
-                    dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
-                    time_min = max(dist / 25 * 60, 2)
-                    # Determine proper mode and route name
-            if 'rail' in current_route.lower() or 'lrt' in current_route.lower() or 'mrt' in current_route.lower():
-                mode = 'rail'
-                # Extract station names from node IDs
-                stations = []
-                for n in current_group:
-                    if '::' in n:
-                        station = n.split('::')[1].replace('_', ' ').replace('  ', ' ')
-                        if station not in stations:
-                            stations.append(station)
-                if stations:
-                    route_label = f"{'LRT' if 'lrt' in current_route.lower() else 'MRT'} from {stations[0]} to {stations[-1]}"
-                else:
-                    route_label = current_route
-            else:
-                mode = 'bus' if 'bus' in current_route.lower() else 'jeepney'
-                route_label = current_route
-            segments.append({'route': route_label, 'mode': mode, 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+            append_segment(current_route, current_group, nodes)
             current_route = route
             current_group = [node_id]
         else:
             current_group.append(node_id)
-    if current_group:
-        coords = [nodes[n] for n in current_group if n in nodes]
-        if len(coords) >= 2:
-            dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
-            time_min = max(dist / 25 * 60, 2)
-            # Determine proper mode and route name
-            if 'rail' in current_route.lower() or 'lrt' in current_route.lower() or 'mrt' in current_route.lower():
-                mode = 'rail'
-                # Extract station names from node IDs
-                stations = []
-                for n in current_group:
-                    if '::' in n:
-                        station = n.split('::')[1].replace('_', ' ').replace('  ', ' ')
-                        if station not in stations:
-                            stations.append(station)
-                if stations:
-                    route_label = f"{'LRT' if 'lrt' in current_route.lower() else 'MRT'} from {stations[0]} to {stations[-1]}"
-                else:
-                    route_label = current_route
-            else:
-                mode = 'bus' if 'bus' in current_route.lower() else 'jeepney'
-                route_label = current_route
-            segments.append({'route': route_label, 'mode': mode, 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+    
+    append_segment(current_route, current_group, nodes)
     return segments
+
 
 def seg_fare(seg):
     mode = seg.get('mode', 'jeepney')
