@@ -80,6 +80,9 @@ def build_rail_graph():
             "PITX": "Asia World-PITX",
             "Cubao": "Araneta Center - Cubao",
         }
+        # Skip non-LRT/MRT stations
+        if name in ('Santa Mesa',):
+            continue
         name = name_mapping.get(name, name)
         coords = parse_geom(station.get("geom", {}))
         if len(coords) >= 2:
