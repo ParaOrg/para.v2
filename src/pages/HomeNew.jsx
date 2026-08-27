@@ -238,9 +238,14 @@ export default function HomeNew() {
           const coords = seg.geometry.map((c) => [c[0], c[1]]);
           console.log("Drawing segment:", coords.length, "points");
           const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.indexOf("WALK") !== -1);
-          const isRail = seg.mode === 'rail' || (seg.route && (seg.route.includes('LRT') || seg.route.includes('MRT')));
-          const railColor = seg.route?.includes('LRT Line 1') || seg.route?.includes('LRT 1') ? '#00A650' 
-            : seg.route?.includes('LRT Line 2') || seg.route?.includes('LRT 2') ? '#7A4BC8'
+          // Only TRUE rail segments are mode==='rail', not road routes with "LRT" in name
+          const isRail = seg.mode === 'rail';
+          // Extract line number from route label like "Take LRT-1 from X to Y"
+          const lineMatch = seg.route?.match(/LRT-1|LRT-2|MRT-3/);
+          const railColor = lineMatch 
+            ? (lineMatch[0] === 'LRT-1' ? '#00A650' 
+              : lineMatch[0] === 'LRT-2' ? '#7A4BC8'
+              : '#FF6B00')
             : '#FF6B00';
           lns.push({ 
             coordinates: coords, 
