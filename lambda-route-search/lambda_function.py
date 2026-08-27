@@ -337,15 +337,9 @@ def load_graph_from_supabase():
 def load_graph():
     global _graph, _nodes, _graph_loaded_at
     
-    now = datetime.datetime.now().timestamp()
-    
-    if _graph is not None and (now - _graph_loaded_at) < _GRAPH_TTL:
-        return _graph, _nodes
-    
-    _graph, _nodes = load_graph_from_supabase()
-    _graph_loaded_at = now
-    
-    return _graph, _nodes
+    # Use static graph file (already bundled in Lambda zip) as PRIMARY source
+    # This avoids timeout from querying 474K edges from Supabase
+    return load_graph_static()
 
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
@@ -581,14 +575,20 @@ def build_segments_from_path(path, nodes, line_geoms=None):
             else:
                 route_label = route_name
             
-            # Use smooth rail geometry from Supabase
-            if line_geoms:
-                for line_name, line_coords in line_geoms.items():
-                    if line_name.lower() in route_lower or route_lower in line_name.lower():
-                        smooth = [[c[1], c[0]] for c in line_coords if len(c) >= 2]
-                        if len(smooth) >= 2:
-                            coords = smooth
-                        break
+            # Use smooth rail geometry from Supabase using the detected line_name
+            if line_geoms and line_name:
+                # Map detected line to Supabase line name
+                supabase_line_map = {
+                    'LRT-1': 'LRT Line 1',
+                    'LRT-2': 'LRT Line 2',
+                    'MRT-3': 'MRT Line 3',
+                }
+                supabase_line = supabase_line_map.get(line_name)
+                if supabase_line and supabase_line in line_geoms:
+                    line_coords = line_geoms[supabase_line]
+                    smooth = [[c[1], c[0]] for c in line_coords if len(c) >= 2]
+                    if len(smooth) >= 2:
+                        coords = smooth
         else:
             mode = 'bus' if 'bus' in route_lower else 'jeepney'
             route_label = route_name
