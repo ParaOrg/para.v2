@@ -205,6 +205,15 @@ export default function HomeNew() {
       console.log('Response status:', res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      console.log('Response data keys:', Object.keys(data));
+      console.log('Has route_data:', !!data.route_data);
+      if (data.route_data) {
+        console.log('Route data keys:', Object.keys(data.route_data));
+        console.log('Segments count:', data.route_data.segments?.length || 0);
+        if (data.route_data.segments?.[0]) {
+          console.log('First segment:', JSON.stringify(data.route_data.segments[0]).substring(0, 200));
+        }
+      }
       // Check for unverified segments BEFORE showing route
       const unverifiedSegments = data.route_data?.segments?.filter(seg => !seg.is_verified && seg.type === 'transit') || [];
       const unverifiedNames = [...new Set(unverifiedSegments.map(seg => seg.route))];
