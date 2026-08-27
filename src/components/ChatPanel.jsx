@@ -192,7 +192,7 @@ export default function ChatPanel() {
     <div className="fixed inset-0 flex flex-col">
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
       <div className="hidden md:block absolute inset-0 z-0">
-        <MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
+        {/* Route drawn on main map in HomeNew */}
       </div>
 
       <div
