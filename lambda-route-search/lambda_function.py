@@ -575,9 +575,8 @@ def build_segments_from_path(path, nodes, line_geoms=None):
             else:
                 route_label = route_name
             
-            # Use smooth rail geometry from Supabase using the detected line_name
-            if line_geoms and line_name:
-                # Map detected line to Supabase line name
+            # Use smooth rail geometry from Supabase - subset to between start/end stations
+            if line_geoms and line_name and stations:
                 supabase_line_map = {
                     'LRT-1': 'LRT Line 1',
                     'LRT-2': 'LRT Line 2',
@@ -588,7 +587,48 @@ def build_segments_from_path(path, nodes, line_geoms=None):
                     line_coords = line_geoms[supabase_line]
                     smooth = [[c[1], c[0]] for c in line_coords if len(c) >= 2]
                     if len(smooth) >= 2:
-                        coords = smooth
+                        # Find the station coordinates in the smooth geometry
+                        first_st = stations[0]
+                        last_st = stations[-1]
+                        first_coord = None
+                        last_coord = None
+                        # Find nearest smooth geometry points to start/end stations
+                        for n in group:
+                            if '::' in n:
+                                st_name = n.split('::')[1].strip()
+                                if st_name == first_st:
+                                    node_coords = node_list.get(n)
+                                    if node_coords:
+                                        first_coord = node_coords
+                                if st_name == last_st:
+                                    node_coords = node_list.get(n)
+                                    if node_coords:
+                                        last_coord = node_coords
+                        
+                        if first_coord and last_coord:
+                            # Find indices in smooth geometry closest to station coords
+                            min_start_dist = float('inf')
+                            min_end_dist = float('inf')
+                            start_idx = 0
+                            end_idx = len(smooth) - 1
+                            for i, sc in enumerate(smooth):
+                                d_start = haversine(first_coord[0], first_coord[1], sc[0], sc[1])
+                                d_end = haversine(last_coord[0], last_coord[1], sc[0], sc[1])
+                                if d_start < min_start_dist:
+                                    min_start_dist = d_start
+                                    start_idx = i
+                                if d_end < min_end_dist:
+                                    min_end_dist = d_end
+                                    end_idx = i
+                            
+                            # Subset between start and end (handle both directions)
+                            if start_idx <= end_idx:
+                                coords = smooth[start_idx:end_idx+1]
+                            else:
+                                coords = smooth[end_idx:start_idx+1][::-1]
+                            
+                            if len(coords) < 2:
+                                coords = [node_list[n] for n in group if n in node_list]
         else:
             mode = 'bus' if 'bus' in route_lower else 'jeepney'
             route_label = route_name
