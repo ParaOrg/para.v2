@@ -1,4 +1,4 @@
-const CACHE_NAME = 'para-ph-v1';
+const CACHE_NAME = 'para-ph-v1787815997';
 const urlsToCache = [
   '/',
   '/index.html',
