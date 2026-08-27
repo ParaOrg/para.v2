@@ -5,10 +5,10 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA pilots smart poles, traffic app under JICA project - Philippine News Agency",
-      "description": "MMDA pilots smart poles, traffic app under JICA projectPhilippine News Agency",
-      "updated": "Tue, 25 Aug 2026 09:26:06 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE1Cc3FmM2dpMjh5RkZRQURSSy03UkNkemdlbjc0TU4yWER5RDEwWjlzOFRMNjJLQmVDZE90Y3R3VmxDZmxhN0VELXF6QVRPdks4?oc=5",
+      "title": "MMDA, 4 LGUs team up to fix Marcos Highway traffic - AutoIndustriya",
+      "description": "MMDA, 4 LGUs team up to fix Marcos Highway trafficAutoIndustriya",
+      "updated": "Thu, 27 Aug 2026 00:00:49 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNa2dsTjN4UHFfUTZoUHVzV09wVTdHQU9MTnAyLXgxb0l5b204eUp0WmVPX0lYZ1BRSjZjYVJycTlRb3BQUF84WFhRUE43c2VsYVZPRWJ4LXRtMUp1a1B6MG4yOFI1VmRGSmpwRmZqNUZYb3NFcDdIMV9Od3drLVlHenozd3dJb0ltLUlGLTB5bmNSODllWnZ1bVlUbDNDQ3dqTFRYeEVycw?oc=5",
       "source_name": "Google News"
     },
     {
@@ -16,13 +16,101 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "Reclamation in Manila Bay to worsen flooding, traffic in Metro Manila? - Manila ",
-      "description": "Reclamation in Manila Bay to worsen flooding, traffic in Metro Manila?Manila Bulletin",
-      "updated": "Mon, 24 Aug 2026 16:08:56 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOZ3ZNTFNYVlBYMlBTRUdsU19LaG5oZHRPZG1wVjl6dGdZMENiZmZXZGxnRGl2NVJtVnVOaDZ2UFJpVkoyRUhUMFgyWm1rTGc2eTd1SnREVW1CYk9obzAyXzJJdnZ6N3hERlQ2OG1LSVYtdnBZSlhaMDZYbWVFb0dJR3I5Uk9KNXYwODFCZjg5bzlKVGpWYWg5QnpuUEdpdw?oc=5",
+      "title": "MMDA, 4 LGUs ink coordinated traffic response pact along Marcos Highway - Inquir",
+      "description": "MMDA, 4 LGUs ink coordinated traffic response pact along Marcos HighwayInquirer.net",
+      "updated": "Wed, 26 Aug 2026 07:43:00 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPTWprU3gxYnhVMkQ4bUJwOTltMThIQlF6WDFCSXpKYUsyb3Q5QTZuTEpnN2phR1RBNzU1ZjlOMFVRakxYU1VSRUtudURJWnRMT2wzWHBTUXNCT0Z6SUlwemRhWEhrX242blVuSlRhTjVmdDlJUjNPOHJNdHp5REEzNnZwbU40WGJqcThBRHJENTNpX0NjQkFmSVVXZUVWMkwwOXhKY1pvNGN3eHox0gGyAUFVX3lxTE84VmVLVDhVMTdsYmU4MmNLTDgydk52elB3bHR6amd3UHJwc21KNk02NjBYTGRMYWtEOWRjdWhUTTFZa05MWFJCSVU2SlkyeE9Nczd5NHByeEpwVUJhM1QxSEhPRDkyaUFyQkNtYlAtdl9HTy1WYm5jeU9ZWW9VTVRfT3VjSkhTQW1PRDhZMGhpck4zZ3lZQVVVRXpPVkF2X0M2QmpBblRRdGlHNGpmUG5oNmc?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-3",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA pilots smart poles, traffic app under JICA project - Philippine News Agency",
+      "description": "MMDA pilots smart poles, traffic app under JICA projectPhilippine News Agency",
+      "updated": "Tue, 25 Aug 2026 09:26:06 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE1Cc3FmM2dpMjh5RkZRQURSSy03UkNkemdlbjc0TU4yWER5RDEwWjlzOFRMNjJLQmVDZE90Y3R3VmxDZmxhN0VELXF6QVRPdks4?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-4",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Heavy traffic on EDSA - Daily Tribune",
+      "description": "Heavy traffic on EDSADaily Tribune",
+      "updated": "Wed, 26 Aug 2026 05:30:45 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE1aNjVma2c5cTZMdmR4TFRZdGI1U2FaUGpnZEdldnpPNFRMLTYzYktsYTVpZXNYNVJFQXF6ZHNvR3BGeHY5QjNWanRaSjFmM3NwN3RkaGhGYVdiVlZfRnZpZ1ozWWhIZw?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-5",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSA - ABS-CBN",
+      "description": "MMDA: Contractor faces fine over heavy Sunday traffic on EDSAABS-CBN",
+      "updated": "Tue, 25 Aug 2026 06:04:19 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPVlNEVVNDSUdzczVsTkd0RjBuMl9tbHVneVloR0FFcm91bFFpVFJ6NVRpVWU5WE5tREo4M0tRRTVuRlpEN0p6V1BveTQ2TGx1YS11Rml6c0NSVWxWMDdTd0xJdkhONmlfT0xjbTJnaGdmbXQtQWNxQTV6SlVIdENqRVdmRTFOTnlTX0R3LUYyRmQ0Y2R3dlgxTTByQ0R1UHpuTHQyYV9vNVkxczdyZFBXV1hCQWprRWh4SWJHNw?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-6",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA seeks P50k fine for EDSA rehab contractor for causing heavy bottleneck traf",
+      "description": "MMDA seeks P50k fine for EDSA rehab contractor for causing heavy bottleneck trafficTop Gear Philippines",
+      "updated": "Tue, 25 Aug 2026 10:54:00 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOVm5idGI2OURtbk81c0NlZ0s3Ry01bHVlQTBhVHpYY1JVV0piZDNnVXhSODJCdWltT0phX3FQWlZ3X2ZNS2w3d3Q0ZmFSMDNZSGN1YjB5VlFqWlY4aWN1NlhMZ1NDbHFMeTRiZmNoVGQ4SGdtVURFVy1nQmlodERxbVlIVC1uSXdnNTJRNTc0dw?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-7",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "MMDA seeks P50,000 fine against EDSA rehab contractor over Sunday traffic snarl ",
+      "description": "MMDA seeks P50,000 fine against EDSA rehab contractor over Sunday traffic snarlPhilippine Canadian Inquirer",
+      "updated": "Tue, 25 Aug 2026 12:03:32 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPVFc0eFNrcHpSNFlTMmxXN3FWVzlya1g1Q0tCampzeUQ5cnFLVWlwc2E4X01wRVNraFZWakl2d0o3aDVIb05RWEFtbHlLaEkycnNGMXpUNy04MkxOQmZHb3Z2bG5lWElKcnJ0aDhOOWsyNmpva0FjUE90WEVSdlNwVS0wVUVWSU9aTXNvQmFNRWVmcWdjWlh2ejJONWIwVmFTSnYtblllOHkwNUxseDhRRkNGU19oZV9GbVRJ?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-8",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Your EDSA commute is getting an upgrade at My SM - Inquirer.net",
+      "description": "Your EDSA commute is getting an upgrade at My SMInquirer.net",
+      "updated": "Wed, 26 Aug 2026 04:11:00 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxPSzkwalhCdkJ1RWFyZnRJQXRSc2Z2d3M0V0tvekZmeldsVG1zLUk2MjZ5ckdwVkU2RTNTXzJmMG8wbHZHQUFaZVp3aGUzUG8xMFllMUEzRUtHU1ExUExoQTluU1BTNm1ZaVFERG94Z1JadHpCeXloeEZ3elgxNHBkQVJfZmRoYWtQZ2hOODhPMVY1YmPSAZgBQVVfeXFMT3lMQjQzSWEzVHJaa085dXZEZ2s5RV91c0hrQmRzT3ZROS1zQWxlTVozU09mOFFMNWlzeW9rZ3dnYXk2cFh3aGNyM0FjaDV0LVpKcDlVMjM3bXBQUU52aUhBWURkOUh5Wi1VRlZCZUk0Y2ZiZGNwZzE3QldJMnhJZjRUdDFKTmZDRFpMVERoQ0U4ODdfQnhNeXM?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-9",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Evangelist’s attempt to preach on LRT prompts calls to respect commuters’ space ",
+      "description": "Evangelist’s attempt to preach on LRT prompts calls to respect commuters’ spaceInteraksyon",
+      "updated": "Tue, 25 Aug 2026 06:43:58 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxOUnFFWEU1MHF3enVnd0VBWlJBbmljcDdRX21meS01VW9aRngzWXRzQVdza1hYbjNqUE9pWnY5M3ctNlJTTE1TbzFpbDlEbW9xVWR3SE1QZWhCWGV6cGRaUHZZUzB0TWg0R1BfTTI3b08tNXZBdkdJWXhIc3BpU01nQWZNRG5ZUEwwTTQ1ZFRBN0ZDSnFvMGZKaXN3Ym1GVVhEVlVYQWprT0JYMHV4azR5cGM0c3ZPX215aV9wTVRiN3Q?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "LRT disruptions could hurt Malaysia’s tourism image ahead of Visit Malaysia 2026",
+      "description": "LRT disruptions could hurt Malaysia’s tourism image ahead of Visit Malaysia 2026: AcademicNewswav",
+      "updated": "Tue, 25 Aug 2026 01:52:40 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPMzhyOXJuTU1OMG5tdHJWMXF6bWlzaE1pVUp1SDItNDhTS0ZaU3hGNFpQTm8xTklvSHEtWkoxQkZ0bjBCV1U4ZVBVT2hub1FiQ1VXVWU0R1pPWWJNRGY3N3QwT2ZyUW43LUlEalRDWUxHUVhMQ2V0Y0pZLUt3MnNLcnQtYWdHdWY2WmRwaWJoU3A1YXY2NzJrZGluWWtkSGVaWnhyX0p2SWhaR3F5TzdWS3NWWjJOUDA?oc=5",
       "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-26T22:00:04.645713",
+  "scraped_at": "2026-08-27T08:30:02.474870",
   "source": "Google News RSS"
 }

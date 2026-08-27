@@ -12,6 +12,7 @@ import { getModeColor } from "../utils/modeColors";
 import Navbar from "../components/Navbar";
 import LandingPageFooter from "../components/landingpage-footer.component.jsx";
 import LiveRouteRecorder from "../components/LiveRouteRecorder";
+import RailNetworkOverlay from '../components/RailNetworkOverlay';
 import BottomNav from "../components/BottomNav";
 import WeatherPage from "../components/WeatherPage";
 import GpsIcon from "../components/GpsIcon";
@@ -162,7 +163,7 @@ export default function RoutesExplorer() {
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
     const map = L.map(mapRef.current, { zoomControl: false, attributionControl: false }).setView(CENTER, 12);
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(map);
+    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19 }).addTo(map);
     L.control.zoom({ position: "bottomright" }).addTo(map);
     layerRef.current = L.layerGroup().addTo(map);
     mapInst.current = map;
