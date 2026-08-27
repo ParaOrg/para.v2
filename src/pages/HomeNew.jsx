@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { detectIntent, extractPreferences, normalize } from "../utils/nlpEngine";
 import MapComponent from "../components/map_component";
+import RailNetworkOverlay from "../components/RailNetworkOverlay";
 import { RouteCardList } from "../components/TripSummaryCard";
 import ShareRouteCard from "../components/ShareRouteCard";
 import SaveRouteButton from "../components/SaveRouteButton";
@@ -52,6 +53,13 @@ export default function HomeNew() {
   const navigate = useNavigate();
   const { location, requestConsentAndLocation } = useTrackingConsent();
   const gpsActive = Boolean(location);
+
+  // Auto-center on GPS when first acquired
+  useEffect(() => {
+    if (location?.lat && location?.lng && window.__paraMap) {
+      window.__paraMap.flyTo([location.lat, location.lng], 15, { duration: 1.5 });
+    }
+  }, [location?.lat, location?.lng]);
   const [kbOffset, setKbOffset] = useState(0);
 
   useEffect(() => {
@@ -221,6 +229,10 @@ export default function HomeNew() {
           const coords = seg.geometry.map((c) => [c[0], c[1]]);
           console.log("Drawing segment:", coords.length, "points");
           const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.indexOf("WALK") !== -1);
+          const isRail = seg.mode === 'rail' || (seg.route && (seg.route.includes('LRT') || seg.route.includes('MRT')));
+          const railColor = seg.route?.includes('LRT Line 1') || seg.route?.includes('LRT 1') ? '#00A650' 
+            : seg.route?.includes('LRT Line 2') || seg.route?.includes('LRT 2') ? '#7A4BC8'
+            : '#FF6B00';
           lns.push({ 
             coordinates: coords, 
             color: isWalk ? "#9CA3AF" : "#310775", 
@@ -257,7 +269,8 @@ export default function HomeNew() {
       <div className="hidden md:block"><Navbar /><ChatPanel /><button onClick={locateMap} className="fixed top-20 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
       <div className="md:hidden">
         <div className="md:hidden absolute top-4 left-4 z-30 flex flex-col items-center"><img src={paralogo} alt="Para PH" className="w-10 h-10 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]" /><p className="text-[8px] text-gray-700 mt-0.5 font-medium leading-tight text-center drop-shadow-sm">Bawat Byahe,<br/>Tulong sa Komunidad</p></div>
-        <div className="absolute inset-0 z-10" style={{ minHeight: "100dvh" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
+        <div className="absolute inset-0 z-10" style={{ minHeight: "100dvh" }}><RailNetworkOverlay map={window.__paraMap} />
+        <MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} /></div>
         {!gpsActive && <button onClick={requestConsentAndLocation} className="md:hidden absolute top-32 right-4 z-30 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2 text-xs font-bold text-[#7A4BC8] animate-pulse"><span>📍</span><span>Enable GPS</span></button>}
         <button onClick={locateMap} className="absolute top-4 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="absolute top-16 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
         {chatOpen && !showTracker && (
