@@ -54,3 +54,7 @@
 .pin-marker {
   animation: pin-drop 0.3s ease-out;
 }
+
+/* Mobile touch fixes */
+.leaflet-container { touch-action: pan-x pan-y; }
+input, textarea, button { touch-action: manipulation; }
