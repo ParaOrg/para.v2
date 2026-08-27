@@ -627,8 +627,12 @@ def build_segments_from_path(path, nodes, line_geoms=None):
                             else:
                                 coords = smooth[end_idx:start_idx+1][::-1]
                             
-                            if len(coords) < 2:
-                                coords = [node_list[n] for n in group if n in node_list]
+                            # ALWAYS ensure first and last points are EXACTLY the station coords
+                            if coords and len(coords) >= 2:
+                                coords[0] = first_coord
+                                coords[-1] = last_coord
+                            else:
+                                coords = [first_coord, last_coord]
         else:
             mode = 'bus' if 'bus' in route_lower else 'jeepney'
             route_label = route_name
