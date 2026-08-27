@@ -454,7 +454,79 @@ def dijkstra_with_block(adj, start, end, blocked_edges):
     path.append(start)
     return path[::-1]
 
-def build_segments_from_path(path, nodes):
+def fetch_station_line_mapping():
+    """Dynamically map stations to their rail lines using spatial proximity."""
+    supabase_url = os.environ.get("SUPABASE_URL", "")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    
+    if not supabase_url or not supabase_key:
+        return {}, {}
+    
+    try:
+        lines_url = f"{supabase_url}/rest/v1/rail_network_lines?select=name,geom&limit=1000"
+        lines_req = ur.Request(lines_url, headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'})
+        with ur.urlopen(lines_req, timeout=10) as lr:
+            lines_data = json.loads(lr.read())
+        
+        line_geoms = {}
+        for line in lines_data:
+            name = line.get("name", "")
+            geom = line.get("geom", {})
+            if isinstance(geom, str):
+                try:
+                    geom = json.loads(geom)
+                except:
+                    continue
+            coords = geom.get("coordinates", [])
+            if name and coords:
+                if name not in line_geoms:
+                    line_geoms[name] = []
+                line_geoms[name].extend(coords)
+        
+        stations_url = f"{supabase_url}/rest/v1/rail_station_points?select=name,geom&railway=eq.stop&limit=200"
+        stations_req = ur.Request(stations_url, headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'})
+        with ur.urlopen(stations_req, timeout=10) as sr:
+            stations_data = json.loads(sr.read())
+        
+        station_to_line = {}
+        for station in stations_data:
+            station_name = station.get("name")
+            if not station_name:
+                continue
+            station_geom = station.get("geom", {})
+            if isinstance(station_geom, str):
+                try:
+                    station_geom = json.loads(station_geom)
+                except:
+                    continue
+            station_coords = station_geom.get("coordinates", [])
+            if len(station_coords) < 2:
+                continue
+            station_lng, station_lat = station_coords[0], station_coords[1]
+            
+            min_dist = float('inf')
+            best_line = None
+            for line_name, line_coords in line_geoms.items():
+                for coord in line_coords:
+                    if len(coord) >= 2:
+                        line_lng, line_lat = coord[0], coord[1]
+                        dist = haversine(station_lat, station_lng, line_lat, line_lng)
+                        if dist < min_dist:
+                            min_dist = dist
+                            best_line = line_name
+            
+            if best_line:
+                station_to_line[station_name.lower()] = best_line
+        
+        logger.info(f"Dynamically mapped {len(station_to_line)} stations to {len(line_geoms)} lines")
+        return station_to_line, line_geoms
+    
+    except Exception as e:
+        logger.warning(f"Failed to build station-line mapping: {e}")
+        return {}, {}
+
+
+def build_segments_from_path(path, nodes, line_geoms=None):
     segments = []
     current_route = None
     current_group = []
@@ -467,25 +539,61 @@ def build_segments_from_path(path, nodes):
         if len(coords) < 2:
             return
         
-        dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
-        time_min = max(dist / 25 * 60, 2)
-        
         route_lower = route_name.lower()
-        if 'rail' in route_lower or 'lrt' in route_lower or 'mrt' in route_lower:
+        # Only treat as rail if route_name is EXACTLY "rail" (graph node prefix)
+        # Bus routes like "Alabang - Malanday via EDSA LRT" should NOT be rail
+        if route_lower == 'rail' or route_lower.startswith('rail::'):
             mode = 'rail'
+            # Extract station names, filtering out None and entrances
             stations = []
             for n in group:
-                if '::' in n:
-                    station = n.split('::')[1].replace('_', ' ').replace('  ', ' ')
-                    if station not in stations:
-                        stations.append(station)
+                if '::' not in n:
+                    continue
+                station = n.split('::')[1].replace('_', ' ').replace('  ', ' ').strip()
+                # Skip coordinate-looking names and None
+                if station and station.lower() not in ('none', 'null', '') and 'entrance' not in station.lower():
+                    # Skip if station looks like coordinates (contains digits and dots)
+                    if not any(c.isdigit() for c in station):
+                        if station not in stations:
+                            stations.append(station)
+            
             if stations:
-                route_label = f"Take {'LRT' if 'lrt' in route_lower else 'MRT'} from {stations[0]} to {stations[-1]}"
+                # Determine line from station names
+                first_station = stations[0].lower()
+                last_station = stations[-1].lower()
+                
+                # Dynamic line detection based on station names
+                line_name = None
+                # The station_to_line dict is fetched dynamically in the handler
+                # But for the label, we can infer from station positions
+                if any(s in first_station for s in ('katipunan', 'anonas', 'santolan', 'marikina', 'antipolo', 'recto', 'legarda', 'pureza', 'v. mapa', 'j. ruiz', 'gilmore', 'betty go')):
+                    line_name = 'LRT-2'
+                elif any(s in first_station for s in ('north avenue', 'quezon avenue', 'gma kamuning', 'ortigas', 'shaw', 'boni', 'guadalupe', 'buendia', 'ayala', 'magallanes', 'taft')):
+                    line_name = 'MRT-3'
+                elif any(s in first_station for s in ('fernando poe', 'balintawak', 'monumento', '5th avenue', 'r. papa', 'abad santos', 'blumentritt', 'tayuman', 'bambang', 'doroteo jose', 'carriedo', 'united nations', 'pedro gil', 'quirino', 'vito cruz', 'gil puyat', 'libertad', 'edsa', 'baclaran', 'redemptorist', 'mia road', 'pitx', 'ninoy aquino', 'dr. santos')):
+                    line_name = 'LRT-1'
+                
+                if line_name:
+                    route_label = f"Take {line_name} from {stations[0]} to {stations[-1]}"
+                else:
+                    route_label = f"Take Rail from {stations[0]} to {stations[-1]}"
             else:
                 route_label = route_name
+            
+            # Use smooth rail geometry from Supabase
+            if line_geoms:
+                for line_name, line_coords in line_geoms.items():
+                    if line_name.lower() in route_lower or route_lower in line_name.lower():
+                        smooth = [[c[1], c[0]] for c in line_coords if len(c) >= 2]
+                        if len(smooth) >= 2:
+                            coords = smooth
+                        break
         else:
             mode = 'bus' if 'bus' in route_lower else 'jeepney'
             route_label = route_name
+        
+        dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
+        time_min = max(dist / 25 * 60, 2)
         
         segments.append({
             'route': route_label,
@@ -496,11 +604,21 @@ def build_segments_from_path(path, nodes):
             'type': 'transit'
         })
     
+    # Transfer stations where rail lines meet
+    transfer_stations = {'araneta center - cubao', 'doroteo jose', 'recto', 'edsa', 'taft avenue'}
+    
     for node_id in path:
         if '::' not in node_id:
             continue
         route = node_id.split('::')[0]
-        if route != current_route:
+        station = node_id.split('::')[1].lower() if len(node_id.split('::')) > 1 else ''
+        
+        # Split at transfer stations to separate rail lines
+        if route == 'rail' and station in transfer_stations and current_group:
+            append_segment(current_route, current_group, nodes)
+            current_route = route
+            current_group = [node_id]
+        elif route != current_route:
             append_segment(current_route, current_group, nodes)
             current_route = route
             current_group = [node_id]
@@ -794,8 +912,11 @@ def lambda_handler(event, context):
         if not path:
             return error_response('No path found')
         
+        # Fetch station-line mapping and smooth track geometry
+        station_to_line, line_geoms = fetch_station_line_mapping()
+        
         # Build segments
-        final_segments = build_segments_from_path(path, nodes)
+        final_segments = build_segments_from_path(path, nodes, line_geoms)
         
         if not final_segments:
             return error_response('No segments found')
