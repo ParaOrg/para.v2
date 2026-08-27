@@ -40,6 +40,7 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
         weight: line.weight || 4,
         dashArray: line.dashed ? "5, 8" : null,
         opacity: 0.8,
+        smoothFactor: 1.5,
       }).addTo(polylineLayer.current);
     });
     if (fitBounds && polylines.length > 0) {
