@@ -56,7 +56,7 @@ function SendIcon() {
   );
 }
 
-export default function ChatPanel() {
+export default function ChatPanel({ onRouteDraw }) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([{ sender: "bot", text: WELCOME_MESSAGE }]);
   const [input, setInput] = useState("");
@@ -87,6 +87,8 @@ export default function ChatPanel() {
   }, [messages]);
 
   const drawRoute = useCallback((routeData) => {
+    // Also notify parent (HomeNew) to draw on main map
+    if (onRouteDraw) onRouteDraw(routeData);
     if (!routeData) return;
     const segments = routeData.segments || [];
     const allMarkers = [];
