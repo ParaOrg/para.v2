@@ -468,7 +468,24 @@ def build_segments_from_path(path, nodes):
                 if len(coords) >= 2:
                     dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
                     time_min = max(dist / 25 * 60, 2)
-                    segments.append({'route': current_route, 'mode': 'bus' if 'bus' in current_route.lower() else 'jeepney', 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+                    # Determine proper mode and route name
+            if 'rail' in current_route.lower() or 'lrt' in current_route.lower() or 'mrt' in current_route.lower():
+                mode = 'rail'
+                # Extract station names from node IDs
+                stations = []
+                for n in current_group:
+                    if '::' in n:
+                        station = n.split('::')[1].replace('_', ' ').replace('  ', ' ')
+                        if station not in stations:
+                            stations.append(station)
+                if stations:
+                    route_label = f"{'LRT' if 'lrt' in current_route.lower() else 'MRT'} from {stations[0]} to {stations[-1]}"
+                else:
+                    route_label = current_route
+            else:
+                mode = 'bus' if 'bus' in current_route.lower() else 'jeepney'
+                route_label = current_route
+            segments.append({'route': route_label, 'mode': mode, 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
             current_route = route
             current_group = [node_id]
         else:
@@ -478,7 +495,24 @@ def build_segments_from_path(path, nodes):
         if len(coords) >= 2:
             dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
             time_min = max(dist / 25 * 60, 2)
-            segments.append({'route': current_route, 'mode': 'bus' if 'bus' in current_route.lower() else 'jeepney', 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
+            # Determine proper mode and route name
+            if 'rail' in current_route.lower() or 'lrt' in current_route.lower() or 'mrt' in current_route.lower():
+                mode = 'rail'
+                # Extract station names from node IDs
+                stations = []
+                for n in current_group:
+                    if '::' in n:
+                        station = n.split('::')[1].replace('_', ' ').replace('  ', ' ')
+                        if station not in stations:
+                            stations.append(station)
+                if stations:
+                    route_label = f"{'LRT' if 'lrt' in current_route.lower() else 'MRT'} from {stations[0]} to {stations[-1]}"
+                else:
+                    route_label = current_route
+            else:
+                mode = 'bus' if 'bus' in current_route.lower() else 'jeepney'
+                route_label = current_route
+            segments.append({'route': route_label, 'mode': mode, 'distance_km': round(dist, 2), 'time_min': round(time_min, 1), 'geometry': coords, 'type': 'transit'})
     return segments
 
 def seg_fare(seg):
@@ -586,27 +620,46 @@ def lambda_handler(event, context):
             if len(parts) == 2:
                 origin_name = parts[0].strip()
                 dest_name = parts[1].strip()
-                for name, (label, plat, plng) in KNOWN_PLACES.items():
-                    if name in origin_name or origin_name in name or origin_name.startswith(name):
-                        origin_lat, origin_lng = plat, plng
-                        break
-                for name, (label, plat, plng) in KNOWN_PLACES.items():
-                    if name in dest_name or dest_name in name or dest_name.startswith(name):
-                        dest_lat, dest_lng = plat, plng
-                        break
+                logger.info(f"Parsed (no 'from'): origin='{origin_name}' dest='{dest_name}'")
+                
+                # Try POIs first for origin
+                origin_lat, origin_lng, origin_poi_name = geocode_with_pois(origin_name, dynamic_pois)
+                if not origin_poi_name:
+                    # Fallback to Nominatim
+                    origin_lat, origin_lng, origin_poi_name = geocode_with_nominatim(origin_name)
+                    if origin_poi_name:
+                        logger.info(f"Origin '{origin_name}' -> Nominatim")
+                
+                # Try POIs first for destination
+                dest_lat, dest_lng, dest_poi_name = geocode_with_pois(dest_name, dynamic_pois)
+                if not dest_poi_name:
+                    # Fallback to Nominatim
+                    dest_lat, dest_lng, dest_poi_name = geocode_with_nominatim(dest_name)
+                    if dest_poi_name:
+                        logger.info(f"Destination '{dest_name}' -> Nominatim")
         
-        # Destination only with fuzzy matching
-        if dest_lat is None:
+        # Destination only with fuzzy matching (only if both still None)
+        if origin_lat is None and dest_lat is None:
             dest_name = message.strip().lower()
             if dest_name in KNOWN_PLACES:
                 dest_lat, dest_lng = KNOWN_PLACES[dest_name][1], KNOWN_PLACES[dest_name][2]
-                origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
+                if user_location:
+                    origin_lat = float(user_location.get('lat', 14.6225))
+                    origin_lng = float(user_location.get('lng', 121.0538))
+                else:
+                    origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
             else:
-                for name, (label, plat, plng) in KNOWN_PLACES.items():
-                    if name in dest_name or dest_name in name or dest_name.startswith(name):
-                        dest_lat, dest_lng = plat, plng
-                        origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
-                        break
+                # Try Nominatim for destination only
+                dest_lat, dest_lng, dest_poi_name = geocode_with_nominatim(dest_name)
+                if dest_poi_name and user_location:
+                    origin_lat = float(user_location.get('lat', 14.6225))
+                    origin_lng = float(user_location.get('lng', 121.0538))
+                elif not dest_poi_name:
+                    for name, (label, plat, plng) in KNOWN_PLACES.items():
+                        if name in dest_name or dest_name in name or dest_name.startswith(name):
+                            dest_lat, dest_lng = plat, plng
+                            origin_lat, origin_lng = KNOWN_PLACES['cubao'][1], KNOWN_PLACES['cubao'][2]
+                            break
         
         if origin_lat is None or dest_lat is None:
             return error_response(f'Could not find: {message}')
