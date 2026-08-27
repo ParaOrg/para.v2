@@ -76,7 +76,24 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
     window.__paraMap = map;
     setReady(true);
     if (onMapReady) onMapReady(map);
-    return () => { map.remove(); mapInstance.current = null; polylineLayer.current = null; markerLayer.current = null; gpsMarker.current = null; window.__paraMap = null; };
+    
+    // Ensure map gets correct dimensions after mount
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    
+    // Also invalidate on window resize
+    const handleResize = () => map.invalidateSize();
+    window.addEventListener('resize', handleResize);
+    return () => { 
+      window.removeEventListener('resize', handleResize);
+      map.remove(); 
+      mapInstance.current = null; 
+      polylineLayer.current = null; 
+      markerLayer.current = null; 
+      gpsMarker.current = null; 
+      window.__paraMap = null; 
+    };
   }, []);
 
   useEffect(() => {
