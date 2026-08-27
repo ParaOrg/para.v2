@@ -15,8 +15,10 @@ SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 LRT1_ORDER = [
     "Fernando Poe Jr.", "Balintawak", "Yamaha Monumento", "5th Avenue",
     "R. Papa", "Abad Santos", "Blumentritt", "Tayuman", "Bambang",
-    "Doroteo Jose", "Carriedo", "United Nations", "Pedro Gil", "Quirino",
-    "Vito Cruz", "Gil Puyat", "Libertad", "EDSA", "Baclaran"
+    "Doroteo Jose", "Carriedo", "Central Terminal", "United Nations",
+    "Pedro Gil", "Quirino", "Vito Cruz", "Gil Puyat", "Libertad",
+    "EDSA", "Baclaran", "Redemptorist-Aseana", "MIA Road",
+    "Asia World-PITX", "Ninoy Aquino Avenue", "Dr. Santos"
 ]
 
 LRT2_ORDER = [
@@ -69,10 +71,21 @@ def build_rail_graph():
         railway = station.get("railway")
         if not name or railway != "stop":
             continue
+        # Skip None and entrance names
+        if name.lower() in ('none', 'null', '') or 'entrance' in name.lower():
+            continue
+        # Normalize station names
+        name_mapping = {
+            "New North Avenue": "Fernando Poe Jr.",
+            "PITX": "Asia World-PITX",
+            "Cubao": "Araneta Center - Cubao",
+        }
+        name = name_mapping.get(name, name)
         coords = parse_geom(station.get("geom", {}))
         if len(coords) >= 2:
             lng, lat = coords[0], coords[1]
-            station_coords[name] = (lat, lng)
+            if name not in station_coords:
+                station_coords[name] = (lat, lng)
     
     print(f"  Found {len(station_coords)} station stops")
     
@@ -167,8 +180,24 @@ def build_rail_graph():
                 existing_adj[road_node_id] = []
             existing_adj[road_node_id].append([node_id, walk_time, "Walk", "walk"])
     
-    merged_adj = {**existing_adj, **adj}
-    merged_nodes = {**existing_nodes, **nodes}
+    # Strip ALL existing rail nodes from base graph before merging
+    filtered_existing_adj = {}
+    for nid, edges in existing_adj.items():
+        if 'rail::' in nid:
+            continue
+        filtered_existing_adj[nid] = edges
+    
+    filtered_existing_nodes = {}
+    for nid, coords in existing_nodes.items():
+        if 'rail::' in nid:
+            continue
+        filtered_existing_nodes[nid] = coords
+    
+    # Keep road->rail walk edges (they're valid connections)
+    # Only strip rail NODES, not rail EDGES
+    
+    merged_adj = {**filtered_existing_adj, **adj}
+    merged_nodes = {**filtered_existing_nodes, **nodes}
     
     output = {"adj": merged_adj, "nodes": merged_nodes}
     
