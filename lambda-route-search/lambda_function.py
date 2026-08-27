@@ -158,7 +158,7 @@ def fetch_dynamic_routes(supabase):
             name = route.get("route_name", "")
             if name:
                 routes[name] = {
-                    "weight_multiplier": 1.3,  # Unverified penalty
+                    "weight_multiplier": 3.0,  # Unverified penalty (was 1.3, too weak)
                     "is_verified": False,
                     "avg_speed": route.get("avg_speed_kmh", 12),
                 }
@@ -640,6 +640,11 @@ def build_segments_from_path(path, nodes, line_geoms=None):
         dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
         time_min = max(dist / 25 * 60, 2)
         
+        # SANITY CHECK: REJECT rail segments >60min entirely
+        if mode == 'rail' and time_min > 60:
+            logger.warning(f"REJECTING absurd rail segment: {route_label} ({time_min} min)")
+            return  # Skip this segment entirely, don't add it
+        
         segments.append({
             'route': route_label,
             'mode': mode,
@@ -892,7 +897,7 @@ def lambda_handler(event, context):
                         name = route.get('name', '')
                         if name:
                             dynamic_route_weights[name] = {
-                                'weight_multiplier': 1.3,
+                                'weight_multiplier': 3.0,
                                 'reliability': route.get('reliability_score', 0.3),
                             }
                 
@@ -1067,6 +1072,11 @@ def lambda_handler(event, context):
         
         start_point = {'lat': origin_lat, 'lng': origin_lng, 'name': start_name}
         end_point = {'lat': dest_lat, 'lng': dest_lng, 'name': end_name}
+        
+        # HARD LIMIT: Reject routes > 180 min total
+        if total_time > 180:
+            logger.warning(f"REJECTING absurd route: {total_time} min total")
+            return error_response('No reasonable route found. Please try different locations.')
         
         return {
             'statusCode': 200,
