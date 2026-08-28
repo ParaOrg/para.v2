@@ -640,10 +640,24 @@ def build_segments_from_path(path, nodes, line_geoms=None):
         dist = sum(haversine(coords[i][0], coords[i][1], coords[i+1][0], coords[i+1][1]) for i in range(len(coords)-1)) / 1000
         time_min = max(dist / 25 * 60, 2)
         
-        # SANITY CHECK: REJECT rail segments >60min entirely
+        # SANITY CHECK: If smooth geometry makes rail segment too long, fall back to straight line
         if mode == 'rail' and time_min > 60:
-            logger.warning(f"REJECTING absurd rail segment: {route_label} ({time_min} min)")
-            return  # Skip this segment entirely, don't add it
+            # Recalculate with straight-line coords between station endpoints
+            if stations:
+                first_st_coord = None
+                last_st_coord = None
+                for n in group:
+                    if '::' in n:
+                        st_name = n.split('::')[1].strip()
+                        if st_name == stations[0]:
+                            first_st_coord = node_list.get(n)
+                        if st_name == stations[-1]:
+                            last_st_coord = node_list.get(n)
+                if first_st_coord and last_st_coord:
+                    coords = [first_st_coord, last_st_coord]
+                    dist = haversine(first_st_coord[0], first_st_coord[1], last_st_coord[0], last_st_coord[1]) / 1000
+                    time_min = max(dist / 25 * 60, 2)
+                    logger.info(f"Rail segment {route_label}: using straight-line ({time_min} min) instead of smooth geometry")
         
         segments.append({
             'route': route_label,
