@@ -27,28 +27,6 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA pilots smart poles, traffic app under JICA project - Philippine News Agency",
-      "description": "MMDA pilots smart poles, traffic app under JICA projectPhilippine News Agency",
-      "updated": "Tue, 25 Aug 2026 09:26:06 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE1Cc3FmM2dpMjh5RkZRQURSSy03UkNkemdlbjc0TU4yWER5RDEwWjlzOFRMNjJLQmVDZE90Y3R3VmxDZmxhN0VELXF6QVRPdks4?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-4",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "LOOK: DPWH Sec Vince Dizon and NLEX Corp President Luis Reñon inspect the draina",
-      "description": "LOOK: DPWH Sec Vince Dizon and NLEX Corp President Luis Reñon inspect the drainage system along Balintawak after the thoroughfare was flooded last week, causing heavy traffic in the area. | via Andrea",
-      "updated": "Thu, 27 Aug 2026 00:30:57 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPRUtYVmEwcmROZzllMDhNN01VZzYwMEVuOXNtYzR4TTdGQ01sSFhYQWVRV19GZ3p1Z1RRdmxNNFV4TzI1Zk1aZzN3WW9WS3c3aDBZVVdHNW9PZFNmTkRmYVUxRklQa0pjRjE1LU5OektuNlBtSHdNRjIwcUVzRVM3Nm9tdTgtS3ZrbHRNUGhKVHI3b1hxSEllNk9IN1lvc0c4aWxYWlhUQjFLVjRsYS1YeHZsUEtUaDhBWFFvZFJ4TzZSSTJEMkdLN0dKbHFyejZnWUR2OVZmN1FhS2lDcmc?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-5",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "MMDA, 4 LGUs ink coordinated traffic response pact along Marcos Highway - Inquir",
       "description": "MMDA, 4 LGUs ink coordinated traffic response pact along Marcos HighwayInquirer.net",
       "updated": "Wed, 26 Aug 2026 07:43:00 GMT",
@@ -56,18 +34,18 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-6",
+      "id": "traffic-4",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "Water detention basin eyed to address EDSA Balintawak flooding - ABS-CBN",
-      "description": "Water detention basin eyed to address EDSA Balintawak floodingABS-CBN",
-      "updated": "Thu, 27 Aug 2026 07:03:58 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxNLUJrVTdLNTYybTUzM09NUlFSVlpoMEFRS0NTZVR1a19qYVhjRTR1N1hXaUdsbWRmUF91THd4dkppYXBEbnhjTUhScW5rLUs0Z09PeXlpY0ZFVGc1djVOUmJNRDZHQ3NkSklPQUdNc2t3UU5CRlJ3OTJIcEk3M3ViNlVYSG56Y0YtcmtRWmxYam5EdjVsSXhNcEVHdzZtNk94ZkNSSVdMdi1VVnN1OFZkM0RPSTFDQXJWYl91TVN5alh2eERYTEFJ?oc=5",
+      "title": "MMDA, 4 LGUs unify traffic management along Marcos Highway | Claudeth Mocon-Ciri",
+      "description": "MMDA, 4 LGUs unify traffic management along Marcos Highway | Claudeth Mocon-CiriacoBusinessMirror",
+      "updated": "Wed, 26 Aug 2026 15:52:09 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNZXAwSTIteWpYTWkzZXIzVmdHUXNxQkVzYl93TEpjWGlpNmoxWjlDLTM3b2JaM2o0VnJvOUZKaHFoTHYyYk9xZUc4ekoyN3FsdzlBcHROQmUtSG1hTFpQeDE5T00wRG1Sa25CR3dLbm1sT2E2TXUydThxdVUxajNwemhVeTNFeTg4ZXR6ZmJlRG5ZWC1COFBGNlg0X0FlVmtz?oc=5",
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-5",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,29 +56,29 @@
       "source_name": "Google News"
     },
     {
+      "id": "traffic-6",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Motorists crawl through heavy morning rush hour traffic along the southbound lan",
+      "description": "Motorists crawl through heavy morning rush hour traffic along the southbound lane of EDSA in Quezon City on Wednesday. The Metropolitan Manila Development Authority (MMDA) recently announced its partn",
+      "updated": "Wed, 26 Aug 2026 06:35:08 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxPTkh2YnZGLWNqS2JBUEtKNnVrTGI2V0VmMm5iLWFhRk5LM05VRkVOOTBjd05Vb2RsS2p2Wkx0bjB6LTZQMkphX2gzT1NfNmtMZm9ORkRVQkNGZzFBaGlWWlNJOHg0Tk9pV3F5N3g3VTA4MHplYUZlV3FNNHVLSmxxTHFud3N6eWx4YjZfUktzbG1DWHAyM3M0eUJfeFRNS0lVSjJHbG9tWDVYX29GcFJVNkNZbERLVFF4a2dyMXU0UHlCNmtEYmNjemw1aVExOFkwdXNObEtzNnlBTTdGc3c?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-7",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "New detention basin planned at EDSA-Balintawak - Daily Tribune",
+      "description": "New detention basin planned at EDSA-BalintawakDaily Tribune",
+      "updated": "Thu, 27 Aug 2026 20:47:41 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxQQ1h4dGxhUjEyUFBzMTVxTy1UbndKT0pQMW5xWXZ3MXpyQ3BkdndJY1RCVnB6OFhpRWhZa294SmF2ck1JRzJlVkdpTW52WTJiR1FsU3Bxcll0VTNkX1JEb2FXNGJpQVBEeElBMkJKVGluLXlZTHRRVjVXVDBTWlBFdVFhVWpScXM?oc=5",
+      "source_name": "Google News"
+    },
+    {
       "id": "traffic-8",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA seeks P50k fine for EDSA rehab contractor for causing heavy bottleneck traf",
-      "description": "MMDA seeks P50k fine for EDSA rehab contractor for causing heavy bottleneck trafficTop Gear Philippines",
-      "updated": "Tue, 25 Aug 2026 10:54:00 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOVm5idGI2OURtbk81c0NlZ0s3Ry01bHVlQTBhVHpYY1JVV0piZDNnVXhSODJCdWltT0phX3FQWlZ3X2ZNS2w3d3Q0ZmFSMDNZSGN1YjB5VlFqWlY4aWN1NlhMZ1NDbHFMeTRiZmNoVGQ4SGdtVURFVy1nQmlodERxbVlIVC1uSXdnNTJRNTc0dw?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-9",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMDA seeks P50,000 fine against EDSA rehab contractor over Sunday traffic snarl ",
-      "description": "MMDA seeks P50,000 fine against EDSA rehab contractor over Sunday traffic snarlPhilippine Canadian Inquirer",
-      "updated": "Tue, 25 Aug 2026 12:03:32 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxPVFc0eFNrcHpSNFlTMmxXN3FWVzlya1g1Q0tCampzeUQ5cnFLVWlwc2E4X01wRVNraFZWakl2d0o3aDVIb05RWEFtbHlLaEkycnNGMXpUNy04MkxOQmZHb3Z2bG5lWElKcnJ0aDhOOWsyNmpva0FjUE90WEVSdlNwVS0wVUVWSU9aTXNvQmFNRWVmcWdjWlh2ejJONWIwVmFTSnYtblllOHkwNUxseDhRRkNGU19oZV9GbVRJ?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-10",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +87,30 @@
       "updated": "Thu, 27 Aug 2026 00:33:08 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxON05lNF9pZlRheVRMRGZrRnM3Y29LR1JqTEZrV0hwdTV0ZEJ1Nk5iMnVURWJMd2txTmZiWmUwMlpoa242NFhNVURQZ1hVNEEwTlNIMVg1SGlPMGozYlBwLVJmVmxSVXk4bTB2ZDduZ3U4NjA5Yk14aFliVUQ1c1Q5TzJHbTM4V2J3M3YxZGJRZw?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-9",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Penang Is Getting Its First LRT Line That Connects The Island To Mainland – Here",
+      "description": "Penang Is Getting Its First LRT Line That Connects The Island To Mainland – Here’s All You Need To KnowTheSmartLocal",
+      "updated": "Fri, 28 Aug 2026 02:45:46 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTFBkeDJ1NTVwaTZTQk0yMHk5MEZDMmgwb0VnRUd1SUlyeHBRY0FEWHlRbjdsMDVtb0FWc1hKd25vMDJrRU9hRlRKbVZfaHYyMllOZG5KUGpOcmNwb29QV3VwdmdOSjBsUdIBa0FVX3lxTE5DeG03N0YzbmJEOXZtaUluOHFmN2RERUVnN2d2aHRDYWsyYkxvOG9fUUxwcGxQSnRiM0tXbDRJVHA1dENHbmJTb3JjdEpCb1VhRS1RN2xxV2ZjRDhDMlQwVUEybmNsOEIwZ3M0?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Opinion: Making buses work for Klang Valley - The Edge Malaysia",
+      "description": "Opinion: Making buses work for Klang ValleyThe Edge Malaysia",
+      "updated": "Thu, 27 Aug 2026 07:25:45 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMiUEFVX3lxTE9NUjFMWF9femNUUDJKQWtkQTNNV29DNjBDUGpJNkxuSllPWURxX1ZYODhxYkhaMDVBX01MR1EtZE9YbGpCOV9hak5yQlZnd3BE?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-27T16:30:03.053870",
+  "scraped_at": "2026-08-28T13:30:04.929871",
   "source": "Google News RSS"
 }
