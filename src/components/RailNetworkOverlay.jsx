@@ -5,6 +5,9 @@ const SUPABASE_URL = 'https://tcvomrkytxnetzijwqad.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o';
 
 const RAIL_LINE_COLORS = {
+  'LRT-1': '#00A650',
+  'LRT-2': '#7A4BC8',
+  'MRT-3': '#FF6B00',
   'LRT Line 1': '#00A650',
   'LRT Line 2': '#7A4BC8',
   'MRT Line 3': '#FF6B00',
