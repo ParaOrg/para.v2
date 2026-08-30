@@ -163,7 +163,7 @@ _GRAPH_TTL = 300  # 5 minutes cache
 def load_graph_static():
     global _graph, _nodes
     # ALWAYS reload from file to avoid stale cache
-    with gzip.open('/var/task/graph_full_rail.json.gz', 'rt') as f:
+    with gzip.open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'graph_full_rail.json.gz'), 'rt') as f:
         data = json.load(f)
     _graph = data['adj']
     _nodes = data['nodes']
@@ -1444,6 +1444,37 @@ def lambda_handler(event, context):
         # Try rail station matching first for better connectivity
         start = find_rail_station_node(origin_name if 'origin_name' in dir() else '', nodes)
         end = find_rail_station_node(dest_name if 'dest_name' in dir() else '', nodes)
+        
+        if not start and user_location:
+            # Find nearest well-connected node (any mode: rail, jeepney, road)
+            candidates = []
+            for node_id in nodes:
+                node_lat, node_lng = nodes[node_id][0], nodes[node_id][1]
+                dist = haversine(origin_lat, origin_lng, node_lat, node_lng)
+                edge_count = len(adj.get(node_id, [])) if adj else 0
+                candidates.append((dist, edge_count, node_id))
+            
+            candidates.sort()
+            
+            # Prefer rail stations within 1km
+            for dist, edge_count, node_id in candidates[:50]:
+                if 'rail::' in node_id and dist < 1000:
+                    start = node_id
+                    logger.info(f"Nearest rail station: {start} ({dist:.0f}m)")
+                    break
+            
+            # Fallback: any node with 5+ edges within 500m
+            if not start:
+                for dist, edge_count, node_id in candidates[:100]:
+                    if edge_count >= 5 and dist < 500:
+                        start = node_id
+                        logger.info(f"Nearest connected node: {start} ({dist:.0f}m, {edge_count} edges)")
+                        break
+            
+            # Final fallback: nearest node
+            if not start and candidates:
+                start = candidates[0][2]
+                logger.info(f"Nearest any node: {start}")
         
         if not start:
             start = find_nearest_node(origin_lat, origin_lng, nodes)
