@@ -136,7 +136,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       attributionControl: false,
     });
 
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
     }).addTo(map);
 
@@ -392,20 +392,6 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
         </div>
       )}
 
-      {/* Status Bar — centered, just above chat panel */}
-      {!navbarOpen && (
-      <div className="absolute left-1/2 transform -translate-x-1/2 z-[400] bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm whitespace-nowrap" style={{ bottom: `calc(70px + ${panelHeight} + 6px)` }}>
-        <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${isTracking ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-          <span className="text-[10px] font-semibold text-gray-800">
-            {isTracking ? `Tracking: ${currentRouteName || 'Walking'}` : 'Not Tracking'}
-          </span>
-          <span className="text-[10px] text-gray-500">
-            • {commuteState === 'riding' ? '🚐' : '🚶'} GPS active
-          </span>
-        </div>
-      </div>
-      )}
     </div>
   );
 };
