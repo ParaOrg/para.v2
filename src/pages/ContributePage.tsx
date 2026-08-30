@@ -112,6 +112,8 @@ const ContributePage: React.FC = () => {
         try {
           await edgePost('poi-add', payload);
           dispatch({ type: 'REMOVE_LAST_FORM' });
+          setShowSuccess(true);
+          setSuccessMessage(`Pin saved: ${data.name}`);
           dispatch({
             type: 'ADD_MESSAGE',
             payload: createMessage('bot', 'text', `✅ Pin saved: ${data.name} (${data.type})`),
@@ -157,6 +159,8 @@ const ContributePage: React.FC = () => {
         try {
           await edgePost('fare-report', payload);
           dispatch({ type: 'REMOVE_LAST_FORM' });
+          setShowSuccess(true);
+          setSuccessMessage(`Fare ₱${amount} recorded`);
           dispatch({
             type: 'ADD_MESSAGE',
             payload: createMessage('bot', 'text', `✅ Fare ₱${amount} recorded. Thank you!`),

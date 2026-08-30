@@ -27,29 +27,7 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
   const [ready, setReady] = useState(false);
   const { consent, location } = useTrackingConsent();
 
-  // Update polylines when prop changes
-  useEffect(() => {
-    if (!mapInstance.current) return;
-    if (!polylineLayer.current) {
-      polylineLayer.current = L.layerGroup().addTo(mapInstance.current);
-    }
-    polylineLayer.current.clearLayers();
-    polylines.forEach((line) => {
-      L.polyline(line.coordinates, {
-        color: line.color || "#310775",
-        weight: line.weight || 4,
-        dashArray: line.dashed ? "5, 8" : null,
-        opacity: 0.8,
-        smoothFactor: 1.5,
-      }).addTo(polylineLayer.current);
-    });
-    if (fitBounds && polylines.length > 0) {
-      const bounds = L.latLngBounds(
-        polylines.flatMap((p) => p.coordinates)
-      );
-      mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [polylines, fitBounds]);
+  // Polyline rendering handled by the second useEffect below
 
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
@@ -99,7 +77,10 @@ export default function MapComponent({ markers = [], polylines = [], showLegend 
 
   useEffect(() => {
     const map = mapInstance.current;
-    if (!map || !ready || !polylineLayer.current) return;
+    if (!map || !ready) return;
+    if (!polylineLayer.current) {
+      polylineLayer.current = L.layerGroup().addTo(map);
+    }
     polylineLayer.current.clearLayers();
     const bounds = L.latLngBounds([]);
     polylines.forEach((line) => {
