@@ -7,23 +7,12 @@
       "bg": "rgba(255, 204, 0, 0.1)",
       "title": "NLEX northbound traffic grinds to near standstill as floods block Meycauayan lan",
       "description": "NLEX northbound traffic grinds to near standstill as floods block Meycauayan lanesPhilippine Canadian Inquirer",
-      "updated": "Sun, 30 Aug 2026 10:32:28 GMT",
+      "updated": "Sun, 30 Aug 2026 21:34:46 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMiwAFBVV95cUxPLWdCV3Y4QktUa0pRaExUVjB0NlR5QnRJeVNBT2V2Uk00b1QzdDg0ZkZJc2tpZUJWRUZZSURiUnJfd0FPQXB2TzY4dEdROXhpVHl2WU4zRVZXT0pxQkFSQ051SXFwMUhYblI0QWlBOGJDUm13R2twcDBvVF9PaHBCVDd0Sk9STTJ2TkdyNVNxM0JpUTFXaUZoLVR6N21mVEl4MnNZNU52SlBvbkwxbDE3cDJ4STlpTjlLNEhNTkVIdUU?oc=5",
       "source_name": "Google News"
     },
     {
       "id": "traffic-2",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "WEEKEND READS: The puzzle that is Philippine transportation - Rappler",
-      "description": "WEEKEND READS: The puzzle that is Philippine transportationRappler",
-      "updated": "Sun, 30 Aug 2026 09:20:04 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQTTctNVJ3SmpPZlZmNEVNTFdjOUI3YzBGbUlZc3BrdUZja2dLd1B6dGNvRDdHM3RYOWhtNUdjdk1DWWNJeS0tX0tndGVLMU9WNTRZa0dLMUZpd2RNSS1MTU5ZR3QwU3JhMHJaQUNQQW5HeTlZNlB0eGVEb3Vld0Y4NmxYVUh2MzlwTDFnQXUxSlU2SjRp?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-3",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -34,7 +23,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-4",
+      "id": "traffic-3",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -45,7 +34,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-5",
+      "id": "traffic-4",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -56,7 +45,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-6",
+      "id": "traffic-5",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,7 +56,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-6",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -78,7 +67,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -100,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-10",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +98,19 @@
       "updated": "Sat, 29 Aug 2026 01:17:38 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNVVA5d1FfaFFyRXpTNzh1QVU0STJ1cXNlRWdnVTgzVWpjRjZmanYwUHRhZEFJeUk4T0ZaQ2VrN2EtWUFRZU9fZlNZVHRYQlMyR194elNDU0ZLeW1PdWsxcWhkb0hneW1ZSGQ3MnZwb3dESVlyckJYOTB0R3F6b3l0clZjZk5jYkgzcGEwOWt0UmFKakFLWDVPcENHOG1KQ2JnekVzdmJrWXFxOFRlMDVvUGlfZUNyUWxtUkpkNUdzTjZtTDVKRHFBMjZkR1RrQkdSbHhDeFl3NA?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "INGAT SA BIYAHE, MGA KAPATID! Nakararanas ng pagbaha sa ilang bahagi ng Metro Ma",
+      "description": "INGAT SA BIYAHE, MGA KAPATID! Nakararanas ng pagbaha sa ilang bahagi ng Metro Manila, ayon sa flood monitoring ng MMDA, 12:25 p.m. ngayong Sabado, Aug. 29. REPORTED FLOODINGS: VALENZUELA CITY: • MacAr",
+      "updated": "Sat, 29 Aug 2026 05:09:58 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxON1ExTV9hdlZTc1AxVUxmSHVqRHFTb1ZOWHB3bTVVWGd4MG9DLXhJcW9Hck5NWHRoaEZ0NXE4VHp6aHlYSnc0amRsTEg1REdjSnpXVVROSHJUTUVKSFN1U1NyRzRXQ2loLVhHVmJ3d2lnOTJzYTB2NkVneXRBSDlLeWpFOTJrQ1BvT2RxbFA0bEZ3UkRXcjBvZzZDcUE5QXMtR0EtbUtqcjhLZy1rTkpYenBraF9NVFZQd1JYZnAzU3gtelgwRzQyLVRCQy1QZlhoYlpoOE1xVUdJNXNJLXc?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-31T04:30:02.315070",
+  "scraped_at": "2026-08-31T06:00:02.159546",
   "source": "Google News RSS"
 }
