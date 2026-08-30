@@ -27,7 +27,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   return (
     <div
       className={`
-        fixed z-50 bottom-[70px] left-3 right-3 bg-white/95 backdrop-blur-md
+        fixed z-50 bottom-[70px] left-3 right-3 md:bottom-4 md:left-4 md:right-auto md:top-auto md:w-[380px] md:rounded-2xl bg-white/95 backdrop-blur-md
         rounded-[20px] shadow-[4px_4px_7px_8px_rgba(0,0,0,0.06)] border border-gray-100
         transition-all duration-300 ease-in-out
         ${isExpanded ? 'h-[50vh]' : 'h-[40vh]'}

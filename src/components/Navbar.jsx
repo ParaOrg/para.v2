@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 const ALL_NAV_LINKS = [
   { to: '/', label: 'Home' },
   { to: '/explore', label: 'Explore' },
+  { to: '/contribute', label: 'Contribute' },
   { to: '/community', label: 'Community' },
   { to: '/about', label: 'About' },
   { to: '/admin', label: 'Admin', adminOnly: true },

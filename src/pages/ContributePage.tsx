@@ -7,12 +7,14 @@ import { ChatPanel } from '../components/contribute/ChatPanel';
 import { ButtonVersionUI } from '../components/contribute/ButtonVersionUI';
 import { contributeReducer, initialState, createMessage } from '../reducers/contributeReducer';
 import { useTrackingConsent } from '../context/TrackingConsentContext';
+import GpsIcon from '../components/GpsIcon';
 import { useAuth } from '../context/AuthContext';
 import { QuickReply } from '../types/contribute';
 import { edgePost } from '../utils/api';
 import { offlineBuffer } from '../utils/offlineBuffer';
 import SuccessModal from '../components/SuccessModal';
 import { fetchWeather, getWeatherPenalty, isFloodZone } from '../utils/weather';
+import WeatherPage from '../components/WeatherPage';
 import { detectIntent, extractPreferences, normalize } from '../utils/nlpEngine';
 import { getGuestUuid, addPendingContribution } from '../utils/guestLink';
 
@@ -47,6 +49,7 @@ const ContributePage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showWeather, setShowWeather] = useState(false);
   const [uiVersion, setUiVersion] = useState<'chat' | 'buttons'>('chat');
   const [navbarOpen, setNavbarOpen] = useState(false);
   const { location, requestConsentAndLocation } = useTrackingConsent();
@@ -989,15 +992,13 @@ const ContributePage: React.FC = () => {
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden flex flex-col ">
       {/* Navbar */}
       <Navbar />
-
-      {/* Version Toggle — testing only */}
-      {!navbarOpen && (
-      <div className="fixed top-20 left-4 z-[5000] flex items-center gap-1 bg-white rounded-full shadow-lg px-2 py-1">
+      {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
+      <button onClick={() => { if (location) window.__paraMap?.setView([location.lat, location.lng], 16); else requestConsentAndLocation(); }} className="fixed top-20 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button>
+      <button onClick={() => setShowWeather(true)} className="fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
+      {/* Version Toggle — mobile only */}
+      <div className="fixed top-20 left-4 z-[5000] flex items-center gap-1 bg-white rounded-full shadow-lg px-2 py-1 md:hidden">
         <button
-          onClick={() => {
-            console.log('🟢 Toggle Chat clicked');
-            setUiVersion('chat');
-          }}
+          onClick={() => setUiVersion('chat')}
           className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
             uiVersion === 'chat' ? 'bg-[#7A4BC8] text-white' : 'bg-gray-100 text-gray-500'
           }`}
@@ -1005,10 +1006,7 @@ const ContributePage: React.FC = () => {
           Chat
         </button>
         <button
-          onClick={() => {
-            console.log('🟢 Toggle Buttons clicked');
-            setUiVersion('buttons');
-          }}
+          onClick={() => setUiVersion('buttons')}
           className={`px-3 py-1 rounded-full text-[10px] font-bold transition-colors ${
             uiVersion === 'buttons' ? 'bg-[#7A4BC8] text-white' : 'bg-gray-100 text-gray-500'
           }`}
@@ -1016,7 +1014,9 @@ const ContributePage: React.FC = () => {
           Buttons
         </button>
       </div>
-      )}
+
+      {/* Version Toggle — testing only */}
+      
 
       {/* Map Area — full screen behind chat */}
       <div className="absolute inset-0 z-0">
@@ -1024,7 +1024,7 @@ const ContributePage: React.FC = () => {
           isTracking={state.isTracking}
           commuteState={state.commuteState}
           currentRouteName={state.currentRouteName}
-          panelHeight={uiVersion === 'chat' ? '40vh' : '230px'}
+          panelHeight='35vh'
           externalPinMode={pinMode}
           onExternalPinModeChange={setPinMode}
         />
