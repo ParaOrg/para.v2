@@ -50,6 +50,7 @@ const ContributePage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
+  const [isManualDrawingMode, setIsManualDrawingMode] = useState(false);
   const [uiVersion, setUiVersion] = useState<'chat' | 'buttons'>('chat');
   const [navbarOpen, setNavbarOpen] = useState(false);
   const { location, requestConsentAndLocation } = useTrackingConsent();
@@ -994,7 +995,9 @@ const ContributePage: React.FC = () => {
       <Navbar />
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
       <button onClick={() => { if (location) window.__paraMap?.setView([location.lat, location.lng], 16); else requestConsentAndLocation(); }} className="fixed top-20 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button>
-      <button onClick={() => setShowWeather(true)} className="fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
+      <button onClick={() => setPinMode(!pinMode)} className="fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">📌</button>
+      <button onClick={() => setIsManualDrawingMode(!isManualDrawingMode)} className="fixed top-44 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">✏️</button>
+      <button onClick={() => setShowWeather(true)} className="fixed top-56 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
       {/* Version Toggle — mobile only */}
       <div className="fixed top-20 left-4 z-[5000] flex items-center gap-1 bg-white rounded-full shadow-lg px-2 py-1 md:hidden">
         <button
@@ -1020,7 +1023,7 @@ const ContributePage: React.FC = () => {
 
       {/* Map Area — full screen behind chat */}
       <div className="absolute inset-0 z-0">
-        <LiveMapBackground
+        <LiveMapBackground isManualDrawingMode={isManualDrawingMode}
           isTracking={state.isTracking}
           commuteState={state.commuteState}
           currentRouteName={state.currentRouteName}
