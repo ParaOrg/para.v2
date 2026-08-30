@@ -51,7 +51,8 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
       } else {
         gpsCircle.current.setLatLng([location.lat, location.lng]);
       }
-      map.setView([location.lat, location.lng], Math.max(map.getZoom(), 16), { animate: true });
+      // Update marker only — don't auto-center map
+      // (user may be browsing the map)
     }
   }, [consent, location, externalMap, externalLayer]);
 
