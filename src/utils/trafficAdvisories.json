@@ -16,36 +16,14 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "Heavy monsoon rains flood Metro Manila roads anew - Philstar.com",
-      "description": "Heavy monsoon rains flood Metro Manila roads anewPhilstar.com",
-      "updated": "Sat, 29 Aug 2026 16:00:00 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxObk1sWTdSc1hYVmQ2WDY0b1k1S1Iya25ROU5hYnRDakFsX3M5Rml2ZDE1Z1FfSHpiZ0lIM1UtcEJnU3Fkc00yaTQtdFkyUldPTk5UdTVUOURKVEZBM3JidDVoM1FSZ2U4eFFFSFlVQ3Z5aVpZbk8tdThSc1F2UmhLT3BJQnZaaEN5M3plb3Zsa0F0VzZUMFJYaGI5VDNBRU9HbVUxQVFn0gGsAUFVX3lxTFBCM2FGUzhVLTlQd0o2c3pNNHBMSWZVMUplRnlDNElVdFp2bjJNWlJxY1RDcW9CMlVnTXdkWDVMYUlEbXhVWXAzQ09pYzRmOGx2QjBCdmk0NE9WUTNYcHloN0poUzQ0NGVVR21HdGw2MkRCc3FucXZ1aWVYcW9BWDVoX2hkejl2bmZjN1BOREhBenBvS3RRQVVMTG03ZGY2TU1rUjFfWUQ1UmczcVc?oc=5",
+      "title": "WEEKEND READS: The puzzle that is Philippine transportation - Rappler",
+      "description": "WEEKEND READS: The puzzle that is Philippine transportationRappler",
+      "updated": "Sun, 30 Aug 2026 09:20:04 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMilAFBVV95cUxQTTctNVJ3SmpPZlZmNEVNTFdjOUI3YzBGbUlZc3BrdUZja2dLd1B6dGNvRDdHM3RYOWhtNUdjdk1DWWNJeS0tX0tndGVLMU9WNTRZa0dLMUZpd2RNSS1MTU5ZR3QwU3JhMHJaQUNQQW5HeTlZNlB0eGVEb3Vld0Y4NmxYVUh2MzlwTDFnQXUxSlU2SjRp?oc=5",
       "source_name": "Google News"
     },
     {
       "id": "traffic-3",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 8:00am August 30, 2026 A. MAJOR ROADS: *EDSA SOUT",
-      "description": "METROBASE Traffic Update as of 8:00am August 30, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *C5 SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *COMMONWEALTH WE",
-      "updated": "Sun, 30 Aug 2026 00:29:23 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNVjRoZC1CRFFKSzlFTzN5WVY3bldUN0Y0cmpLTUd6V3o1YTA1VU92ZndJRXFJbVFvZEVkaWVHSDVneG1zTjZoRjE0ay1hNnBhNHB2LWdhN0NWNDlWMXZpNk1YOXhyU1pFc1hMbEdkMk0xUEZLS1BLWTF0Z0lvU19PRW4tYUY2NlNMVEptUHBpeEsxeFE2VGdJU3FBN1ZlbW4yZUtrS3lqZGJ5Y1RMT3BNSEpYemd3UG5EblphZWhsdG1GamhSMHd5THRmY0R4cEZuVlE?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-4",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "METROBASE Traffic Update as of 8:00am August 30, 2026 A. MAJOR ROADS: *EDSA SOUT",
-      "description": "METROBASE Traffic Update as of 8:00am August 30, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *C5 SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *COMMONWEALTH WE",
-      "updated": "Sun, 30 Aug 2026 00:29:23 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNVjRoZC1CRFFKSzlFTzN5WVY3bldUN0Y0cmpLTUd6V3o1YTA1VU92ZndJRXFJbVFvZEVkaWVHSDVneG1zTjZoRjE0ay1hNnBhNHB2LWdhN0NWNDlWMXZpNk1YOXhyU1pFc1hMbEdkMk0xUEZLS1BLWTF0Z0lvU19PRW4tYUY2NlNMVEptUHBpeEsxeFE2VGdJU3FBN1ZlbW4yZUtrS3lqZGJ5Y1RMT3BNSEpYemd3UG5EblphZWhsdG1GamhSMHd5THRmY0R4cEZuVlE?oc=5",
-      "source_name": "Google News"
-    },
-    {
-      "id": "traffic-5",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -56,7 +34,18 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-6",
+      "id": "traffic-4",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "METROBASE Traffic Update as of 7:00pm WHEN: August 30, 2026 A. MAJOR ROADS: *EDS",
+      "description": "METROBASE Traffic Update as of 7:00pm WHEN: August 30, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: - Ortigas, moderate (due to volume of vehicles) - Shaw Ave., moderate (due to volume of vehicles) - Arnaiz",
+      "updated": "Sun, 30 Aug 2026 11:05:57 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNNm0wNk5LbUwxQ3hHd3JqMFh6RTJRZkMyVWJHZVh5anBLY2ZBWGNpa3J4UzFRRVB5UVp3TEsyQnJOR0ZYcFlXcngzZ0pCMGlJNEFXM29mT3RiX01fOUdCNS01aXBmVGFZeUFINVc5dlJlTDRiUUFpRzVRLWExT05ycUNlRVlwa2laajRXV2ZnMFpKUWo4dE5Xb3dwNjh3U3htN255eXlsVHJEM01uQjk5MW9OdDgwWVJHTVVnN0ZlV3pHMVUwNzJGSnNDSTZsRmQtRER3?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-5",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -67,18 +56,18 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-7",
+      "id": "traffic-6",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "MMCMMC-FCIC Date: 08-28-2026 Time: 10:15 PM 𝐑𝐄𝐏𝐎𝐑𝐓𝐄𝐃 𝐅𝐋𝐎𝐎𝐃𝐈𝐍𝐆𝐒: 𝐌𝐀𝐊𝐀𝐓𝐈 𝐂𝐈𝐓𝐘 EDSA",
-      "description": "MMCMMC-FCIC Date: 08-28-2026 Time: 10:15 PM 𝐑𝐄𝐏𝐎𝐑𝐓𝐄𝐃 𝐅𝐋𝐎𝐎𝐃𝐈𝐍𝐆𝐒: 𝐌𝐀𝐊𝐀𝐓𝐈 𝐂𝐈𝐓𝐘 EDSA Magallanes MRT NB - half gutter deep, Passable to all types of vehicles (PATV). EDSA Magallanes Flyover Split SB - half",
-      "updated": "Fri, 28 Aug 2026 14:21:35 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMi3gRBVV95cUxPY3dHa0g2RUxRWWxzUVYteklPRGd5UERjRkM0UXJhYlVaSkpIZnNBdzRrLUN4Ty0zTlJYeUYzY3lWMkxvUjNyd2owQk9uLXJoM2phRnpqYTFGTmdoU2EyS3lmVHh4V3lKRWZwYmRfWkppSkhhaVVtR2VSOERHdloxU3J2QlItR0YySjhhdEhVdHJZUXVud1lBUy16TzdLS3haN3NOcXY2cmdBZXVIZG5ITjN4VGRLSlF2dF9tUzJNdjBWQmZBRlotSzdlWEprRUhUd0JjY05LaWV2bzZGTDNRUFhST2pnRHRHU1F2MHJsNURaalpYWC1UR3NScU9NTjUxdXJwUWx2OF9OUVR3bjhKdjktei11UWZ3U0tTeGpOazVRWGkwVkdrY2xueHQ2RUlLYXg5VDYzVkcwSGI0ajV2YU8xZVFGYmk0dmF0RUVjZHpRdmYyRzd6bDhaYkNaaVU5ckotRnBHY2RzMVFPUm5FeTlhV3hkSjhrdmxTUG1vSER5bjVJRE1WSTEyV2lxRkI5VmVib3NaZ2RSR2dVQXpKdHhYcVRpQlRtZTVtVklCak1JaU9JLWhSTEhlVms3OE1GcjZpb2FLTVV1Wl84QmFuWjFaaVB4el9fYnU2cEZZR3g3bXBua1FBcjQ2WVZRa0tZX19fMnZ5cVFVVjZXbVNEWFhDVkV0bzNtU2JLU1o2LWJRR0tVeE9wVmdXWnNMV3FUVTA1NHRnSGNOOHd5cUR0RjRxOWJGeXBTdUVkOG0wQ0JfX2hETlFJUmhKNXhMS3VSM2pMckNYTGUwRnA3X0E?oc=5",
+      "title": "METROBASE Traffic Update as of 8:00am August 30, 2026 A. MAJOR ROADS: *EDSA SOUT",
+      "description": "METROBASE Traffic Update as of 8:00am August 30, 2026 A. MAJOR ROADS: *EDSA SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *C5 SOUTHBOUND: Light Traffic NORTHBOUND: Light Traffic *COMMONWEALTH WE",
+      "updated": "Sun, 30 Aug 2026 00:29:23 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNVjRoZC1CRFFKSzlFTzN5WVY3bldUN0Y0cmpLTUd6V3o1YTA1VU92ZndJRXFJbVFvZEVkaWVHSDVneG1zTjZoRjE0ay1hNnBhNHB2LWdhN0NWNDlWMXZpNk1YOXhyU1pFc1hMbEdkMk0xUEZLS1BLWTF0Z0lvU19PRW4tYUY2NlNMVEptUHBpeEsxeFE2VGdJU3FBN1ZlbW4yZUtrS3lqZGJ5Y1RMT3BNSEpYemd3UG5EblphZWhsdG1GamhSMHd5THRmY0R4cEZuVlE?oc=5",
       "source_name": "Google News"
     },
     {
-      "id": "traffic-8",
+      "id": "traffic-7",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -89,7 +78,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-8",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -100,7 +89,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-10",
+      "id": "traffic-9",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -109,8 +98,19 @@
       "updated": "Sun, 30 Aug 2026 02:54:58 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNMWh1Q1BBaHlDd1hFMFhFeWxIeDJxSV9qejg2WVJKRWVIczAtOW95LW5ZT2FZS1RsUFpPeUFveDVaWTMzcV9hcHdUdXFHbGh3b01pMzZta3c2aHJVUjVLLXB4bnlQOHFmV3Q4dUFTY2hxNWdyLWh1M25NUmliY2c5aXBObFR1ek1uS2h2djhrNUpJeWZwSFM0MXl0YlJja2FmLWdPb3FuTktUTFZsVGxvd0pwLXhiZ2JCNVFxV2RxYUFHZmZQeEpKcUJHZ2FXVlpEVC1z0gHTAUFVX3lxTE0xaHVDUEFoeUN3WEUwWEV5bEh4MnFJX2p6ODZZUkpFZUhzMC05b3ktbllPYVlLVGxQWk95QW94NVpZMzNxX2Fwd1R1cUdsaHdvTWkzNm1rdzZoclVSNUstcHhueVA4cWZXdDh1QVNjaHE1Z3ItaHUzbk1SaWJjZzlpcE5sVHV6TW5LaHZ2OGs1Skl5ZnBIUzQxeXRiUmNrYWYtZ09vcW5OS1RMVmxUbG93SnAteGJnYkI1UXFXZHFhQUdmZlB4SkpxQkdnYVdWWkRULXM?oc=5",
       "source_name": "Google News"
+    },
+    {
+      "id": "traffic-10",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Sitwasyon ng pagbaha sa sumusunod na kalsada sa Metro Manila, ayon sa MMDA as of",
+      "description": "Sitwasyon ng pagbaha sa sumusunod na kalsada sa Metro Manila, ayon sa MMDA as of 9:13 a.m. ngayong Sabado, Agosto 29, 2026. #FloodPatrol 𝐕𝐀𝐋𝐄𝐍𝐙𝐔𝐄𝐋𝐀 𝐂𝐈𝐓𝐘 - MacArthur Highway fronting Goodyear/Toyota - ",
+      "updated": "Sat, 29 Aug 2026 01:17:38 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNVVA5d1FfaFFyRXpTNzh1QVU0STJ1cXNlRWdnVTgzVWpjRjZmanYwUHRhZEFJeUk4T0ZaQ2VrN2EtWUFRZU9fZlNZVHRYQlMyR194elNDU0ZLeW1PdWsxcWhkb0hneW1ZSGQ3MnZwb3dESVlyckJYOTB0R3F6b3l0clZjZk5jYkgzcGEwOWt0UmFKakFLWDVPcENHOG1KQ2JnekVzdmJrWXFxOFRlMDVvUGlfZUNyUWxtUkpkNUdzTjZtTDVKRHFBMjZkR1RrQkdSbHhDeFl3NA?oc=5",
+      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-08-30T21:30:02.503792",
+  "scraped_at": "2026-08-31T01:30:02.791417",
   "source": "Google News RSS"
 }
