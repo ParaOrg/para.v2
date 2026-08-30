@@ -155,7 +155,10 @@ export default function HomeNew() {
     if (!text) return;
     setMessages((prev) => [...prev, { sender: "user", text }]);
     setInput(""); setLoading(true); setShowChat(true);
-    const gpsLoc = location ? [location.lat, location.lng] : null;
+    // Get GPS from context or from window global set by TrackingConsentContext
+    const gpsLoc = location ? [location.lat, location.lng] 
+      : window.__userLocation ? window.__userLocation 
+      : null;
     // Use NLP engine for intent detection
     const intents = detectIntent(text);
     const preferences = extractPreferences(text);
@@ -198,7 +201,7 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const LAMBDA_URL = "/api/route-search";
+      const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "/api/route-search";
       console.log('Fetching:', LAMBDA_URL);
       console.log('Body:', body);
       const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -240,13 +243,14 @@ export default function HomeNew() {
           const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.indexOf("WALK") !== -1);
           // Only TRUE rail segments are mode==='rail', not road routes with "LRT" in name
           const isRail = seg.mode === 'rail';
-          // Extract line number from route label like "Take LRT-1 from X to Y"
-          const lineMatch = seg.route?.match(/LRT-1|LRT-2|MRT-3/);
-          const railColor = lineMatch 
-            ? (lineMatch[0] === 'LRT-1' ? '#00A650' 
-              : lineMatch[0] === 'LRT-2' ? '#7A4BC8'
-              : '#FF6B00')
-            : '#FF6B00';
+          // Extract line number from route label like "Take LRT Line 1 from X to Y" or "LRT-1"
+          let railColor = '#FF6B00'; // Default MRT-3 Orange
+          const routeLower = seg.route?.toLowerCase() || '';
+          if (routeLower.includes('line 1') || routeLower.includes('lrt-1') || routeLower.includes('lrt 1')) {
+            railColor = '#00A650'; // LRT-1 Green
+          } else if (routeLower.includes('line 2') || routeLower.includes('lrt-2') || routeLower.includes('lrt 2')) {
+            railColor = '#7A4BC8'; // LRT-2 Purple
+          }
           lns.push({ 
             coordinates: coords, 
             color: isWalk ? "#9CA3AF" : isRail ? railColor : "#310775", 
@@ -279,10 +283,15 @@ export default function HomeNew() {
 
   return (
     <div className="fixed inset-0">
+      {/* Prototype Warning Banner */}
+      <div className="absolute top-0 left-0 right-0 z-[9999] bg-amber-500 text-white text-center py-1.5 px-4 text-xs font-poppins font-medium shadow-md">
+        ⚠️ Prototype: Routing algorithm is still in beta. Help improve it by contributing commute data on the{' '}
+        <button onClick={() => navigate('/contribute')} className="underline font-bold">Contribute</button> tab!
+      </div>
       <GpsPrompt />
       <div className="absolute inset-0 z-0" style={{ height: "100vh", height: "100dvh", width: "100%" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
       {polylines.length === 0 && <RailNetworkOverlay map={window.__paraMap} />}</div>
-      <div className="hidden md:block absolute inset-0 z-50 pointer-events-none"><div className="pointer-events-auto"><Navbar /><ChatPanel onRouteDraw={(routeData) => { const segs = routeData?.segments || []; const lns = []; segs.forEach((seg) => { if (!seg.geometry || seg.geometry.length < 2) return; const coords = seg.geometry.map((c) => [c[0], c[1]]); const isRail = seg.mode === "rail"; const lineMatch = seg.route?.match(/LRT-1|LRT-2|MRT-3/); const railColor = lineMatch ? (lineMatch[0] === "LRT-1" ? "#00A650" : lineMatch[0] === "LRT-2" ? "#7A4BC8" : "#FF6B00") : "#FF6B00"; lns.push({ coordinates: coords, color: isRail ? railColor : "#310775", weight: isRail ? 5 : 4, dashed: false, routeName: seg.route }); }); setPolylines(lns); }} /></div><button onClick={locateMap} className="pointer-events-auto fixed top-20 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="pointer-events-auto fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
+      <div className="hidden md:block absolute inset-0 z-50 pointer-events-none"><div className="pointer-events-auto"><Navbar /><ChatPanel onRouteDraw={(routeData) => { const segs = routeData?.segments || []; const lns = []; segs.forEach((seg) => { if (!seg.geometry || seg.geometry.length < 2) return; const coords = seg.geometry.map((c) => [c[0], c[1]]); const isRail = seg.mode === "rail"; let railColor2 = "#FF6B00"; const routeLower2 = (seg.route || "").toLowerCase(); if (routeLower2.includes("line 1") || routeLower2.includes("lrt-1")) { railColor2 = "#00A650"; } else if (routeLower2.includes("line 2") || routeLower2.includes("lrt-2")) { railColor2 = "#7A4BC8"; } lns.push({ coordinates: coords, color: isRail ? railColor2 : "#310775", weight: isRail ? 5 : 4, dashed: false, routeName: seg.route }); }); setPolylines(lns); }} /></div><button onClick={locateMap} className="pointer-events-auto fixed top-20 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="pointer-events-auto fixed top-32 right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
       <div className="md:hidden absolute inset-0 z-50 pointer-events-none">
         <div className="md:hidden absolute top-4 left-4 z-30 flex flex-col items-center pointer-events-none"><img src={paralogo} alt="Para PH" className="w-10 h-10 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]" /><p className="text-[8px] text-gray-700 mt-0.5 font-medium leading-tight text-center drop-shadow-sm">Bawat Byahe,<br/>Tulong sa Komunidad</p></div>
         {!gpsActive && <button onClick={requestConsentAndLocation} className="pointer-events-auto md:hidden absolute top-32 right-4 z-30 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2 text-xs font-bold text-[#7A4BC8] animate-pulse"><span>📍</span><span>Enable GPS</span></button>}

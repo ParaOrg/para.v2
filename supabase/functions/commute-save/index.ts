@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const data = await req.json();
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
     
     const res = await supabase.from("ph_user_tracks").insert({
@@ -27,6 +27,13 @@ Deno.serve(async (req) => {
       gps_track: data.gps_points || [],
       raw_payload: data,
     }).select();
+    
+    if (res.error) {
+      return new Response(
+        JSON.stringify({ status: "error", message: res.error.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     return new Response(
       JSON.stringify({ status: "success", track_uuid: res.data?.[0]?.track_uuid }),

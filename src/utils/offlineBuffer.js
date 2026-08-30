@@ -124,3 +124,33 @@ export const offlineBuffer = {
   getFareReports: () => idbGetAll("fare_reports"),
   clearFareReports: () => idbClear("fare_reports"),
 };
+
+
+export async function syncOfflineBuffer() {
+  const stores = ["poi_events", "fare_reports", "pending_commutes", "gps_streams"];
+  for (const store of stores) {
+    const items = await offlineBuffer.getAll(store);
+    for (const item of items) {
+      try {
+        // Determine which edge function to call
+        let fn = null;
+        if (store === "poi_events") fn = "poi-add";
+        else if (store === "fare_reports") fn = "fare-report";
+        else if (store === "pending_commutes") fn = "commute-save";
+        
+        if (fn) {
+          const { edgePost } = await import("./api");
+          await edgePost(fn, item);
+          await offlineBuffer.clear(store);
+        }
+      } catch (e) {
+        console.warn(`Failed to sync ${store}:`, e);
+      }
+    }
+  }
+}
+
+// Auto-sync when back online
+if (typeof window !== "undefined") {
+  window.addEventListener("online", syncOfflineBuffer);
+}

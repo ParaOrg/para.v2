@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const data = await req.json();
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
     
     const res = await supabase.from("fare_reports").insert({
@@ -29,6 +29,13 @@ Deno.serve(async (req) => {
       is_surge: data.is_surge || false,
       reported_at: data.reported_at || new Date().toISOString(),
     }).select();
+    
+    if (res.error) {
+      return new Response(
+        JSON.stringify({ status: "error", message: res.error.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     return new Response(
       JSON.stringify({ status: "success", fare_id: res.data?.[0]?.id }),
