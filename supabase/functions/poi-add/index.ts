@@ -14,18 +14,26 @@ Deno.serve(async (req) => {
     const data = await req.json();
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
     
+    const name = data.canonical_name || data.name || "Unknown POI";
     const res = await supabase.from("ph_places").insert({
-      canonical_name: data.canonical_name,
+      canonical_name: name,
       category: data.category || "landmark",
       location: `POINT(${data.lng} ${data.lat})`,
       is_active: true,
     }).select();
     
+    if (res.error) {
+      return new Response(
+        JSON.stringify({ status: "error", message: res.error.message }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     return new Response(
-      JSON.stringify({ status: "success", message: `Added ${data.canonical_name}` }),
+      JSON.stringify({ status: "success", message: `Added ${name}` }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
