@@ -98,7 +98,7 @@ def fetch_dynamic_pois(supabase):
         logger.error(f"Lambda crash: {e}\n{tb}")
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {'Content-Type': 'application/json', },
             'body': json.dumps({'status': 'error', 'message': str(e), 'traceback': tb.splitlines()[-5:]})
         }
     return adj_weighted
@@ -163,7 +163,7 @@ _GRAPH_TTL = 300  # 5 minutes cache
 def load_graph_static():
     global _graph, _nodes
     # ALWAYS reload from file to avoid stale cache
-    with gzip.open('graph_full_rail.json.gz', 'rt') as f:
+    with gzip.open('/var/task/graph_full_rail.json.gz', 'rt') as f:
         data = json.load(f)
     _graph = data['adj']
     _nodes = data['nodes']
@@ -823,7 +823,7 @@ def seg_fare(seg):
 def error_response(message):
     return {
         'statusCode': 200,
-        'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+        'headers': {'Content-Type': 'application/json', },
         'body': json.dumps({'status': 'error', 'message': message})
     }
 
@@ -1679,7 +1679,7 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': {'Content-Type': 'application/json', },
             'body': json.dumps({
                 'status': 'success',
                 'route_data': {
