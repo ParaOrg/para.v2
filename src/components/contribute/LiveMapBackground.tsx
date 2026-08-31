@@ -243,19 +243,20 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     const newPoint: [number, number] = [location.lat, location.lng];
     gpsTrailPoints.current = [...gpsTrailPoints.current, newPoint];
     
+    // trailStyle is now properly scoped outside the if/else block
+    const trailStyle = commuteState === 'riding' 
+      ? { color: '#7A4BC8', weight: 5, opacity: 0.9, dashArray: '' }
+      : commuteState === 'waiting'
+      ? { color: '#F59E0B', weight: 3, opacity: 0.7, dashArray: '1, 5' }
+      : { color: '#9CA3AF', weight: 3, opacity: 0.6, dashArray: '5, 5' };
+    
     if (!gpsTrailRef.current && mapRef.current) {
-      const trailStyle = commuteState === 'riding' 
-        ? { color: '#7A4BC8', weight: 5, opacity: 0.9, dashArray: '' }
-        : commuteState === 'waiting'
-        ? { color: '#F59E0B', weight: 3, opacity: 0.7, dashArray: '1, 5' }
-        : { color: '#9CA3AF', weight: 3, opacity: 0.6, dashArray: '5, 5' };
-        
       gpsTrailRef.current = L.polyline(gpsTrailPoints.current, trailStyle).addTo(mapRef.current);
     } else if (gpsTrailRef.current) {
       gpsTrailRef.current.setLatLngs(gpsTrailPoints.current);
       gpsTrailRef.current.setStyle(trailStyle);
     }
-  }, [location, isTracking]);
+  }, [location, isTracking, commuteState]);
 
   // GPS marker — only when location is available
   useEffect(() => {
