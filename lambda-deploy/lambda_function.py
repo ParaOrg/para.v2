@@ -1310,6 +1310,18 @@ def refresh_graph_if_needed():
     return False
 
 def lambda_handler(event, context):
+    # Handle OPTIONS preflight for CORS
+    if isinstance(event, dict) and (event.get('httpMethod') == 'OPTIONS' or event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS'):
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
+            'body': ''
+        }
     if isinstance(event, dict) and event.get('httpMethod') == 'OPTIONS':
         return {
             'statusCode': 200,
