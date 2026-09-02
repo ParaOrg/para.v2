@@ -18,6 +18,54 @@ def load_graph():
         _nodes = data["nodes"]
     return _graph, _nodes
 
+import urllib.request
+import urllib.parse
+
+def geocode_place(place_name):
+    """Geocode a place name using Nominatim (OpenStreetMap)"""
+    try:
+        # Add Philippines context
+        query = f"{place_name}, Metro Manila, Philippines"
+        url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
+        
+        req = urllib.request.Request(url, headers={'User-Agent': 'ParaPH/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read())
+            
+        if data and len(data) > 0:
+            return {
+                'name': data[0].get('display_name', place_name),
+                'lat': float(data[0]['lat']),
+                'lng': float(data[0]['lon']),
+            }
+    except Exception as e:
+        print(f"Geocoding error: {e}")
+    
+    return None
+
+def find_destination_coords(message):
+    """Find destination coordinates from message using multiple strategies"""
+    # Strategy 1: Check KNOWN_PLACES first (fast, no API call)
+    for place, (name, lat, lng) in KNOWN_PLACES.items():
+        if place in message:
+            return name, (lat, lng)
+    
+    # Strategy 2: Try geocoding the message
+    # Extract potential place names (words after 'to')
+    if ' to ' in message:
+        dest_part = message.split(' to ')[-1].strip()
+        if dest_part:
+            result = geocode_place(dest_part)
+            if result:
+                return result['name'], (result['lat'], result['lng'])
+    
+    # Strategy 3: Geocode the whole message
+    result = geocode_place(message)
+    if result:
+        return result['name'], (result['lat'], result['lng'])
+    
+    return None, None
+
 KNOWN_PLACES = {
     "moa": ("SM MOA", 14.5351, 120.982),
     "cubao": ("Araneta Center - Cubao", 14.62291, 121.05326),
@@ -191,14 +239,8 @@ def lambda_handler(event, context):
                 'body': json.dumps({'status': 'error', 'message': 'No location provided'})
             }
         
-        # Find destination
-        dest_name = None
-        dest_coords = None
-        for place, (name, lat, lng) in KNOWN_PLACES.items():
-            if place in message:
-                dest_name = name
-                dest_coords = (lat, lng)
-                break
+        # Find destination (tries KNOWN_PLACES first, then geocoding)
+        dest_name, dest_coords = find_destination_coords(message)
         
         if not dest_coords:
             return {
