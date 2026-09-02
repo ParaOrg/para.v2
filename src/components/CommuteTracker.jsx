@@ -3,6 +3,17 @@ import { Link } from "react-router-dom";
 import { apiPost } from "../utils/api";
 import LiveShare from "./LiveShare";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
+import { useAuth } from "../context/AuthContext";
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 const OFFLINE_QUEUE_KEY = "para_offline_commutes_v1";
 
@@ -24,6 +35,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
   const rawSegments = routeData?.segments || [];
   const segments = rawSegments.filter(seg => seg.route !== "WALK_TO_ROUTE" && seg.route !== "WALK_TO_DEST" && seg.route !== "WALK_TRANSFER");
   const { consent, status, error: consentError, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
+  const { user } = useAuth();
   const [phase, setPhase] = useState("waiting");
   const [minimized, setMinimized] = useState(false);
   const [currentSegment, setCurrentSegment] = useState(0);
@@ -51,6 +63,10 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
     setGpsPoints((prev) => {
       const last = prev[prev.length - 1];
       if (last && last.timestamp === location.timestamp) return prev;
+      if (last) {
+        const dist = haversineMeters(last.lat, last.lng, location.lat, location.lng);
+        if (dist < 5) return prev;
+      }
       return [...prev, location];
     });
   }, [location, phase]);
@@ -107,6 +123,8 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
       client_log_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       route_uuid: routeData?.route_uuid || null,
       route_name: routeData?.route_name || null,
+      user_id: user?.id || null,
+      user_email: user?.email || null,
       consent_granted: consent,
       wait_time_sec: waitTime,
       segment_times_sec: segmentTimes,

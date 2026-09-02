@@ -6,6 +6,46 @@ import { apiPost } from "../utils/api";
 import { offlineBuffer } from "../utils/offlineBuffer";
 import { startBackgroundTracking, stopBackgroundTracking, notifyRouteSaved } from "../utils/backgroundTracker";
 
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function calculateTotalDistance(points) {
+  if (!points || points.length < 2) return 0;
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    total += haversineMeters(points[i-1].lat, points[i-1].lng, points[i].lat, points[i].lng);
+  }
+  return Math.round(total);
+}
+
+// Haversine distance calculation (meters)
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Calculate total distance from GPS points
+function calculateTotalDistance(points) {
+  if (!points || points.length < 2) return 0;
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    total += haversineMeters(points[i-1].lat, points[i-1].lng, points[i].lat, points[i].lng);
+  }
+  return Math.round(total);
+}
+
 export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel, externalMap, externalLayer }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
   const auth = useAuth();
@@ -34,6 +74,13 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     setGpsPoints(prev => {
       const last = prev[prev.length - 1];
       if (last && last.lat === newPoint.lat && last.lng === newPoint.lng) return prev;
+      
+      // Deduplication: Only add if moved at least 5 meters from last point
+      if (last) {
+        const dist = haversineMeters(last.lat, last.lng, newPoint.lat, newPoint.lng);
+        if (dist < 5) return prev;
+      }
+      
       return [...prev, newPoint];
     });
   }, [location, recording]);
@@ -129,9 +176,11 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
       client_log_id: `explore-${Date.now()}`,
       route_name: routeName,
       route_uuid: routeUuid,
+      user_id: auth?.user?.id || null,
       user_email: auth?.user?.email || "anonymous",
       consent_granted: consent,
       total_time_sec: elapsed,
+      distance_m: calculateTotalDistance(gpsPoints),
       gps_points: gpsPoints,
       pois,
       is_loop: isLoop,

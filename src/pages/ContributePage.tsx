@@ -18,6 +18,44 @@ import WeatherPage from '../components/WeatherPage';
 import { detectIntent, extractPreferences, normalize } from '../utils/nlpEngine';
 import { getGuestUuid, addPendingContribution } from '../utils/guestLink';
 
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function dedupeGpsPoints(points) {
+  if (!points || points.length < 2) return points || [];
+  const deduped = [points[0]];
+  for (let i = 1; i < points.length; i++) {
+    const last = deduped[deduped.length - 1];
+    const current = points[i];
+    const dist = haversineMeters(last[0], last[1], current[0], current[1]);
+    if (dist >= 5) deduped.push(current);
+  }
+  return deduped;
+}
+
+// Haversine distance calculation (meters)
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// GPS point deduplication (minimum 5 meters between points)
+  }
+  return deduped;
+}
+
 const MOCK_ROUTES = [
   { id: 'up-ikot', name: 'UP Ikot' },
   { id: 'up-katipunan', name: 'UP Katipunan' },
@@ -56,6 +94,7 @@ const ContributePage: React.FC = () => {
   const { location, requestConsentAndLocation } = useTrackingConsent();
   const { user, isLoggedIn } = useAuth();
   const segmentStartTime = useRef<number | null>(null);
+  const walkingStartTime = useRef<number | null>(null);
   const segmentsRef = useRef<Array<{ mode: string; routeName: string | null; startTime: number; endTime: number | null; durationSec: number | null; weather?: any }>>([]);
 
   useEffect(() => {
@@ -141,7 +180,9 @@ const ContributePage: React.FC = () => {
         fare_amount: amount,
         mode: 'transit',
         route_name: state.currentRouteName || 'Personal Route',
-        city: null,  // Will be derived from GPS reverse geocoding
+        user_email: user?.email || 'anonymous',
+        city: 'Metro Manila',
+        region: 'NCR',
         reported_at: new Date().toISOString(),
       };
       
@@ -444,6 +485,11 @@ const ContributePage: React.FC = () => {
   }, [isPaused]);
 
   const handleHopOn = useCallback(async () => {
+    // Set walking start time if not already set (for initial walking segment)
+    if (!walkingStartTime.current && !segmentStartTime.current) {
+      walkingStartTime.current = Date.now();
+    }
+    
     // Fetch weather at segment start
     if (location) {
       try {
@@ -453,6 +499,10 @@ const ContributePage: React.FC = () => {
         window.__currentSegmentWeather = null;
       }
     }
+    
+    // Set segment start time for riding
+    segmentStartTime.current = Date.now();
+    
     dispatch({ type: 'SET_TRACKING', payload: true });
     dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
     dispatch({
@@ -463,6 +513,21 @@ const ContributePage: React.FC = () => {
   }, []);
 
   const handleHopOff = useCallback(() => {
+    // Record walking segment before riding
+    if (walkingStartTime.current) {
+      const walkingDuration = Math.round((Date.now() - walkingStartTime.current) / 1000);
+      segmentsRef.current.push({
+        mode: 'walking',
+        routeName: null,
+        weather: null,
+        startTime: walkingStartTime.current,
+        endTime: Date.now(),
+        durationSec: walkingDuration,
+        gpsPoints: window.__currentWalkingGpsPoints || [],
+      });
+      walkingStartTime.current = null;
+    }
+    
     // Record riding segment
     if (segmentStartTime.current) {
       const durationSec = Math.round((Date.now() - segmentStartTime.current) / 1000);
@@ -473,6 +538,7 @@ const ContributePage: React.FC = () => {
         startTime: segmentStartTime.current,
         endTime: Date.now(),
         durationSec,
+        gpsPoints: window.__currentSegmentGpsPoints || [],
       });
       segmentStartTime.current = null;
       
@@ -495,6 +561,7 @@ const ContributePage: React.FC = () => {
       payload: createMessage('bot', 'text', 'How much was the fare for this segment? Select from the buttons or type the amount.'),
     });
     window.dispatchEvent(new CustomEvent('set-fare-report', { detail: { awaiting: true } }));
+    setAwaitingFareReport(true);
   }, [state.currentRouteName]);
 
   const handleEndRoute = useCallback(async () => {
@@ -508,6 +575,7 @@ const ContributePage: React.FC = () => {
         startTime: segmentStartTime.current,
         endTime: Date.now(),
         durationSec,
+        gpsPoints: window.__currentSegmentGpsPoints || [],
       });
       segmentStartTime.current = null;
     }
@@ -515,7 +583,25 @@ const ContributePage: React.FC = () => {
     // Build segments
     const segments = segmentsRef.current;
     const totalDuration = segments.reduce((sum, seg) => sum + (seg.durationSec || 0), 0);
-    const totalDistance = 0; // TODO: Calculate from GPS points
+    // Calculate total distance from GPS points
+    const totalDistance = segments.reduce((total, seg) => {
+      if (!seg.gpsPoints || seg.gpsPoints.length < 2) return total;
+      let segmentDistance = 0;
+      for (let i = 1; i < seg.gpsPoints.length; i++) {
+        const [lat1, lng1] = seg.gpsPoints[i - 1];
+        const [lat2, lng2] = seg.gpsPoints[i];
+        // Haversine formula
+        const R = 6371000; // Earth radius in meters
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLng = (lng2 - lng1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        segmentDistance += R * c;
+      }
+      return total + segmentDistance;
+    }, 0);
 
     console.log('Saving commute payload...', {
       segments,
@@ -566,10 +652,14 @@ const ContributePage: React.FC = () => {
       route_name: state.currentRouteName || 'Personal Commute',
       total_time_sec: totalDuration,
       distance_m: totalDistance,
-      gps_points: segments.map(seg => seg.gpsPoints || []).flat(),
+      gps_points: dedupeGpsPoints(segments.map(seg => seg.gpsPoints || []).flat()),
       segments: segments,
       user_id: user?.id || null,
+      user_email: user?.email || null,
       submitted_by: user?.email || 'guest',
+      mode: transportMode || 'transit',
+      city: 'Metro Manila',
+      region: 'NCR',
     };
 
     try {
@@ -622,6 +712,7 @@ const ContributePage: React.FC = () => {
     dispatch({ type: 'SET_TRACKING', payload: true });
     dispatch({ type: 'SET_APP_MODE', payload: 'tracking' });
     dispatch({ type: 'SET_COMMUTE_STATE', payload: 'walking' });
+    walkingStartTime.current = Date.now();
     dispatch({
       type: 'ADD_MESSAGE',
       payload: createMessage('bot', 'text', '🚶 Commute tracking started. Tap "Hop On" when you board.'),
