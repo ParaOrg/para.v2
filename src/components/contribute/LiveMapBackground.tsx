@@ -243,6 +243,13 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     const newPoint: [number, number] = [location.lat, location.lng];
     gpsTrailPoints.current = [...gpsTrailPoints.current, newPoint];
     
+    // Store GPS points for current segment based on commute state
+    if (commuteState === 'riding') {
+      window.__currentSegmentGpsPoints = gpsTrailPoints.current;
+    } else if (commuteState === 'walking') {
+      window.__currentWalkingGpsPoints = gpsTrailPoints.current;
+    }
+    
     // trailStyle is now properly scoped outside the if/else block
     const trailStyle = commuteState === 'riding' 
       ? { color: '#7A4BC8', weight: 5, opacity: 0.9, dashArray: '' }
