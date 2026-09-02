@@ -152,7 +152,12 @@ export default function ChatPanel({ onRouteDraw }) {
       const hasTo = /\bto\b/i.test(text);
       const backendMessage = (!hasOrigin && !hasTo && gps) ? `from here to ${text}` : text;
       const payload = { user_id: "guest", message: backendMessage };
-      if (gps) payload.user_location = { lat: gps[0], lng: gps[1] };
+      if (gps) {
+        payload.user_location = { lat: gps[0], lng: gps[1] };
+      } else {
+        // Default to Cubao as starting point if no GPS
+        payload.user_location = { lat: 14.62291, lng: 121.05326 };
+      }
 
       const res = await fetch("/api/route-search", {
         method: "POST",
