@@ -5,9 +5,21 @@
 import { useState, useEffect, useRef } from "react";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { apiPost } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 export default function InlineRecorder({ onDone, onCancel }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
+  const { user } = useAuth();
   const [step, setStep] = useState("start");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState(null);
@@ -20,6 +32,10 @@ export default function InlineRecorder({ onDone, onCancel }) {
     setGpsPoints((prev) => {
       const last = prev[prev.length - 1];
       if (last && last.timestamp === location.timestamp) return prev;
+      if (last) {
+        const dist = haversineMeters(last.lat, last.lng, location.lat, location.lng);
+        if (dist < 5) return prev;
+      }
       return [...prev, { lat: location.lat, lng: location.lng, accuracy: location.accuracy, timestamp: location.timestamp }];
     });
   }, [location, step]);
@@ -53,6 +69,8 @@ export default function InlineRecorder({ onDone, onCancel }) {
     try {
       await edgePost("commute-save", {
         client_log_id: `inline-${Date.now()}`,
+        user_id: user?.id || null,
+        user_email: user?.email || null,
         consent_granted: consent,
         total_time_sec: elapsed,
         gps_points: gpsPoints.slice(0, 500),

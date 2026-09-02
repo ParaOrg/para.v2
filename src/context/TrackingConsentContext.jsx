@@ -1,5 +1,16 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState } from "react";
 
+// Haversine distance calculation (meters)
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 const TrackingConsentContext = createContext(null);
 const CONSENT_KEY = "para_location_consent_v1";
 
@@ -13,12 +24,14 @@ export function TrackingConsentProvider({ children }) {
   const [error, setError] = useState(null);
   const [location, setLocation] = useState(null);
   const watchId = useRef(null);
+  const lastLocation = useRef(null);
 
   const stopTracking = useCallback(() => {
     if (watchId.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.clearWatch(watchId.current);
       watchId.current = null;
     }
+    lastLocation.current = null;
     setStatus((prev) => (prev === "watching" || prev === "requesting" ? "idle" : prev));
   }, []);
 
@@ -33,13 +46,24 @@ export function TrackingConsentProvider({ children }) {
     watchId.current = navigator.geolocation.watchPosition(
       (pos) => {
         const next = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
+        
+        // Deduplication: Only record if moved at least 5 meters from last point
+        if (lastLocation.current) {
+          const dist = haversineMeters(
+            lastLocation.current.lat, lastLocation.current.lng,
+            next.lat, next.lng
+          );
+          if (dist < 5) return; // Skip if stationary
+        }
+        
+        lastLocation.current = next;
         setLocation(next);
         setStatus("watching");
         setError(null);
         try { window.__userLocation = [next.lat, next.lng]; } catch {}
       },
       (err) => { setError(err.message || "Location permission denied."); setStatus("error"); },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 30000, distanceFilter: 0 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 30000, distanceFilter: 5 }
     );
     return true;
   }, [stopTracking]);
