@@ -52,8 +52,9 @@ def load_graph_from_supabase():
     except:
         ml_stats = {}
     
-    # 3. Get shapes for geometry
+    # 3. Load ALL graph edges with proper pagination
     offset = 0
+    edges_loaded = 0
     while True:
         url = f"{supabase_url}/rest/v1/graph_edges?select=from_node,to_node,weight&limit=1000&offset={offset}"
         req = urllib.request.Request(url, headers=headers)
@@ -61,6 +62,7 @@ def load_graph_from_supabase():
             edges = json.loads(resp.read())
         if not edges:
             break
+        edges_loaded += len(edges)
         for edge in edges:
             if edge["from_node"] not in graph:
                 graph[edge["from_node"]] = []
@@ -68,6 +70,7 @@ def load_graph_from_supabase():
         offset += 1000
         if len(edges) < 1000:
             break
+    print(f"Loaded {edges_loaded} edges")
     
     # 4. Get nodes
     offset = 0
