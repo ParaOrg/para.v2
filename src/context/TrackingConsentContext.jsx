@@ -1,6 +1,12 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState } from "react";
 
-// Haversine distance calculation (meters)
+const TrackingConsentContext = createContext(null);
+const CONSENT_KEY = "para_location_consent_v1";
+
+function readConsent() {
+  try { return localStorage.getItem(CONSENT_KEY) === "granted"; } catch { return false; }
+}
+
 function haversineMeters(lat1, lng1, lat2, lng2) {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -9,13 +15,6 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLng/2) * Math.sin(dLng/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-const TrackingConsentContext = createContext(null);
-const CONSENT_KEY = "para_location_consent_v1";
-
-function readConsent() {
-  try { return localStorage.getItem(CONSENT_KEY) === "granted"; } catch { return false; }
 }
 
 export function TrackingConsentProvider({ children }) {
@@ -47,13 +46,12 @@ export function TrackingConsentProvider({ children }) {
       (pos) => {
         const next = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy, timestamp: pos.timestamp };
         
-        // Deduplication: Only record if moved at least 5 meters from last point
         if (lastLocation.current) {
           const dist = haversineMeters(
             lastLocation.current.lat, lastLocation.current.lng,
             next.lat, next.lng
           );
-          if (dist < 5) return; // Skip if stationary
+          if (dist < 5) return;
         }
         
         lastLocation.current = next;
@@ -79,7 +77,6 @@ export function TrackingConsentProvider({ children }) {
   const requestConsentAndLocation = useCallback(() => { grant(); beginWatch(); }, [grant, beginWatch]);
   const startTracking = useCallback(() => {
     if (!consent) { setStatus("consent_required"); return false; }
-    // Register background sync
     if (navigator.serviceWorker?.controller) {
       navigator.serviceWorker.controller.postMessage({ type: "REGISTER_SYNC" });
     }

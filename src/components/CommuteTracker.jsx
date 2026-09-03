@@ -1,9 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { apiPost } from "../utils/api";
+import { edgePost } from "../utils/api";
 import LiveShare from "./LiveShare";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
 import { useAuth } from "../context/AuthContext";
+
+const OFFLINE_QUEUE_KEY = "para_offline_commutes_v1";
+
+function readQueue() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || "[]"); } catch { return []; }
+}
+
+function writeQueue(queue) {
+  try { localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue)); } catch {}
+}
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
 
 function haversineMeters(lat1, lng1, lat2, lng2) {
   const R = 6371000;
@@ -13,22 +29,6 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLng/2) * Math.sin(dLng/2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-const OFFLINE_QUEUE_KEY = "para_offline_commutes_v1";
-
-function readQueue() {
-  try { return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || "[]"); } catch { return []; }
-}
-
-function writeQueue(queue) {
-  try { localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue)); } catch { /* localStorage unavailable */ }
-}
-
-function formatTime(totalSeconds) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 export default function CommuteTracker({ routeData, onComplete, onCancel, onMinimize, onProgress }) {
@@ -212,51 +212,9 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
             <div className="space-y-4">
               <div className="text-center"><p className="text-3xl mb-1">🎉</p><p className="font-bold text-gray-800">Commute Complete!</p><p className="text-sm text-gray-500 mt-1">{formatTime(totalTimeSec)} total · {segments.filter((s) => !s.is_transfer).length} rides</p></div>
               <div><p className="text-sm font-semibold text-gray-700 mb-2">Rate your commute</p><div className="flex justify-center gap-1">{[1,2,3,4,5].map((star) => (<button key={star} onClick={() => setRating(star)} className={`text-2xl transition-colors ${star <= rating ? "text-amber-400" : "text-gray-300 hover:text-amber-300"}`}>★</button>))}</div></div>
-              <div>
-            <p className="text-xs font-semibold text-gray-500 mb-1">Was the fare correct?</p>
-            <div className="flex gap-2">
-              {["Yes", "No"].map(opt => (
-                <button key={opt} onClick={() => setComment(prev => prev + `\nFare correct: ${opt}`)}
-                  className="px-3 py-1 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold text-gray-500 mb-1">How was traffic?</p>
-            <div className="flex gap-2">
-              {["Light", "Moderate", "Heavy"].map(opt => (
-                <button key={opt} onClick={() => setComment(prev => prev + `\nTraffic: ${opt}`)}
-                  className="px-3 py-1 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold text-gray-500 mb-1">Did the route match what you rode?</p>
-            <div className="flex gap-2">
-              {["Exact", "Mostly", "Not at all"].map(opt => (
-                <button key={opt} onClick={() => setComment(prev => prev + `\nRoute accuracy: ${opt}`)}
-                  className="px-3 py-1 text-xs rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200">
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Optional commute feedback..." rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 resize-none" />
-              <a href="https://tally.so/r/J9rzW4" target="_blank" rel="noopener noreferrer" className="block w-full py-3 bg-[#7A4BC8] text-white rounded-xl font-bold text-sm text-center hover:bg-[#381D65] transition-colors">📝 Help us improve — share your experience</a>
-              <div className="text-xs space-y-1 bg-gray-50 rounded-lg p-2">
-                {segments.map((seg, i) => (<div key={i} className="flex items-center gap-2 text-gray-600"><span>{seg.is_transfer ? "🚶" : "🚌"}</span><span className="truncate">{seg.is_transfer ? "Walk" : seg.route || "Transit"}</span><span className="ml-auto tabular-nums">{formatTime(segmentTimes[i] || 0)}</span></div>))}
-                <div className="flex items-center gap-2 text-gray-400 pt-1 border-t border-gray-200"><span>⏳ Wait</span><span className="ml-auto tabular-nums">{formatTime(waitTime)}</span></div>
-              </div>
+              <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Optional commute feedback..." rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 resize-none" />
               {saveMessage && <div className="text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded-lg p-2">{saveMessage}</div>}
               <button onClick={finish} disabled={saving} className="w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors disabled:opacity-50">{saving ? "Saving..." : "💾 Save & Finish"}</button>
-              <button onClick={() => { finish(); onCancel(); }} disabled={saving} className="w-full py-3 border-2 border-purple-800 text-purple-800 rounded-xl font-bold text-sm hover:bg-purple-50 transition-colors disabled:opacity-50">🚐 Commute Again</button>
               <button onClick={onCancel} className="w-full py-2 border border-gray-300 text-gray-500 rounded-lg text-xs hover:bg-gray-50">Discard</button>
             </div>
           )}

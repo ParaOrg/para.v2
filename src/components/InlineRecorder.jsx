@@ -1,10 +1,6 @@
-/**
- * InlineRecorder.jsx — Compact GPS recorder embedded in chat panel.
- * Uses TrackingConsentContext — no direct geolocation calls.
- */
 import { useState, useEffect, useRef } from "react";
 import { useTrackingConsent } from "../context/TrackingConsentContext";
-import { apiPost } from "../utils/api";
+import { edgePost } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 
 function haversineMeters(lat1, lng1, lat2, lng2) {
