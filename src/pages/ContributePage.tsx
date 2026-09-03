@@ -1,4 +1,30 @@
 import React, { useReducer, useEffect, useCallback, useRef, useState } from 'react';
+
+// Haversine distance calculation (meters)
+function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// GPS point deduplication (minimum 5 meters between points)
+function dedupeGpsPoints(points: [number, number][]): [number, number][] {
+  if (!points || points.length < 2) return points || [];
+  const deduped: [number, number][] = [points[0]];
+  for (let i = 1; i < points.length; i++) {
+    const last = deduped[deduped.length - 1];
+    const current = points[i];
+    const dist = haversineMeters(last[0], last[1], current[0], current[1]);
+    if (dist >= 5) {
+      deduped.push(current);
+    }
+  }
+  return deduped;
+}
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -18,60 +44,6 @@ import WeatherPage from '../components/WeatherPage';
 import { detectIntent, extractPreferences, normalize } from '../utils/nlpEngine';
 import { getGuestUuid, addPendingContribution } from '../utils/guestLink';
 
-function haversineMeters(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function dedupeGpsPoints(points) {
-  if (!points || points.length < 2) return points || [];
-  const deduped = [points[0]];
-  for (let i = 1; i < points.length; i++) {
-    const last = deduped[deduped.length - 1];
-    const current = points[i];
-    const dist = haversineMeters(last[0], last[1], current[0], current[1]);
-    if (dist >= 5) deduped.push(current);
-  }
-  return deduped;
-}
-
-// Haversine distance calculation (meters)
-function haversineMeters(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-// GPS point deduplication (minimum 5 meters between points)
-  }
-  return deduped;
-}
-
-const MOCK_ROUTES = [
-  { id: 'up-ikot', name: 'UP Ikot' },
-  { id: 'up-katipunan', name: 'UP Katipunan' },
-  { id: 'up-philcoa', name: 'UP Philcoa' },
-  { id: 'add-new', name: '+ Add New Route' },
-];
-
-const VEHICLES = [
-  { id: 'jeepney', label: 'Jeep', icon: '🚐' },
-  { id: 'bus', label: 'Bus', icon: '🚌' },
-  { id: 'train', label: 'Train', icon: '🚆' },
-  { id: 'trike', label: 'Trike', icon: '🛺' },
-  { id: 'uv_express', label: 'UV Express', icon: '🚐' },
-  { id: 'grab', label: 'Grab', icon: '🚗' },
-  { id: 'angkas', label: 'Angkas', icon: '🏍️' },
-];
 
 const ContributePage: React.FC = () => {
   const [state, dispatch] = useReducer(contributeReducer, initialState);

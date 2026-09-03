@@ -95,8 +95,8 @@ export default function ChatPanel({ onRouteDraw }) {
     const allLines = [];
     const bounds = [];
     segments.forEach((seg, i) => {
-      if (!seg.geometry || seg.geometry.length < 2) return;
-      const coords = seg.geometry.map((c) => [c[0], c[1]]);
+      if (!seg.path || seg.path.length < 2) return;
+      const coords = seg.path.map((c) => [c[0], c[1]]);
       coords.forEach(coord => bounds.push(coord));
       const isWalk = seg.is_transfer || seg.type === "walk" || (seg.route && seg.route.includes("WALK"));
       const isFirst = i === 0;
@@ -159,13 +159,20 @@ export default function ChatPanel({ onRouteDraw }) {
         payload.user_location = { lat: 14.62291, lng: 121.05326 };
       }
 
-      const res = await fetch("/api/route-search", {
+      const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "https://4rbmxppuus3c6qafq3soefeyfa0jkvfc.lambda-url.ap-southeast-2.on.aws/";
+      const res = await fetch(LAMBDA_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      let data = await res.json();
+      
+      // Handle Lambda Function URL response (might wrap in body)
+      if (data.body && typeof data.body === 'string') {
+        try { data = JSON.parse(data.body); } catch {}
+      }
+      console.log('Parsed data:', data);
 
       setMessages((prev) => [...prev, {
         sender: "bot",
@@ -175,18 +182,7 @@ export default function ChatPanel({ onRouteDraw }) {
       }]);
 
       if (data.route_data) {
-        // Draw the route on the map
-        if (data.route_data.segments && data.route_data.segments.length > 0) {
-          const segments = data.route_data.segments;
-          const allCoords = [];
-          
-          for (const seg of segments) {
-            // Each segment has from/to node IDs, but we need lat/lng
-            // The Lambda returns node IDs, not coordinates
-            // We need to fetch coordinates from graph_nodes or use the path
-            console.log('Segment:', seg);
-          }
-        }
+        drawRoute(data.route_data);
         setActiveRouteData(data.route_data);
         // Check for unverified routes in segments
         const unverifiedSegments = data.route_data.segments?.filter(seg => !seg.is_verified && seg.type === 'transit') || [];

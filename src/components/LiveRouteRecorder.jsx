@@ -25,27 +25,6 @@ function calculateTotalDistance(points) {
   return Math.round(total);
 }
 
-// Haversine distance calculation (meters)
-function haversineMeters(lat1, lng1, lat2, lng2) {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLng/2) * Math.sin(dLng/2);
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-// Calculate total distance from GPS points
-function calculateTotalDistance(points) {
-  if (!points || points.length < 2) return 0;
-  let total = 0;
-  for (let i = 1; i < points.length; i++) {
-    total += haversineMeters(points[i-1].lat, points[i-1].lng, points[i].lat, points[i].lng);
-  }
-  return Math.round(total);
-}
-
 export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, onCancel, externalMap, externalLayer }) {
   const { consent, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
   const auth = useAuth();
@@ -67,25 +46,20 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
 
-  // Track GPS
   useEffect(() => {
     if (!recording || !location) return;
     const newPoint = { lat: location.lat, lng: location.lng, timestamp: Date.now() };
     setGpsPoints(prev => {
       const last = prev[prev.length - 1];
       if (last && last.lat === newPoint.lat && last.lng === newPoint.lng) return prev;
-      
-      // Deduplication: Only add if moved at least 5 meters from last point
       if (last) {
         const dist = haversineMeters(last.lat, last.lng, newPoint.lat, newPoint.lng);
         if (dist < 5) return prev;
       }
-      
       return [...prev, newPoint];
     });
   }, [location, recording]);
 
-  // Draw GPS dot on main map
   useEffect(() => {
     const map = externalMap;
     const layer = externalLayer;
@@ -98,12 +72,9 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
       } else {
         gpsCircle.current.setLatLng([location.lat, location.lng]);
       }
-      // Update marker only — don't auto-center map
-      // (user may be browsing the map)
     }
   }, [consent, location, externalMap, externalLayer]);
 
-  // Draw live line
   useEffect(() => {
     const map = externalMap;
     const layer = externalLayer;
@@ -125,7 +96,6 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     map.fitBounds(coords, { padding: [60, 60], maxZoom: 16 });
   }, [gpsPoints, externalMap, externalLayer]);
 
-  // Timer
   useEffect(() => {
     if (!recording) return;
     startTimeRef.current = Date.now();
@@ -142,7 +112,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     setPois([]);
     startTracking();
     startBackgroundTracking();
-    setPanelOpen(false); // collapse so map is visible
+    setPanelOpen(false);
   };
 
   const addPoi = () => {
@@ -159,7 +129,6 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     setPoiName("");
     setPoiComment("");
     setShowPoiForm(false);
-    // Drop marker on map
     if (externalLayer && location) {
       L.circleMarker([location.lat, location.lng], {
         radius: 7, fillColor: poiType === "terminal" ? "#f59e0b" : "#22c55e", color: "#fff", weight: 2, fillOpacity: 1,
@@ -189,7 +158,6 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     };
 
     if (!navigator.onLine) {
-      // Offline — buffer locally, sync later
       await offlineBuffer.addCommute(trackData);
       setSaved(true);
       if (onComplete) setTimeout(onComplete, 1500);
@@ -201,7 +169,6 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
       setSaved(true);
       if (onComplete) setTimeout(onComplete, 1500);
     } catch (e) {
-      // Network error — buffer
       await offlineBuffer.addCommute(trackData);
       setSaved(true);
       if (onComplete) setTimeout(onComplete, 1500);
@@ -213,7 +180,6 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
 
   return (
     <div className="fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[min(95vw,400px)]">
-      {/* Expanded panel */}
       {panelOpen && !saved && (
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-[70vh] overflow-y-auto">
           <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
@@ -223,15 +189,11 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
             </div>
             <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
           </div>
-
           <div className="p-4 space-y-3">
-            {/* Loop toggle */}
             <label className="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" checked={isLoop} onChange={(e) => setIsLoop(e.target.checked)} className="w-4 h-4" />
               This is a loop route (no start/end)
             </label>
-
-            {/* Instructions */}
             {!recording && (
               <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-gray-600 space-y-1">
                 <p className="font-bold text-blue-800">📋 What happens:</p>
@@ -241,22 +203,16 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
                 <p>4. Stop when done — it will be saved in our database</p>
               </div>
             )}
-
-            {/* Start button */}
             {!recording && (
               <button onClick={start} className="w-full py-3 bg-red-500 text-white rounded-xl font-bold text-sm hover:bg-red-600">
                 {consent ? "🔴 Start Recording" : "📍 Enable Location & Record"}
               </button>
             )}
-
-            {/* POI form toggle */}
             {recording && (
               <button onClick={() => setShowPoiForm(!showPoiForm)} className="w-full py-2 border border-gray-200 text-gray-600 rounded-lg text-xs font-semibold">
                 📍 Add POI ({pois.length})
               </button>
             )}
-
-            {/* POI form */}
             {showPoiForm && recording && (
               <div className="space-y-2 bg-gray-50 p-3 rounded-lg">
                 <input value={poiName} onChange={(e) => setPoiName(e.target.value)} placeholder="Name (e.g. Terminal, Landmark)" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm" />
@@ -273,8 +229,6 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
           </div>
         </div>
       )}
-
-      {/* Collapsed recording bar */}
       {recording && !panelOpen && (
         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 px-4 py-3 flex items-center gap-3">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -284,17 +238,11 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
           <button onClick={() => setPanelOpen(true)} className="text-gray-400 ml-auto text-sm">☰</button>
         </div>
       )}
-
-      {/* Stop button when recording + panel open */}
       {recording && panelOpen && (
         <div className="px-4 pb-4">
-          <button onClick={stop} className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold text-sm">
-            ⏹ Stop & Save
-          </button>
+          <button onClick={stop} className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold text-sm">⏹ Stop & Save</button>
         </div>
       )}
-
-      {/* Saving / saved */}
       {saving && (
         <div className="bg-white rounded-2xl shadow-2xl px-4 py-4 text-center">
           <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto" />
