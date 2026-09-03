@@ -175,6 +175,18 @@ export default function ChatPanel({ onRouteDraw }) {
       }]);
 
       if (data.route_data) {
+        // Draw the route on the map
+        if (data.route_data.segments && data.route_data.segments.length > 0) {
+          const segments = data.route_data.segments;
+          const allCoords = [];
+          
+          for (const seg of segments) {
+            // Each segment has from/to node IDs, but we need lat/lng
+            // The Lambda returns node IDs, not coordinates
+            // We need to fetch coordinates from graph_nodes or use the path
+            console.log('Segment:', seg);
+          }
+        }
         setActiveRouteData(data.route_data);
         // Check for unverified routes in segments
         const unverifiedSegments = data.route_data.segments?.filter(seg => !seg.is_verified && seg.type === 'transit') || [];

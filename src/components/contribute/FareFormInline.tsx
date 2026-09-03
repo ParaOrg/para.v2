@@ -43,14 +43,23 @@ export const FareFormInline: React.FC<FareFormInlineProps> = ({ onSubmit, onCanc
       {/* Actions */}
       <div className="flex gap-2">
         <button
-          onClick={() => onSubmit(parseFloat(amount))}
+          onClick={() => {
+            const fareAmount = parseFloat(amount);
+            if (fareAmount > 0) {
+              window.dispatchEvent(new CustomEvent('fare-form-submitted', { detail: { amount: fareAmount } }));
+              onSubmit(fareAmount);
+            }
+          }}
           disabled={!amount || parseFloat(amount) <= 0}
           className="flex-1 py-2 bg-[#7A4BC8] text-white rounded-[10px] text-[11px] font-bold font-poppins disabled:opacity-40"
         >
           ✓ Save Fare
         </button>
         <button
-          onClick={onCancel}
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('fare-form-cancelled'));
+            onCancel();
+          }}
           className="px-3 py-2 bg-gray-100 text-gray-600 rounded-[10px] text-[11px] font-poppins"
         >
           Cancel

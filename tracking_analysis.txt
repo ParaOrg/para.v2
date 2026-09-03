@@ -1,0 +1,182 @@
+=============================================
+PARA PH - TRACKING DATA ANALYSIS
+=============================================
+
+
+=============================================
+1. TRACKING CONSENT CONTEXT
+=============================================
+
+```javascript
+```
+
+=============================================
+2. GPS DOWNSAMPLER
+=============================================
+
+```typescript
+```
+
+=============================================
+3. CONTRIBUTE PAGE
+=============================================
+
+```typescript
+```
+
+=============================================
+4. COMMUTE TRACKER COMPONENT
+=============================================
+
+```javascript
+```
+
+=============================================
+5. PWA TRACKER
+=============================================
+
+```javascript
+```
+
+=============================================
+6. BACKGROUND TRACKER
+=============================================
+
+```javascript
+```
+
+=============================================
+7. BACKGROUND TRACKER (ROOT)
+=============================================
+
+```javascript
+```
+
+=============================================
+8. CONTRIBUTE TYPES
+=============================================
+
+```typescript
+```
+
+=============================================
+9. CONTRIBUTE SYNC HOOK
+=============================================
+
+```typescript
+```
+
+=============================================
+10. SPATIAL CALCULATIONS
+=============================================
+
+```typescript
+```
+
+=============================================
+11. OFFLINE BUFFER
+=============================================
+
+```javascript
+```
+
+=============================================
+12. BATCH SYNC
+=============================================
+
+```typescript
+```
+
+=============================================
+13. SYNC ENGINE
+=============================================
+
+```javascript
+```
+
+=============================================
+14. API UTILITIES
+=============================================
+
+```javascript
+```
+
+=============================================
+15. CONTRIBUTE BUTTONS
+=============================================
+
+```javascript
+```
+
+=============================================
+16. CONTRIBUTE CHAT
+=============================================
+
+```javascript
+```
+
+=============================================
+17. CONTRIBUTE CHAT PANEL
+=============================================
+
+```javascript
+```
+
+=============================================
+18. INLINE RECORDER
+=============================================
+
+```javascript
+```
+
+=============================================
+19. GPS PROMPT
+=============================================
+
+```javascript
+```
+
+=============================================
+20. GREP SEARCH: watchPosition / getCurrentPosition
+=============================================
+
+```
+src/context/TrackingConsentContext.jsx:33:    watchId.current = navigator.geolocation.watchPosition(
+src/context/TrackingConsentContext.jsx:42:      { enableHighAccuracy: true, maximumAge: 0, timeout: 30000, distanceFilter: 0 }
+src/utils/syncEngine.js:56:        gps_points: item.gps_points || [],
+src/utils/__tests__/fullPipelineTest.ts:111:  total_distance_m: 4200,
+src/utils/__tests__/fullPipelineTest.ts:114:    { type: 'walking', start_time: Date.now(), end_time: Date.now() + 600000, gps_points: [] },
+src/utils/__tests__/fullPipelineTest.ts:115:    { type: 'riding', vehicle: 'jeepney', route_name: 'Taft', fare: 13, start_time: Date.now() + 600000, end_time: Date.now() + 1800000, gps_points: [] },
+src/hooks/useContributeSync.ts:52:      gpsWatchRef.current = navigator.geolocation.watchPosition(
+src/components/InlineRecorder.jsx:58:        gps_points: gpsPoints.slice(0, 500),
+src/components/CommuteTracker.jsx:114:      total_distance_m: routeData?.total_distance_m || 0,
+src/components/CommuteTracker.jsx:115:      gps_points: gpsPoints,
+src/components/RouteSummaryReport.jsx:45:      const gps = seg.gps_points || [];
+src/components/StravaRouteCard.jsx:37:    total_distance_m = 0,
+src/components/StravaRouteCard.jsx:79:          <span className="font-bold text-gray-900">{(total_distance_m / 1000).toFixed(1)} km</span>
+src/components/RouteUploader.jsx:82:        gps_points: gpsPoints.slice(0, 500),
+src/components/RouteEditor.jsx:35:      distance_m: 300,
+src/components/RouteEditor.jsx:68:      distance_m: (seg1.distance_m || 0) + (seg2.distance_m || 0),
+src/components/TripSummaryCard.jsx:9:  const visibleSegments = segments.filter((seg) => seg.distance_m > 0 || !seg.is_transfer);
+src/components/TripSummaryCard.jsx:38:              const dist = seg.distance_display || (seg.distance_m >= 1000 ? `${(seg.distance_m / 1000).toFixed(1)} km` : `${seg.distance_m}m`);
+src/components/SystemHealthCheck.jsx:78:        body: JSON.stringify({ route_name: 'HEALTH_CHECK', total_time_sec: 60, distance_m: 100, gps_points: [[14.6225,121.0538]] })
+src/components/LiveRouteRecorder.jsx:135:      gps_points: gpsPoints,
+src/pages/RouteUploader.jsx:72:        gps_points: gpsPoints.slice(0, 500),
+src/pages/ContributePage.tsx:616:      distance_m: totalDistance,
+src/pages/ContributePage.tsx:617:      gps_points: segments.map(seg => seg.gpsPoints || []).flat(),
+src/pages/AdminApproval.jsx:106:                {Math.floor(l.time/60)}m {l.time%60}s • {(l.distance/1000).toFixed(2)}km • {l.gps_points} GPS pts
+```
+
+=============================================
+21. GREP SEARCH: Supabase track saving
+=============================================
+
+```
+src/pages/ContributePage.tsx:144:        route_name: state.currentRouteName || 'Personal Route',
+src/pages/ContributePage.tsx:614:      route_name: state.currentRouteName || 'Personal Commute',
+```
+
+=============================================
+ANALYSIS COMPLETE
+File saved to: /tmp/tracking_analysis.txt
+=============================================
