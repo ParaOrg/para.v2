@@ -1,101 +1,130 @@
-
 import json
 import gzip
 import math
 import heapq
 import os
-
-# Load graph once at startup
-_graph = None
-_nodes = None
-
-def load_graph():
-    global _graph, _nodes
-    if _graph is None:
-        with gzip.open("graph_full_rail.json.gz", "rt") as f:
-            data = json.load(f)
-        _graph = data["adj"]
-        _nodes = data["nodes"]
-    return _graph, _nodes
-
 import urllib.request
 import urllib.parse
 
-def geocode_place(place_name):
-    """Geocode a place name using Nominatim (OpenStreetMap)"""
+# Global cache
+_graph = None
+_nodes = None
+_route_info = {}
+
+def load_graph_from_supabase():
+    """Load RICH graph from Supabase - routes + shapes + ML stats + fares"""
+    supabase_url = os.environ.get("SUPABASE_URL", "https://tcvomrkytxnetzijwqad.supabase.co").rstrip("/")
+    service_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    
+    if not service_key:
+        service_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o"
+    
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}"
+    }
+    
+    graph = {}
+    nodes = {}
+    route_info = {}  # node_id -> {name, mode, reliability, fare}
+    
+    # 1. Get ALL routes with ML stats
+    offset = 0
+    all_routes = []
+    while True:
+        url = f"{supabase_url}/rest/v1/ph_routes?select=route_uuid,name,mode,is_approved&limit=1000&offset={offset}"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            routes = json.loads(resp.read())
+        if not routes:
+            break
+        all_routes.extend(routes)
+        offset += 1000
+        if len(routes) < 1000:
+            break
+    
+    # 2. Get ML stats for reliability/speed
     try:
-        # Add Philippines context
-        query = f"{place_name}, Metro Manila, Philippines"
-        url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
-        
-        req = urllib.request.Request(url, headers={'User-Agent': 'ParaPH/1.0'})
-        with urllib.request.urlopen(req, timeout=5) as response:
-            data = json.loads(response.read())
-            
-        if data and len(data) > 0:
-            return {
-                'name': data[0].get('display_name', place_name),
-                'lat': float(data[0]['lat']),
-                'lng': float(data[0]['lon']),
-            }
-    except Exception as e:
-        print(f"Geocoding error: {e}")
+        url = f"{supabase_url}/rest/v1/route_ml_stats?select=route_uuid,avg_speed_kmh,reliability_score,avg_fare&limit=5000"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            ml_stats = {s["route_uuid"]: s for s in json.loads(resp.read())}
+    except:
+        ml_stats = {}
     
-    return None
+    # 3. Get shapes for geometry
+    offset = 0
+    while True:
+        url = f"{supabase_url}/rest/v1/graph_edges?select=from_node,to_node,weight&limit=1000&offset={offset}"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            edges = json.loads(resp.read())
+        if not edges:
+            break
+        for edge in edges:
+            if edge["from_node"] not in graph:
+                graph[edge["from_node"]] = []
+            graph[edge["from_node"]].append([edge["to_node"], edge["weight"]])
+        offset += 1000
+        if len(edges) < 1000:
+            break
+    
+    # 4. Get nodes
+    offset = 0
+    while True:
+        url = f"{supabase_url}/rest/v1/graph_nodes?select=node_id,lat,lon&limit=1000&offset={offset}"
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            nodes_data = json.loads(resp.read())
+        if not nodes_data:
+            break
+        for node in nodes_data:
+            nodes[node["node_id"]] = (node["lat"], node["lon"])
+        offset += 1000
+        if len(nodes_data) < 1000:
+            break
+    
+    # 5. Build route_info from node IDs (extract route_uuid)
+    import re
+    for node_id in nodes:
+        match = re.match(r'(.+)_(start|end)', node_id)
+        if match:
+            route_uuid = match.group(1)
+            for route in all_routes:
+                if route["route_uuid"] == route_uuid:
+                    ml = ml_stats.get(route_uuid, {})
+                    route_info[node_id] = {
+                        "name": route.get("name", "Unknown"),
+                        "mode": route.get("mode", "transit"),
+                        "is_approved": route.get("is_approved", False),
+                        "reliability": ml.get("reliability_score", 0.5),
+                        "avg_speed": ml.get("avg_speed_kmh", 15),
+                        "avg_fare": ml.get("avg_fare", 0),
+                    }
+                    break
+    
+    return graph, nodes, route_info
 
-def find_destination_coords(message):
-    """Find destination coordinates from message using multiple strategies"""
-    # Strategy 1: Check KNOWN_PLACES first (fast, no API call)
-    for place, (name, lat, lng) in KNOWN_PLACES.items():
-        if place in message:
-            return name, (lat, lng)
-    
-    # Strategy 2: Try geocoding the message
-    # Extract potential place names (words after 'to')
-    if ' to ' in message:
-        dest_part = message.split(' to ')[-1].strip()
-        if dest_part:
-            result = geocode_place(dest_part)
-            if result:
-                return result['name'], (result['lat'], result['lng'])
-    
-    # Strategy 3: Geocode the whole message
-    result = geocode_place(message)
-    if result:
-        return result['name'], (result['lat'], result['lng'])
-    
-    return None, None
-
-KNOWN_PLACES = {
-    "moa": ("SM MOA", 14.5351, 120.982),
-    "cubao": ("Araneta Center - Cubao", 14.62291, 121.05326),
-    "upd": ("UP Diliman", 14.6547, 121.0644),
-    "up": ("UP Diliman", 14.6547, 121.0644),
-    "diliman": ("UP Diliman", 14.6547, 121.0644),
-    "ust": ("UST Espana", 14.6091, 120.9895),
-    "espana": ("UST Espana", 14.6091, 120.9895),
-    "makati": ("Makati", 14.5547, 121.0244),
-    "bgc": ("BGC", 14.5505, 121.0519),
-    "ortigas": ("Ortigas", 14.5857, 121.0598),
-    "edsa": ("EDSA", 14.6042, 121.0297),
-    "quezon city": ("Quezon City", 14.6760, 121.0437),
-    "manila": ("Manila", 14.5995, 120.9842),
-    "pasay": ("Pasay", 14.5378, 121.0014),
-    "taguig": ("Taguig", 14.5176, 121.0509),
-    "pasig": ("Pasig", 14.5764, 121.0851),
-    "mandaluyong": ("Mandaluyong", 14.5794, 121.0359),
-    "san juan": ("San Juan", 14.6019, 121.0355),
-    "caloocan": ("Caloocan", 14.7566, 121.0449),
-    "valenzuela": ("Valenzuela", 14.7011, 120.9830),
-    "navotas": ("Navotas", 14.6655, 120.9500),
-    "malabon": ("Malabon", 14.6632, 120.9584),
-    "marikina": ("Marikina", 14.6507, 121.1029),
-    "paranaque": ("Paranaque", 14.4793, 121.0198),
-    "las pinas": ("Las Pinas", 14.4509, 120.9822),
-    "muntinlupa": ("Muntinlupa", 14.4081, 121.0415),
-}
+def load_graph():
+    """Load graph with fallback to static file"""
+    global _graph, _nodes, _route_info
+    if _graph is None:
+        try:
+            _graph, _nodes, _route_info = load_graph_from_supabase()
+            print(f"SUPABASE GRAPH LOADED: {len(_graph)} edges, {len(_nodes)} nodes, {len(_route_info)} route info")
+        except Exception as e:
+            print(f"SUPABASE LOAD FAILED: {type(e).__name__}: {e}")
+            print("Falling back to static file...")
+            with gzip.open("graph_full_rail.json.gz", "rt") as f:
+                data = json.load(f)
+            _graph = data.get("adj", {})
+            _nodes = data.get("nodes", {})
+            _route_info = {}
+            print(f"STATIC GRAPH LOADED: {len(_graph)} edges, {len(_nodes)} nodes")
+    return _graph, _nodes
 
 def haversine(lat1, lon1, lat2, lon2):
+    """Distance in km between two coordinates"""
     R = 6371
     lat1_rad = math.radians(lat1)
     lat2_rad = math.radians(lat2)
@@ -105,16 +134,75 @@ def haversine(lat1, lon1, lat2, lon2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
     return R * c
 
-def find_nearest_node(lat, lng, node_type='rail', max_dist_km=3.0):
-    """Find nearest node of specific type"""
-    graph, nodes = load_graph()
+def geocode_place(place_name):
+    """Geocode using Supabase ph_places first, then Nominatim, then save"""
+    supabase_url = os.environ.get("SUPABASE_URL", "https://tcvomrkytxnetzijwqad.supabase.co")
+    service_key = os.environ.get("SUPABASE_SERVICE_KEY", "")
+    
+    # Step 1: Check Supabase ph_places
+    try:
+        url = f"{supabase_url}/rest/v1/ph_places?canonical_name=ilike.*{urllib.parse.quote(place_name)}*&select=canonical_name,location&limit=1"
+        req = urllib.request.Request(url, headers={
+            "apikey": service_key,
+            "Authorization": f"Bearer {service_key}"
+        })
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read())
+        
+        if data:
+            loc = data[0].get("location")
+            if isinstance(loc, str):
+                import re
+                m = re.search(r'POINT\(([-\d.]+) ([-\d.]+)\)', loc)
+                if m:
+                    return {"name": data[0]["canonical_name"], "lat": float(m.group(2)), "lng": float(m.group(1))}
+            elif isinstance(loc, dict):
+                return {"name": data[0]["canonical_name"], "lat": loc.get("lat"), "lng": loc.get("lng")}
+    except:
+        pass
+    
+    # Step 2: Nominatim
+    try:
+        query = f"{place_name}, Metro Manila, Philippines"
+        url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
+        req = urllib.request.Request(url, headers={'User-Agent': 'ParaPH/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read())
+        
+        if data:
+            result = {
+                "name": data[0].get("display_name", place_name).split(',')[0],
+                "lat": float(data[0]["lat"]),
+                "lng": float(data[0]["lon"])
+            }
+            # Step 3: Save to Supabase
+            try:
+                payload = json.dumps({
+                    "canonical_name": place_name.title(),
+                    "category": "auto_geocoded",
+                    "location": f"POINT({result['lng']} {result['lat']})"
+                })
+                save_url = f"{supabase_url}/rest/v1/ph_places"
+                save_req = urllib.request.Request(save_url, data=payload.encode(), headers={
+                    "apikey": service_key,
+                    "Authorization": f"Bearer {service_key}",
+                    "Content-Type": "application/json"
+                })
+                urllib.request.urlopen(save_req, timeout=3)
+            except:
+                pass
+            return result
+    except:
+        pass
+    
+    return None
+
+def find_nearest_node(lat, lng, graph_nodes, max_dist_km=10.0):
+    """Find nearest node from graph_nodes dict"""
     nearest = None
     min_dist = float('inf')
     
-    for node_id in nodes:
-        if node_type not in node_id:
-            continue
-        coords = nodes[node_id]
+    for node_id, coords in graph_nodes.items():
         dist = haversine(lat, lng, coords[0], coords[1])
         if dist < min_dist and dist <= max_dist_km:
             min_dist = dist
@@ -122,112 +210,53 @@ def find_nearest_node(lat, lng, node_type='rail', max_dist_km=3.0):
     
     return nearest, min_dist
 
-def astar_search(start, end, max_time_min=150):
-    """Pure time-based A* search"""
-    graph, nodes = load_graph()
-    
+def dijkstra(graph, start, end, max_time_min=200):
+    """Dijkstra shortest path"""
     if start not in graph or end not in graph:
         return None
     
-    open_set = [(0, 0, start, [start])]
-    closed_set = set()
-    g_scores = {start: 0}
+    dist = {start: 0}
+    prev = {}
+    pq = [(0, start)]
+    visited = set()
     
-    while open_set:
-        f_score, g_score, current, path = heapq.heappop(open_set)
+    while pq:
+        d, u = heapq.heappop(pq)
         
-        if current in closed_set:
+        if u in visited:
+            continue
+        visited.add(u)
+        
+        if u == end:
+            break
+        
+        if d > max_time_min:
             continue
         
-        if current == end:
-            return path
-        
-        if g_score > max_time_min:
-            continue
-        
-        closed_set.add(current)
-        
-        if current not in graph:
-            continue
-        
-        for edge in graph[current]:
-            if len(edge) < 2:
-                continue
-            
-            neighbor = edge[0]
-            weight = edge[1]  # Pure time
-            
-            if neighbor in closed_set:
-                continue
-            
-            tentative_g = g_score + weight
-            
-            if neighbor not in g_scores or tentative_g < g_scores[neighbor]:
-                g_scores[neighbor] = tentative_g
-                
-                # Heuristic
-                if neighbor in nodes and end in nodes:
-                    n_coords = nodes[neighbor]
-                    e_coords = nodes[end]
-                    h = haversine(n_coords[0], n_coords[1], 
-                                 e_coords[0], e_coords[1]) / 25 * 60
-                else:
-                    h = 0
-                
-                f = tentative_g + h
-                heapq.heappush(open_set, (f, tentative_g, neighbor, path + [neighbor]))
+        for v, w in graph.get(u, []):
+            nd = d + w
+            if v not in dist or nd < dist[v]:
+                dist[v] = nd
+                prev[v] = u
+                heapq.heappush(pq, (nd, v))
     
-    return None
-
-def build_segments(path):
-    """Build route segments from path"""
-    graph, nodes = load_graph()
-    segments = []
-    current_segment = None
+    if end not in prev and start != end:
+        return None
     
-    for i in range(len(path) - 1):
-        current = path[i]
-        next_node = path[i + 1]
-        
-        if current not in graph:
-            continue
-        
-        # Find the edge
-        for edge in graph[current]:
-            if edge[0] == next_node:
-                mode = edge[3] if len(edge) > 3 else "unknown"
-                route = edge[2] if len(edge) > 2 else "unknown"
-                time = edge[1]
-                
-                if current_segment is None:
-                    current_segment = {
-                        "mode": mode,
-                        "route": route,
-                        "time_min": time,
-                        "path": [current, next_node]
-                    }
-                elif current_segment["mode"] == mode and current_segment["route"] == route:
-                    current_segment["time_min"] += time
-                    current_segment["path"].append(next_node)
-                else:
-                    segments.append(current_segment)
-                    current_segment = {
-                        "mode": mode,
-                        "route": route,
-                        "time_min": time,
-                        "path": [current, next_node]
-                    }
-                break
-    
-    if current_segment:
-        segments.append(current_segment)
-    
-    return segments
+    path = []
+    u = end
+    while u is not None:
+        path.append(u)
+        u = prev.get(u)
+    return path[::-1]
 
 def lambda_handler(event, context):
     """Main handler"""
     try:
-        # Get destination from message
+        # Parse event
+        if 'body' in event and isinstance(event['body'], str):
+            event = json.loads(event['body'])
+        
         message = event.get('message', '').lower()
         user_location = event.get('user_location', {})
         user_lat = user_location.get('lat')
@@ -239,46 +268,102 @@ def lambda_handler(event, context):
                 'body': json.dumps({'status': 'error', 'message': 'No location provided'})
             }
         
-        # Find destination (tries KNOWN_PLACES first, then geocoding)
-        dest_name, dest_coords = find_destination_coords(message)
+        # Extract destination from "to X"
+        dest_text = message.split(' to ')[-1].strip() if ' to ' in message else message
+        dest_result = geocode_place(dest_text)
         
-        if not dest_coords:
+        if not dest_result:
             return {
                 'statusCode': 200,
-                'body': json.dumps({'status': 'error', 'message': 'Destination not found'})
+                'body': json.dumps({'status': 'error', 'message': f'Cannot find location: {dest_text}'})
             }
         
-        # Find nearest rail stations
-        start_rail, start_dist = find_nearest_node(user_lat, user_lng, 'rail::', 5.0)
-        end_rail, end_dist = find_nearest_node(dest_coords[0], dest_coords[1], 'rail::', 5.0)
+        dest_lat = dest_result['lat']
+        dest_lng = dest_result['lng']
+        dest_name = dest_result['name']
         
-        # Try rail path first
-        path = None
-        if start_rail and end_rail:
-            path = astar_search(start_rail, end_rail, max_time_min=200)
+        # Load graph
+        graph, nodes = load_graph()
         
-        # If no rail path, try jeepney
-        if not path:
-            start_jeep, _ = find_nearest_node(user_lat, user_lng, 'jeep::', 2.0)
-            end_jeep, _ = find_nearest_node(dest_coords[0], dest_coords[1], 'jeep::', 2.0)
-            
-            if start_jeep and end_jeep:
-                path = astar_search(start_jeep, end_jeep, max_time_min=200)
+        # Find nearest nodes
+        start_node, start_dist = find_nearest_node(user_lat, user_lng, nodes, 10.0)
+        end_node, end_dist = find_nearest_node(dest_lat, dest_lng, nodes, 10.0)
         
-        if not path:
+        if not start_node or not end_node:
+            # No transit nearby, return walking
+            distance_km = haversine(user_lat, user_lng, dest_lat, dest_lng)
+            walk_min = round(distance_km * 12, 1)
             return {
                 'statusCode': 200,
                 'body': json.dumps({
-                    'status': 'error',
-                    'message': 'No path found'
+                    'status': 'success',
+                    'route_data': {
+                        'total_time_min': walk_min,
+                        'segments': [{
+                            'type': 'walk',
+                            'route': f'Walk to {dest_name}',
+                            'time_min': walk_min,
+                            'distance_km': round(distance_km, 1)
+                        }],
+                        'message': f'No transit nearby. Walking {round(distance_km, 1)} km takes ~{walk_min} min.',
+                        'cta': {
+                            'type': 'contribute_route',
+                            'text': f'Know a route to {dest_name}? Help the community!',
+                            'action': 'navigate_to_contribute'
+                        }
+                    }
                 })
             }
         
-        # Build segments
-        segments = build_segments(path)
+        # Find path
+        path = dijkstra(graph, start_node, end_node)
         
-        # Calculate total time
-        total_time = sum(seg['time_min'] for seg in segments)
+        if not path:
+            distance_km = haversine(user_lat, user_lng, dest_lat, dest_lng)
+            walk_min = round(distance_km * 12, 1)
+            return {
+                'statusCode': 200,
+                'body': json.dumps({
+                    'status': 'success',
+                    'route_data': {
+                        'total_time_min': walk_min,
+                        'segments': [{
+                            'type': 'walk',
+                            'route': f'Walk to {dest_name}',
+                            'time_min': walk_min,
+                            'distance_km': round(distance_km, 1)
+                        }],
+                        'message': f'No transit route found. Walking {round(distance_km, 1)} km takes ~{walk_min} min.',
+                        'cta': {
+                            'type': 'contribute_route',
+                            'text': f'Know a route to {dest_name}? Help the community!',
+                            'action': 'navigate_to_contribute'
+                        }
+                    }
+                })
+            }
+        
+        # Build segments with rich route info
+        segments = []
+        for i in range(len(path) - 1):
+            u = path[i]
+            v = path[i + 1]
+            for edge in graph.get(u, []):
+                if edge[0] == v:
+                    info = _route_info.get(u, {})
+                    segments.append({
+                        'type': info.get('mode', 'transit'),
+                        'route': info.get('name', 'Unknown route'),
+                        'from': u,
+                        'to': v,
+                        'time_min': edge[1],
+                        'reliability': info.get('reliability', 0.5),
+                        'fare': info.get('avg_fare', 0),
+                        'is_verified': info.get('is_approved', False),
+                    })
+                    break
+        
+        total_time = sum(s['time_min'] for s in segments)
         
         return {
             'statusCode': 200,
@@ -287,8 +372,7 @@ def lambda_handler(event, context):
                 'route_data': {
                     'total_time_min': total_time,
                     'segments': segments,
-                    'start_rail': start_rail,
-                    'end_rail': end_rail
+                    'destination': dest_name
                 }
             })
         }
@@ -296,8 +380,5 @@ def lambda_handler(event, context):
     except Exception as e:
         return {
             'statusCode': 200,
-            'body': json.dumps({
-                'status': 'error',
-                'message': str(e)
-            })
+            'body': json.dumps({'status': 'error', 'message': str(e)})
         }
