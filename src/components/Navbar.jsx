@@ -9,10 +9,14 @@ import { useAuth } from '../context/AuthContext';
 const ALL_NAV_LINKS = [
   { to: '/', label: 'Home' },
   { to: '/explore', label: 'Explore' },
-  { to: '/contribute', label: 'Contribute' },
   { to: '/community', label: 'Community' },
   { to: '/about', label: 'About' },
   { to: '/admin', label: 'Admin', adminOnly: true },
+];
+
+// Mobile-only links that should not appear in desktop navbar
+const MOBILE_ONLY_LINKS = [
+  { to: '/contribute', label: 'Contribute' },
 ];
 
 function HamburgerIcon({ open }) {
@@ -31,7 +35,12 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, logout, isGuest } = useAuth();
+  
+  // Desktop links (exclude Contribute)
   const visibleLinks = ALL_NAV_LINKS.filter(l => !l.adminOnly || user?.role === "admin" || user?.role === "founder");
+  
+  // Mobile links (include Contribute)
+  const mobileLinks = [...visibleLinks, ...MOBILE_ONLY_LINKS];
 
   const activeIndex = useMemo(() => {
     const idx = visibleLinks.findIndex(({ to }) => (to === '/' ? location.pathname === '/' : location.pathname === to || location.pathname.startsWith(`${to}/`)));
@@ -144,7 +153,7 @@ export default function Navbar() {
               <button type="button" className="p-2 rounded-xl text-gray-600 hover:bg-gray-100 -mr-1" aria-label="Close menu" onClick={closeMobile}><HamburgerIcon open /></button>
             </div>
             <nav className="flex flex-col px-6 pt-6 pb-6 gap-2 flex-1 overflow-y-auto">
-              {visibleLinks.map(({ to, label }) => (
+              {mobileLinks.map(({ to, label }) => (
                 <Link key={to} to={to} onClick={closeMobile} aria-current={activeLink(to) ? 'page' : undefined}
                   className={`py-3 px-2 rounded-xl text-[1.95rem] leading-[1.2] font-semibold transition-all duration-200 ${activeLink(to) ? 'text-[#7A4BC8] bg-[#f5f0ff]' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'}`}>
                   {label}
