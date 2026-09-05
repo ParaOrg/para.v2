@@ -1,14 +1,6 @@
-const CACHE_NAME = 'para-ph-v1787815997';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+const CACHE_NAME = 'para-ph-v20260905'; // BUMP THIS VERSION
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
-  );
   self.skipWaiting();
 });
 
@@ -22,25 +14,39 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Don't cache API calls - only static assets
-  if (event.request.url.includes('/api/') || event.request.url.includes('/rest/v1/')) {
+  const url = new URL(event.request.url);
+  
+  // Don't cache API calls
+  if (url.pathname.includes('/api/') || url.pathname.includes('/rest/v1/') || url.pathname.includes('/functions/')) {
     return;
   }
   
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (event.request.method === 'GET' && response.ok) {
+  // Network-first for HTML (always get latest)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
-    })
+          caches.open(CACHE_NAME).then(cache => cache.put('/index.html', clone));
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+  
+  // Cache-first for hashed assets (immutable)
+  if (url.pathname.includes('/assets/')) {
+    event.respondWith(
+      caches.match(event.request).then(cached => cached || fetch(event.request))
+    );
+    return;
+  }
+  
+  // Default: network-first
+  event.respondWith(
+    fetch(event.request)
+      .then(response => response)
+      .catch(() => caches.match(event.request))
   );
 });

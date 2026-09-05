@@ -7,5 +7,13 @@
   "rewrites": [
     { "source": "/api/route-search", "destination": "/api/route-search" },
     { "source": "/((?!assets|api|sw.js|manifest.json|favicon).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
   ]
 }

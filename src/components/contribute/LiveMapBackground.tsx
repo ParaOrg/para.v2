@@ -334,7 +334,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   return (
     <div className="relative w-full h-full">
       {/* Leaflet Map */}
-      <div id="contribute-map" className="absolute inset-0 z-0" style={{ zIndex: 0 }} />
+      <div id="contribute-map" className="absolute inset-0 z-0" style={{ zIndex: 0, pointerEvents: "auto" }} />
 
       {/* Map Controls — top right */}
       <div className="absolute top-20 right-4 z-[9999] flex flex-col gap-2">
@@ -379,7 +379,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
 
 
       {/* Recording Timer Pill */}
-      {isTracking && (
+      {false && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[9999] bg-red-500 text-white rounded-full px-5 py-2 flex items-center gap-2 shadow-2xl">
           <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
           <span className="font-black text-lg tabular-nums">

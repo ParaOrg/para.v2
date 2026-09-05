@@ -201,7 +201,7 @@ export default function HomeNew() {
     const body = { user_id: "guest", message: backendMessage };
     if (gpsLoc) body.user_location = { lat: gpsLoc[0], lng: gpsLoc[1] };
     try {
-      const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "/api/route-search";
+      const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "https://4rbmxppuus3c6qafq3soefeyfa0jkvfc.lambda-url.ap-southeast-2.on.aws/";
       console.log('Fetching:', LAMBDA_URL);
       console.log('Body:', body);
       const res = await fetch(LAMBDA_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -291,7 +291,22 @@ export default function HomeNew() {
       <GpsPrompt />
       <div className="absolute inset-0 z-0" style={{ height: "100dvh", width: "100%" }}><MapComponent markers={routeMarkers} polylines={polylines} showLegend={false} fitBounds={true} />
       {polylines.length === 0 ? <RailNetworkOverlay map={window.__paraMap} /> : null}</div>
-      <div className="hidden md:block absolute inset-0 z-50 pointer-events-none"><div className="pointer-events-auto"><Navbar /><ChatPanel onRouteDraw={(routeData) => { const segs = routeData?.segments || []; const lns = []; segs.forEach((seg) => { if (!seg.path || seg.path.length < 2) return; const coords = seg.path.map((c) => [c[0], c[1]]); const isRail = seg.mode === "rail"; let railColor2 = "#FF6B00"; const routeLower2 = (seg.route || "").toLowerCase(); if (routeLower2.includes("line 1") || routeLower2.includes("lrt-1")) { railColor2 = "#00A650"; } else if (routeLower2.includes("line 2") || routeLower2.includes("lrt-2")) { railColor2 = "#7A4BC8"; } lns.push({ coordinates: coords, color: isRail ? railColor2 : "#310775", weight: isRail ? 5 : 4, dashed: false, routeName: seg.route }); }); setPolylines(lns); }} /></div><button onClick={locateMap} className="pointer-events-auto fixed top-24 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="pointer-events-auto fixed top-[9rem] right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
+      <div className="hidden md:block absolute inset-0 z-50 pointer-events-none"><div className="pointer-events-auto"><Navbar /><ChatPanel onRouteDraw={(routeData) => { const segs = routeData?.segments || []; const lns = []; segs.forEach((seg, idx) => {
+  // Add start marker for first segment
+  if (idx === 0 && seg.path && seg.path.length > 0) {
+    const start = seg.path[0];
+    setRouteMarkers(prev => [...prev, { lat: start[0], lng: start[1], type: 'origin', label: 'Start' }]);
+  }
+  // Add end marker for last segment
+  if (idx === segs.length - 1 && seg.path && seg.path.length > 0) {
+    const end = seg.path[seg.path.length - 1];
+    setRouteMarkers(prev => [...prev, { lat: end[0], lng: end[1], type: 'destination', label: 'Arrive' }]);
+  }
+  // Add transfer markers between segments
+  if (idx > 0 && seg.path && seg.path.length > 0) {
+    const transfer = seg.path[0];
+    setRouteMarkers(prev => [...prev, { lat: transfer[0], lng: transfer[1], type: 'stop', label: 'Transfer' }]);
+  } if (!seg.path || seg.path.length < 2) return; const coords = seg.path.map((c) => [c[0], c[1]]); const isRail = seg.mode === "rail"; let railColor2 = "#FF6B00"; const routeLower2 = (seg.route || "").toLowerCase(); if (routeLower2.includes("line 1") || routeLower2.includes("lrt-1")) { railColor2 = "#00A650"; } else if (routeLower2.includes("line 2") || routeLower2.includes("lrt-2")) { railColor2 = "#7A4BC8"; } lns.push({ coordinates: coords, color: isRail ? railColor2 : "#310775", weight: isRail ? 5 : 4, dashed: false, routeName: seg.route }); }); setPolylines(lns); }} /></div><button onClick={locateMap} className="pointer-events-auto fixed top-24 right-4 z-[9999] bg-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"><GpsIcon /></button><button onClick={() => setShowWeather(true)} className="pointer-events-auto fixed top-[9rem] right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button></div>
       <div className="md:hidden absolute inset-0 z-50 pointer-events-none">
         <div className="md:hidden absolute top-14 left-4 z-30 flex flex-col items-center pointer-events-none"><img src={paralogo} alt="Para PH" className="w-10 h-10 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.15)]" /><p className="text-[8px] text-gray-700 mt-0.5 font-medium leading-tight text-center drop-shadow-sm">Bawat Byahe,<br/>Tulong sa Komunidad</p></div>
         {!gpsActive && <button onClick={requestConsentAndLocation} className="pointer-events-auto md:hidden absolute top-40 right-4 z-30 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2 text-xs font-bold text-[#7A4BC8] animate-pulse"><span>📍</span><span>Enable GPS</span></button>}
