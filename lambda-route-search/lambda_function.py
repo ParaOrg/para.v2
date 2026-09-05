@@ -2,11 +2,13 @@ import json
 import math
 import heapq
 import os
+import time
 import urllib.request
 import urllib.parse
 
 _graph = None
 _nodes = None
+_last_nominatim_call = 0
 
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
@@ -18,39 +20,70 @@ def haversine(lat1, lon1, lat2, lon2):
 def load_graph():
     global _graph, _nodes
     if _graph is None:
-        with open("graph_data.json", "r") as f:
-            data = json.load(f)
-        _graph = data["graph"]
-        _nodes = data["nodes"]
+        try:
+            with open("graph_data.json", "r") as f:
+                data = json.load(f)
+            _graph = data["graph"]
+            _nodes = data["nodes"]
+        except:
+            _graph, _nodes = {}, {}
     return _graph, _nodes
 
-def geocode_place(place_name):
+def geocode_with_cache(place_name):
     supabase_url = os.environ.get("SUPABASE_URL")
     service_key = os.environ.get("SUPABASE_SERVICE_KEY")
     headers = {"apikey": service_key, "Authorization": f"Bearer {service_key}"}
+    
+    place_name = place_name.strip()
+    for suffix in [' cbd', ' central business district', ' street', ' st.', ' st', ' avenue', ' ave', ' road', ' rd']:
+        if place_name.lower().endswith(suffix):
+            place_name = place_name[:-len(suffix)].strip()
+            break
+    
     try:
-        url = f"{supabase_url}/rest/v1/ph_places?canonical_name=ilike.*{place_name}*&select=canonical_name,location&limit=1"
+        url = f"{supabase_url}/rest/v1/ph_places?canonical_name=ilike.*{urllib.parse.quote(place_name)}*&select=canonical_name,location&limit=1"
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read())
-        if data and data[0].get("location"):
-            loc = data[0]["location"]
-            import re
-            m = re.search(r'POINT\(([-\d.]+) ([-\d.]+)\)', str(loc))
-            if m:
-                return {"name": data[0]["canonical_name"], "lat": float(m.group(2)), "lng": float(m.group(1))}
+        if data:
+            loc = data[0].get("location")
+            if isinstance(loc, str):
+                import re
+                m = re.search(r'POINT\(([-\d.]+) ([-\d.]+)\)', loc)
+                if m:
+                    return {"name": data[0]["canonical_name"], "lat": float(m.group(2)), "lng": float(m.group(1))}
     except:
         pass
-    # Fallback to Nominatim
+    
+    global _last_nominatim_call
+    elapsed = time.time() - _last_nominatim_call
+    if elapsed < 1.0:
+        time.sleep(1.0 - elapsed)
+    
     try:
-        import urllib.request as ur
         query = f"{place_name}, Metro Manila, Philippines"
         url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
-        req = ur.Request(url, headers={'User-Agent': 'ParaPH/1.0'})
-        with ur.urlopen(req, timeout=5) as resp:
+        req = urllib.request.Request(url, headers={'User-Agent': 'ParaPH/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read())
+        _last_nominatim_call = time.time()
         if data:
             return {"name": data[0].get("display_name", place_name).split(',')[0], "lat": float(data[0]["lat"]), "lng": float(data[0]["lon"])}
+    except:
+        pass
+    
+    try:
+        words = place_name.split()
+        if len(words) > 1:
+            short_query = ' '.join(words[-2:])
+            query = f"{short_query}, Metro Manila, Philippines"
+            url = f"https://nominatim.openstreetmap.org/search?q={urllib.parse.quote(query)}&format=json&limit=1"
+            req = urllib.request.Request(url, headers={'User-Agent': 'ParaPH/1.0'})
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read())
+            _last_nominatim_call = time.time()
+            if data:
+                return {"name": data[0].get("display_name", short_query).split(',')[0], "lat": float(data[0]["lat"]), "lng": float(data[0]["lon"])}
     except:
         pass
     
@@ -66,7 +99,7 @@ def find_nearest_node(lat, lng, graph_nodes, max_dist_km=5.0):
             nearest = node_id
     return nearest, min_dist
 
-def dijkstra(graph, start, end, max_time_min=200):
+def dijkstra(graph, start, end, max_time_min=300):
     if start not in graph or end not in graph:
         return None
     dist = {start: 0}
@@ -113,20 +146,15 @@ def lambda_handler(event, context):
         user_lat = user_location.get('lat')
         user_lng = user_location.get('lng')
         
-        # Extract destination
         dest_text = message.split(' to ')[-1].strip() if ' to ' in message else message.strip()
         
         if not user_lat or not user_lng:
-            # Extract origin from "X to Y" format
             origin_text = None
             if ' to ' in message:
                 parts = message.split(' to ')
-                if ' from ' in parts[0]:
-                    origin_text = parts[0].split(' from ')[-1].strip()
-                else:
-                    origin_text = parts[0].strip()
+                origin_text = parts[0].replace('from ', '').strip()
             if origin_text:
-                origin_result = geocode_place(origin_text)
+                origin_result = geocode_with_cache(origin_text)
                 if origin_result:
                     user_lat = origin_result['lat']
                     user_lng = origin_result['lng']
@@ -134,12 +162,11 @@ def lambda_handler(event, context):
         if not user_lat or not user_lng:
             return {'statusCode': 200, 'headers': cors_headers, 'body': json.dumps({'status': 'error', 'message': 'No location'})}
         
-        dest_result = geocode_place(dest_text)
+        dest_result = geocode_with_cache(dest_text)
         if not dest_result:
             return {'statusCode': 200, 'headers': cors_headers, 'body': json.dumps({'status': 'error', 'message': f'Cannot find: {dest_text}'})}
         
         graph, nodes = load_graph()
-        
         start_node, _ = find_nearest_node(user_lat, user_lng, nodes, 5.0)
         end_node, _ = find_nearest_node(dest_result['lat'], dest_result['lng'], nodes, 5.0)
         
@@ -148,7 +175,7 @@ def lambda_handler(event, context):
             walk_min = round(dist_km * 12, 1)
             return {'statusCode': 200, 'headers': cors_headers, 'body': json.dumps({'status': 'success', 'route_data': {'total_time_min': walk_min, 'segments': [{'type': 'walk', 'route': f'Walk to {dest_result["name"]}', 'time_min': walk_min, 'distance_km': round(dist_km, 1)}], 'message': 'No transit nearby.'}})}
         
-        path = dijkstra(graph, start_node, end_node)
+        path = dijkstra(graph, start_node, end_node, max_time_min=300)
         
         if not path:
             dist_km = haversine(user_lat, user_lng, dest_result['lat'], dest_result['lng'])
@@ -160,12 +187,19 @@ def lambda_handler(event, context):
             u, v = path[i], path[i+1]
             for edge in graph.get(u, []):
                 if edge[0] == v:
-                    raw.append({'type': edge[3], 'route': edge[2], 'time_min': edge[1], 'coords': [nodes.get(u), nodes.get(v)]})
+                    u_coords = nodes.get(u)
+                    v_coords = nodes.get(v)
+                    raw.append({
+                        'type': edge[3] if len(edge) > 3 else 'transit',
+                        'route': edge[2] if len(edge) > 2 else 'Unknown',
+                        'time_min': edge[1],
+                        'coords': [u_coords, v_coords] if u_coords and v_coords else None,
+                    })
                     break
         
         segments = []
         for seg in raw:
-            if segments and segments[-1]['route'] == seg['route']:
+            if segments and segments[-1]['route'] == seg['route'] and segments[-1]['type'] == seg['type']:
                 segments[-1]['time_min'] += seg['time_min']
                 if seg['coords'] and segments[-1].get('coords'):
                     segments[-1]['coords'].append(seg['coords'][1])
@@ -182,7 +216,7 @@ def lambda_handler(event, context):
         
         total_time = sum(s['time_min'] for s in segments)
         
-        return {'statusCode': 200, 'headers': cors_headers, 'body': json.dumps({'status': 'success', 'route_data': {'total_time_min': total_time, 'total_fare': 0, 'biyahe_score': max(0, round(100 - min(total_time/120*30, 30) - min(len(segments)*7.5, 15) - 25)), 'segments': segments, 'destination': dest_result['name'], 'alternatives': []}})}
+        return {'statusCode': 200, 'headers': cors_headers, 'body': json.dumps({'status': 'success', 'route_data': {'total_time_min': round(total_time, 1), 'total_fare': 0, 'biyahe_score': max(0, round(100 - min(total_time/120*30, 30) - min(len(segments)*7.5, 15) - 25)), 'segments': segments, 'destination': dest_result['name'], 'alternatives': []}})}
     
     except Exception as e:
         return {'statusCode': 200, 'headers': cors_headers, 'body': json.dumps({'status': 'error', 'message': str(e)})}

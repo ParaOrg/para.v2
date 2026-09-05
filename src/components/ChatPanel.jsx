@@ -154,10 +154,8 @@ export default function ChatPanel({ onRouteDraw }) {
       const payload = { user_id: "guest", message: backendMessage };
       if (gps) {
         payload.user_location = { lat: gps[0], lng: gps[1] };
-      } else {
-        // Default to Cubao as starting point if no GPS
-        payload.user_location = { lat: 14.62291, lng: 121.05326 };
       }
+      // No GPS = no user_location. Lambda extracts origin from message.
 
       const LAMBDA_URL = import.meta.env.VITE_LAMBDA_URL || "https://4rbmxppuus3c6qafq3soefeyfa0jkvfc.lambda-url.ap-southeast-2.on.aws/";
       const res = await fetch(LAMBDA_URL, {

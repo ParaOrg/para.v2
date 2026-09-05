@@ -1,6 +1,7 @@
-*.py
-*.pkl
-graph_cache.pkl
-backend/
-scripts/
-geojson_data/
+lambda-route-search/graph_data.json
+graph_data.json
+lambda-route-search/
+lambda-clean/
+para-route-search-clean.zip
+para-route-search-deploy.zip
+*.zip

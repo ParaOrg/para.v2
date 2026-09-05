@@ -48,3 +48,5 @@ Thumbs.db
 .idea/backend/
 .vercel
 .env*
+lambda-route-search/graph_data.json
+graph_data.json

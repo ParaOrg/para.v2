@@ -31,16 +31,16 @@ export default function TripSummaryCard({ routeData, isRecommended = false, rank
               return (<div key={i} className="flex items-center"><span className="text-sm">{emoji}</span>{i < visibleSegments.length - 1 && <div className="w-3 h-[1px] bg-[#D1B6FC] mx-0.5" />}</div>);
             })}
           </div>
-          <p className="text-[#381D65] text-sm font-bold">{segments.map((seg) => { const isWalk = seg.is_transfer || seg.type === "walk"; return isWalk ? "Walk" : seg.route || "Transit"; }).join(" + ")} ({total_time_min} min total)</p>
+          <p className="text-[#381D65] text-sm font-bold">{segments.map((seg) => { const isWalk = seg.is_transfer || seg.type === "walk"; return isWalk ? "Walk" : seg.route || "Transit"; }).join(" + ")} ({Math.round(total_time_min * 10) / 10} min total)</p>
           <div className="text-[#381D65] text-[11px] leading-relaxed space-y-0.5">
             {visibleSegments.map((seg, i) => {
               const isWalk = seg.is_transfer || seg.type === "walk";
-              const dist = seg.distance_display || (seg.distance_m >= 1000 ? `${(seg.distance_m / 1000).toFixed(1)} km` : `${seg.distance_m}m`);
-              return <p key={i}>{isWalk ? `Walk ${seg.time_min} min (${dist})` : `${seg.route || "Transit"} ${seg.time_min} min`}</p>;
+              const dist = seg.distance_display || (seg.distance_m ? (seg.distance_m >= 1000 ? `${(seg.distance_m / 1000).toFixed(1)} km` : `${Math.round(seg.distance_m)}m`) : '');
+              return <p key={i}>{isWalk ? `Walk ${Math.round(seg.time_min * 10) / 10} min${dist ? ` (${dist})` : ""}` : `${seg.route || "Transit"} ${Math.round(seg.time_min * 10) / 10} min`}</p>;
             })}
           </div>
           <div className="flex items-center gap-3 text-[11px] text-[#381D65] pt-1 border-t border-gray-100">
-            <span>💰 ₱{total_fare ?? 0}</span><span>⏱ {total_time_min} min</span><span>🌤️ Mostly sheltered</span>
+            <span>💰 ₱{Math.round(total_fare ?? 0)}</span><span>⏱ {Math.round(total_time_min * 10) / 10} min</span><span>🌤️ Mostly sheltered</span>
             <button onClick={handleReport} className="ml-auto text-[10px] text-red-400 hover:text-red-600 font-medium" title="Report an issue with this route">⚠️ Report</button>
           </div>
         </div>
