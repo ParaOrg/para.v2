@@ -7,10 +7,53 @@
   }
 }
 
-@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse-locate { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 4px 24px rgba(122,75,200,0.7); } }
+/* === iOS Safe Area Fixes === */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
-/* Map containers */
+/* Dynamic viewport height with fallback */
+#root {
+  height: 100vh;
+  height: 100dvh;
+  /* DO NOT add safe-area padding to root - this breaks full-bleed maps */
+}
+
+/* Custom Tailwind utilities for safe areas */
+@layer utilities {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+  .safe-top-margin {
+    margin-top: env(safe-area-inset-top);
+  }
+  .safe-bottom-margin {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@keyframes fade-in { 
+  from { opacity: 0; transform: translateY(10px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+@keyframes pulse-locate { 
+  0%,100% { transform: scale(1); } 
+  50% { transform: scale(1.1); box-shadow: 0 4px 24px rgba(122,75,200,0.7); } 
+}
+
+/* Map containers - ensure full bleed */
 .map-container,
 [class*="map-wrapper"],
 [class*="mapContainer"] {
@@ -21,6 +64,17 @@
     display: block;
 }
 
+/* Leaflet specific fixes */
+.leaflet-container { 
+  touch-action: pan-x pan-y; 
+  width: 100%;
+  height: 100%;
+}
+
+/* Mobile touch fixes */
+input, textarea, button { 
+  touch-action: manipulation; 
+}
 
 /* Landscape mobile — prevent broken layout */
 @media (max-width: 900px) and (orientation: landscape) {
@@ -38,7 +92,6 @@
 
 @plugin "@tailwindcss/typography";
 
-
 /* Pin drop animation */
 @keyframes pin-drop {
   0% {
@@ -54,7 +107,3 @@
 .pin-marker {
   animation: pin-drop 0.3s ease-out;
 }
-
-/* Mobile touch fixes */
-.leaflet-container { touch-action: pan-x pan-y; }
-input, textarea, button { touch-action: manipulation; }
