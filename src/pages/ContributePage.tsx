@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -8,7 +8,7 @@ import { useTrackingConsent } from '../context/TrackingConsentContext';
 import GpsIcon from '../components/GpsIcon';
 import { useAuth } from '../context/AuthContext';
 import { edgePost } from '../utils/api';
-import { offlineBuffer } from '../utils/offlineBuffer';
+import { offlineBuffer, getOrCreateInstallId, generateClientLogId } from '../utils/offlineBuffer';
 import SuccessModal from '../components/SuccessModal';
 import WeatherPage from '../components/WeatherPage';
 
@@ -39,6 +39,9 @@ const ContributePage: React.FC = () => {
   const [placeLocation, setPlaceLocation] = useState<{lat: number, lng: number} | null>(null);
   const [placeName, setPlaceName] = useState('');
   const [placeType, setPlaceType] = useState('landmark');
+  const [gpsPoints, setGpsPoints] = useState([]);
+  const gpsWatchRef = useRef(null);
+  const startTimeRef = useRef(null);
 
   // Timer
   useEffect(() => {
@@ -59,12 +62,56 @@ const ContributePage: React.FC = () => {
     return () => window.removeEventListener('poi-location-selected', handlePoiLocation as EventListener);
   }, []);
 
+  const startGpsTracking = () => {
+    if (!navigator.geolocation) return;
+    setGpsPoints([]);
+    startTimeRef.current = Date.now();
+    gpsWatchRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const point = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          timestamp: pos.timestamp || Date.now(),
+        };
+        setGpsPoints((prev) => [...prev, point]);
+      },
+      (err) => console.error('GPS error:', err.message),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+  };
+
+  const stopGpsTracking = () => {
+    if (gpsWatchRef.current !== null) {
+      navigator.geolocation.clearWatch(gpsWatchRef.current);
+      gpsWatchRef.current = null;
+    }
+  };
+
+  const calculateTotalDistance = (points) => {
+    const haversine = (lat1, lng1, lat2, lng2) => {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLng = (lng2 - lng1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    };
+    let total = 0;
+    for (let i = 1; i < points.length; i++) {
+      total += haversine(points[i-1].lat, points[i-1].lng, points[i].lat, points[i].lng);
+    }
+    return total;
+  };
+
   // Start commute
   const handleStartCommute = () => {
     setTimerActive(true);
     setCommuteTimer(0);
     setCurrentPhase('walking');
     setIsTracking(true);
+    startGpsTracking();
   };
 
   // Hop On
@@ -86,16 +133,63 @@ const ContributePage: React.FC = () => {
     setCurrentPhase('idle');
     setIsTracking(false);
 
+    stopGpsTracking();
+
+    const totalDurationSec = Math.floor((Date.now() - (startTimeRef.current || Date.now())) / 1000) || commuteTimer;
+    const totalDistance = calculateTotalDistance(gpsPoints);
+
+    if (gpsPoints.length < 5) {
+      setSuccessMessage('Not enough GPS points (min 5). Track longer.');
+      setShowSuccess(true);
+      return;
+    }
+    if (totalDurationSec < 60) {
+      setSuccessMessage('Duration too short (min 60s).');
+      setShowSuccess(true);
+      return;
+    }
+    if (totalDistance < 50) {
+      setSuccessMessage('Distance too short (min 50m).');
+      setShowSuccess(true);
+      return;
+    }
+
+    const gpsTrack = gpsPoints.map((p) => [p.lat, p.lng]);
+
     const payload = {
+      track_uuid: crypto.randomUUID(),
+      client_log_id: generateClientLogId(),
+      install_id: getOrCreateInstallId(),
       route_name: currentRouteName || 'Personal Commute',
-      total_time_sec: commuteTimer,
+      total_time_sec: totalDurationSec,
+      distance_m: parseFloat(totalDistance.toFixed(2)),
       user_id: user?.id || null,
       user_email: user?.email || null,
       source: 'contribute_button_panel',
       mode: transportMode,
       city: 'Metro Manila',
       region: 'NCR',
+      gps_track: gpsTrack,
+      gps_points: gpsPoints.length,
+      raw_payload: {
+        source: 'contribute_button_panel',
+        user_id: user?.id || null,
+        route_name: currentRouteName || 'Personal Commute',
+        total_time_sec: totalDurationSec,
+        distance_m: parseFloat(totalDistance.toFixed(2)),
+        gps_points: gpsPoints,
+        segments: [{
+          mode: 'transit',
+          startTime: gpsPoints[0]?.timestamp || Date.now(),
+          endTime: gpsPoints[gpsPoints.length - 1]?.timestamp || Date.now(),
+          gpsPoints: gpsPoints,
+          routeName: currentRouteName,
+          durationSec: totalDurationSec,
+        }],
+      },
     };
+
+    setGpsPoints([]);
 
     if (navigator.onLine) {
       try {

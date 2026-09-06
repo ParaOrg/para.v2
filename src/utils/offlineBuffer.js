@@ -1,7 +1,9 @@
 /**
  * offlineBuffer.js — IndexedDB-backed offline storage with localStorage fallback.
  * Stores pending commutes, GPS streams, POIs, and fare reports.
- * All operations are async and fail silently if IndexedDB is unavailable.
+ * 
+ * WHY: All user contributions pass through here first. This prevents
+ * data loss in the Philippine context where connectivity is unreliable.
  */
 
 const DB_NAME = "para_offline_buffer";
@@ -104,6 +106,22 @@ async function idbDelete(storeName, id) {
   });
 }
 
+// Utility: Generate or retrieve anonymous install ID
+function getOrCreateInstallId() {
+  const key = 'para_install_id';
+  let installId = localStorage.getItem(key);
+  if (!installId) {
+    installId = crypto.randomUUID();
+    localStorage.setItem(key, installId);
+  }
+  return installId;
+}
+
+// Utility: Generate client log ID for idempotency
+function generateClientLogId() {
+  return `${Date.now()}-${crypto.randomUUID()}`;
+}
+
 // ── Public API ────────────────────────────────────────
 
 export const offlineBuffer = {
@@ -123,8 +141,18 @@ export const offlineBuffer = {
   addFareReport: (data) => idbAdd("fare_reports", data),
   getFareReports: () => idbGetAll("fare_reports"),
   clearFareReports: () => idbClear("fare_reports"),
+
+  // Generic methods for sync engine
+  getAll: (storeName) => idbGetAll(storeName),
+  clear: (storeName) => idbClear(storeName),
+  add: (storeName, data) => idbAdd(storeName, data),
+
+  // Utilities
+  getOrCreateInstallId,
+  generateClientLogId,
 };
 
+export { getOrCreateInstallId, generateClientLogId };
 
 export async function syncOfflineBuffer() {
   const stores = ["poi_events", "fare_reports", "pending_commutes", "gps_streams"];
@@ -132,16 +160,16 @@ export async function syncOfflineBuffer() {
     const items = await offlineBuffer.getAll(store);
     for (const item of items) {
       try {
-        // Determine which edge function to call
         let fn = null;
         if (store === "poi_events") fn = "poi-add";
         else if (store === "fare_reports") fn = "fare-report";
         else if (store === "pending_commutes") fn = "commute-save";
+        else if (store === "gps_streams") fn = "commute-save";
         
         if (fn) {
           const { edgePost } = await import("./api");
           await edgePost(fn, item);
-          await offlineBuffer.clear(store);
+          await offlineBuffer.delete(store, item.id);
         }
       } catch (e) {
         console.warn(`Failed to sync ${store}:`, e);
