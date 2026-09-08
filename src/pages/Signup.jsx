@@ -6,8 +6,8 @@ export default function Signup() {
 
   const handleDetailsSuccess = (data) => {
     if (data?.email) {
-      // User signed up successfully, redirect to login
-      navigate("/login", { state: { message: "Account created! Please log in." } });
+      // Firebase user is already logged in after signup
+      navigate("/");
     }
   };
 

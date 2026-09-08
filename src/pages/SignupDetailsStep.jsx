@@ -26,25 +26,42 @@ export default function SignupDetailsStep({ onSuccess }) {
   const [role, setRole] = useState('commuter');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [attempts, setAttempts] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('para_signup_attempts') || '{"count":0,"timestamp":0}'); }
+    catch { return { count: 0, timestamp: 0 }; }
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validate email
+    // Validate
     if (!email.trim()) { setError('Enter your email.'); return; }
     if (!password) { setError('Enter a password.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
 
+    // Rate limit: max 3 signup attempts per hour
+    const now = Date.now();
+    const windowMs = 3600000;
+    if (now - attempts.timestamp > windowMs) {
+      setAttempts({ count: 0, timestamp: now });
+    }
+    if (attempts.count >= 3) {
+      setError('Too many signup attempts. Try again in an hour.');
+      return;
+    }
+    const newCount = attempts.count + 1;
+    setAttempts({ count: newCount, timestamp: now });
+    localStorage.setItem('para_signup_attempts', JSON.stringify({ count: newCount, timestamp: now }));
+
     setLoading(true);
     try {
-      const { user } = await signup(email.trim(), password, name || email.split('@')[0]);
+      // Firebase returns the user object directly
+      const firebaseUser = await signup(email.trim(), password, name || email.split('@')[0]);
       
-      if (user) {
-        onSuccess({ uid: user.id, email: user.email });
-      } else {
-        setError('Check your email to confirm your account, then log in.');
+      if (firebaseUser?.uid) {
+        onSuccess({ uid: firebaseUser.uid, email: firebaseUser.email });
       }
     } catch (err) {
       setError(err.message || 'Registration failed.');
