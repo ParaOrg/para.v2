@@ -523,13 +523,13 @@ export default function RoutesExplorer() {
         )}
         <div className="flex-1 relative min-w-0">
           {isMobile && (
-            <button onClick={() => setMobileOpen(true)} className="absolute top-4 left-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md font-semibold text-[13px] text-purple-800">☰ Routes</button>
+            <button onClick={() => setMobileOpen(true)} className="absolute left-4 z-30 bg-white rounded-2xl px-3.5 py-2 shadow-md font-semibold text-[13px] text-purple-800" style={{ top: "calc(env(safe-area-inset-top) + 1rem)" }}>☰ Routes</button>
           )}
-          <button onClick={() => { if (window.__paraMap) window.__paraMap.setView([14.5995, 120.9842], 13); }} className="absolute top-4 right-4 z-40 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200">📍</button><button onClick={() => setShowWeather(true)} className="absolute top-16 right-4 z-40 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200">🌤️</button>
+          <button onClick={() => { if (window.__paraMap) window.__paraMap.setView([14.5995, 120.9842], 13); }} className="absolute right-4 z-40 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200" style={{ top: "calc(env(safe-area-inset-top) + 1rem)" }}>📍</button><button onClick={() => setShowWeather(true)} className="absolute right-4 z-40 bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200" style={{ top: "calc(env(safe-area-inset-top) + 3.5rem)" }}>🌤️</button>
           <div ref={mapRef} className="absolute inset-0 z-0" />
           
           {/* Map Legend - Clickable */}
-          <div className="absolute top-4 right-4 z-40 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-3 py-2.5 border border-gray-100 max-w-[160px]">
+          <div className="absolute right-4 z-40 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-3 py-2.5 border border-gray-100 max-w-[160px]" style={{ top: "calc(env(safe-area-inset-top) + 6rem)" }}>
             <div className="flex items-center justify-between mb-1.5">
               <p className="text-[10px] font-bold text-gray-700">Transit Modes</p>
               {activeMode && (

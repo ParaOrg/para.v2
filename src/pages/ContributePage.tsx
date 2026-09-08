@@ -310,33 +310,6 @@ const ContributePage: React.FC = () => {
       <Navbar />
       {showWeather && <div className="fixed inset-0 z-[9999999]"><WeatherPage onClose={() => setShowWeather(false)} /></div>}
 
-      {/* GPS Button */}
-      <button
-        onClick={() => {
-          if (location) window.__paraMap?.setView([location.lat, location.lng], 16);
-          else requestConsentAndLocation();
-        }}
-        className="fixed right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200" style={{ top: "calc(env(safe-area-inset-top) + 5.5rem)" }}
-      >
-        <GpsIcon />
-      </button>
-
-      {/* Pin Button */}
-      <button
-        onClick={() => setPinMode(true)}
-        className="fixed right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200" style={{ top: "calc(env(safe-area-inset-top) + 8rem)" }}
-      >
-        📌
-      </button>
-
-      {/* Weather Button */}
-      <button
-        onClick={() => setShowWeather(true)}
-        className="fixed right-4 z-[9999] bg-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-lg hover:bg-gray-50 border border-gray-200" style={{ top: "calc(env(safe-area-inset-top) + 10.5rem)" }}
-      >
-        🌤️
-      </button>
-
       {/* Timer Pill */}
       <div className="fixed left-4 z-[5000] bg-white rounded-full shadow-lg px-4 py-2 flex items-center gap-2" style={{ top: "calc(env(safe-area-inset-top) + 5.5rem)" }}>
         <span className="text-sm font-bold text-[#381D65] capitalize">{currentPhase}</span>

@@ -337,24 +337,14 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       <div id="contribute-map" className="absolute inset-0 z-0" style={{ zIndex: 0, pointerEvents: "auto" }} />
 
       {/* Map Controls — top right */}
-      <div className="absolute top-20 right-4 z-[9999] flex flex-col gap-2">
+      <div className="absolute right-4 z-[9999] flex flex-col gap-2" style={{ top: "calc(env(safe-area-inset-top) + 5.5rem)" }}>
         {/* GPS Locate Button */}
         {!navbarOpen && (
         <button
           onClick={locateMap}
           className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"
         >
-          <GpsIcon size={20} color="#7A4BC8" />
-        </button>
-        )}
-
-        {/* Weather Button — opens full WeatherPage */}
-        {!navbarOpen && (
-        <button
-          onClick={() => window.dispatchEvent(new Event("para-show-weather"))}
-          className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"
-        >
-          <span className="text-base">🌤️</span>
+          <GpsIcon size={30} color="#7A4BC8" />
         </button>
         )}
 
@@ -370,6 +360,16 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
           title="Add Pin"
         >
           <span className="text-base">📍</span>
+        </button>
+        )}
+
+        {/* Weather Button — opens full WeatherPage */}
+        {!navbarOpen && (
+        <button
+          onClick={() => window.dispatchEvent(new Event("para-show-weather"))}
+          className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"
+        >
+          <span className="text-base">🌤️</span>
         </button>
         )}
 
