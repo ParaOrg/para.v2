@@ -26,42 +26,22 @@ export default function SignupDetailsStep({ onSuccess }) {
   const [role, setRole] = useState('commuter');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [attempts, setAttempts] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('para_signup_attempts') || '{"count":0,"timestamp":0}'); }
-    catch { return { count: 0, timestamp: 0 }; }
-  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validate
     if (!email.trim()) { setError('Enter your email.'); return; }
     if (!password) { setError('Enter a password.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
 
-    // Rate limit: max 3 signup attempts per hour
-    const now = Date.now();
-    const windowMs = 3600000;
-    if (now - attempts.timestamp > windowMs) {
-      setAttempts({ count: 0, timestamp: now });
-    }
-    if (attempts.count >= 3) {
-      setError('Too many signup attempts. Try again in an hour.');
-      return;
-    }
-    const newCount = attempts.count + 1;
-    setAttempts({ count: newCount, timestamp: now });
-    localStorage.setItem('para_signup_attempts', JSON.stringify({ count: newCount, timestamp: now }));
-
     setLoading(true);
     try {
-      // Firebase returns the user object directly
-      const firebaseUser = await signup(email.trim(), password, name || email.split('@')[0]);
+      const supabaseUser = await signup(email.trim(), password, name || email.split('@')[0]);
       
-      if (firebaseUser?.uid) {
-        onSuccess({ uid: firebaseUser.uid, email: firebaseUser.email });
+      if (supabaseUser?.id) {
+        onSuccess({ uid: supabaseUser.id, email: supabaseUser.email });
       }
     } catch (err) {
       setError(err.message || 'Registration failed.');
@@ -91,7 +71,6 @@ export default function SignupDetailsStep({ onSuccess }) {
           autoComplete="email" placeholder="you@example.com" required className={inputClass}
         />
 
-        {/* Password */}
         <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
@@ -104,7 +83,6 @@ export default function SignupDetailsStep({ onSuccess }) {
           </button>
         </div>
 
-        {/* Confirm Password */}
         <div className="relative">
           <input
             type={showConfirm ? 'text' : 'password'}
@@ -117,7 +95,6 @@ export default function SignupDetailsStep({ onSuccess }) {
           </button>
         </div>
 
-        {/* Mobile */}
         <div className="flex gap-2">
           <div className="flex items-center px-3 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 text-sm font-bold select-none whitespace-nowrap">+63</div>
           <input
@@ -127,7 +104,6 @@ export default function SignupDetailsStep({ onSuccess }) {
           />
         </div>
 
-        {/* Role selection */}
         <div className="grid grid-cols-2 gap-2">
           {ROLE_OPTIONS.map(({ value, label, desc }) => {
             const active = role === value;
@@ -143,12 +119,11 @@ export default function SignupDetailsStep({ onSuccess }) {
           })}
         </div>
 
-        {/* Driver-only fields */}
         {role === 'driver' && (
           <div className="space-y-2">
             <input
               type="text" value={coopName} onChange={(e) => setCoopName(e.target.value)}
-              placeholder="Kooperatiba (hal. Bagoong Drivers Coop)" className={inputClass}
+              placeholder="Kooperatiba" className={inputClass}
             />
             <input
               type="text" value={affiliation} onChange={(e) => setAffiliation(e.target.value)}
