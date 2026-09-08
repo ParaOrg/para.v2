@@ -1,12 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  updateProfile,
-} from "firebase/auth";
-import { auth } from "../utils/firebase";
+import { supabase } from "../utils/supabase";
 
 const AuthContext = createContext(null);
 
@@ -15,39 +8,33 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Listen for auth state changes (login, logout, token refresh)
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        setUser({
-          id: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "",
-          handle: firebaseUser.displayName || "",
-        });
-      } else {
-        setUser(null);
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = useCallback(async (email, password) => {
-    const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password);
-    return firebaseUser;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data.user;
   }, []);
 
   const signup = useCallback(async (email, password, name) => {
-    const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
-    
-    // Set display name
-    if (name) {
-      await updateProfile(firebaseUser, { displayName: name });
-      setUser(prev => prev ? { ...prev, name, handle: name } : prev);
-    }
-    
-    return firebaseUser;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name || email?.split("@")[0] || "" } },
+    });
+    if (error) throw error;
+    return data.user;
   }, []);
 
   const loginWithCustomToken = useCallback(async (customToken) => {
@@ -55,7 +42,7 @@ export function AuthProvider({ children }) {
   }, [login]);
 
   const logout = useCallback(async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     setUser(null);
   }, []);
 
