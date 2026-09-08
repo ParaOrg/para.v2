@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { getApiBaseUrl } from "../utils/api";
 import AnalyticsDashboard from "../components/AnalyticsDashboard";
@@ -131,12 +132,20 @@ export default function Profile() {
               </span>
             )}
             </div>
-            <button
-              onClick={() => editing ? saveProfile() : setEditing(true)}
-              className="text-[#7A4BC8] text-sm font-bold"
-            >
-              {editing ? "Save" : "Edit"}
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => editing ? saveProfile() : setEditing(true)}
+                className="text-[#7A4BC8] text-sm font-bold"
+              >
+                {editing ? "Save" : "Edit"}
+              </button>
+              <Link
+                to="/change-password"
+                className="text-gray-400 hover:text-[#7A4BC8] text-xs font-medium"
+              >
+                Change Password
+              </Link>
+            </div>
           </div>
 
           {editing ? (
