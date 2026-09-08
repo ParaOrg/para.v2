@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { TrackingConsentProvider } from "./context/TrackingConsentContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import HomeNew from "./pages/HomeNew";
 import RoutesExplorer from "./pages/RoutesExplorer";
@@ -37,7 +38,8 @@ export default function App() {
   return (
     <TrackingConsentProvider>
       <AuthProvider>
-        <Routes>
+        <ErrorBoundary>
+          <Routes>
           <Route path="/" element={<HomeNew />} />
           <Route path="/explore" element={<RoutesExplorer />} />
           <Route path="/contribute" element={<ContributePage />} />
@@ -55,7 +57,8 @@ export default function App() {
                     <Route path="/live/:code" element={<LiveView />} />
           <Route path="/routes/shared/:shareId" element={<SharedRouteView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </ErrorBoundary>
       </AuthProvider>
     </TrackingConsentProvider>
   );

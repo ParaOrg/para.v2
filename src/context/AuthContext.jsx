@@ -14,10 +14,11 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check existing session
+    // Check existing session — if user exists in localStorage, restore it
     const storedUser = safeParse(localStorage.getItem(USER_KEY));
     const storedToken = localStorage.getItem(TOKEN_KEY);
-    if (storedUser && storedToken) {
+    
+    if (storedUser) {
       setUser(storedUser);
     }
     setLoading(false);
@@ -34,6 +35,18 @@ export function AuthProvider({ children }) {
     if (data.user) {
       setUser(data.user);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      
+      // Save token if present in response
+      if (data.token) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+      } else if (data.session?.access_token) {
+        localStorage.setItem(TOKEN_KEY, data.session.access_token);
+      } else if (data.access_token) {
+        localStorage.setItem(TOKEN_KEY, data.access_token);
+      } else {
+        // No token in response — generate a session marker so user persists offline
+        localStorage.setItem(TOKEN_KEY, "session-" + Date.now());
+      }
       
       // Claim guest contributions
       try {
@@ -58,6 +71,17 @@ export function AuthProvider({ children }) {
     if (data.user) {
       setUser(data.user);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      
+      // Save token if present
+      if (data.token) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+      } else if (data.session?.access_token) {
+        localStorage.setItem(TOKEN_KEY, data.session.access_token);
+      } else if (data.access_token) {
+        localStorage.setItem(TOKEN_KEY, data.access_token);
+      } else {
+        localStorage.setItem(TOKEN_KEY, "session-" + Date.now());
+      }
       
       // Claim guest contributions after signup
       try {

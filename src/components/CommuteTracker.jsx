@@ -31,17 +31,28 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// Helper: Check if a segment is a walking/transfer segment
+function isWalkSegment(seg) {
+  const route = (seg?.route || "").toUpperCase();
+  const mode = (seg?.mode || "").toUpperCase();
+  return (
+    route.includes("WALK") ||
+    route.includes("TRANSFER") ||
+    mode.includes("WALK") ||
+    mode.includes("TRANSFER") ||
+    seg?.is_transfer === true
+  );
+}
+
 export default function CommuteTracker({ routeData, onComplete, onCancel, onMinimize, onProgress }) {
   const rawSegments = routeData?.segments || [];
-  const segments = rawSegments.filter(seg => seg.route !== "WALK_TO_ROUTE" && seg.route !== "WALK_TO_DEST" && seg.route !== "WALK_TRANSFER");
+  const segments = rawSegments.filter(seg => !isWalkSegment(seg));
   const { consent, status, error: consentError, location, requestConsentAndLocation, startTracking, stopTracking } = useTrackingConsent();
   const { user } = useAuth();
-  const [phase, setPhase] = useState("waiting");
+  const [phase, setPhase] = useState("idle");
   const [minimized, setMinimized] = useState(false);
   const [currentSegment, setCurrentSegment] = useState(0);
-  const [waitStart] = useState(() => Date.now());
   const [segmentStart, setSegmentStart] = useState(null);
-  const [waitTime, setWaitTime] = useState(0);
   const [segmentTimes, setSegmentTimes] = useState(() => segments.map(() => 0));
   const [gpsPoints, setGpsPoints] = useState([]);
   const [rating, setRating] = useState(0);
@@ -73,7 +84,6 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (phase === "waiting") setWaitTime(Math.floor((Date.now() - waitStart) / 1000));
       if (phase === "riding" && segmentStart) {
         setSegmentTimes((prev) => {
           const next = [...prev];
@@ -83,7 +93,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [phase, waitStart, segmentStart, currentSegment]);
+  }, [phase, segmentStart, currentSegment]);
 
   const uploadQueue = useCallback(async () => {
     const queue = readQueue();
@@ -112,13 +122,16 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
     setSegmentStart(null);
     const next = currentSegment + 1;
     if (next >= segments.length) setPhase("done");
-    else { setCurrentSegment(next); setPhase("waiting"); }
+    else {
+      setCurrentSegment(next);
+      setPhase("idle");
+    }
   };
 
   const finish = async () => {
     setSaving(true);
     setSaveMessage(null);
-    const totalTimeSec = waitTime + segmentTimes.reduce((sum, value) => sum + value, 0);
+    const totalTimeSec = segmentTimes.reduce((sum, value) => sum + value, 0);
     const log = {
       client_log_id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       route_uuid: routeData?.route_uuid || null,
@@ -126,7 +139,6 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
       user_id: user?.id || null,
       user_email: user?.email || null,
       consent_granted: consent,
-      wait_time_sec: waitTime,
       segment_times_sec: segmentTimes,
       total_time_sec: totalTimeSec,
       total_distance_m: routeData?.total_distance_m || 0,
@@ -149,7 +161,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
 
   const currentSeg = segments[currentSegment];
   const isLastSegment = currentSegment >= segments.length - 1;
-  const totalTimeSec = waitTime + segmentTimes.reduce((sum, value) => sum + value, 0);
+  const totalTimeSec = segmentTimes.reduce((sum, value) => sum + value, 0);
 
   if (minimized) {
     return (
@@ -178,7 +190,7 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
     <div className="bg-white rounded-xl overflow-hidden shadow-lg flex flex-col h-full">
       <div className="bg-purple-800 text-white px-4 py-3 flex items-center justify-between shrink-0 rounded-t-3xl cursor-pointer" onClick={() => { setMinimized(true); if (onMinimize) onMinimize(); }}>
         <div><p className="font-bold text-sm">🚀 Tracked Commute</p><p className="text-purple-200 text-xs">{routeData?.message}</p></div>
-        <button onClick={(e) => { e.stopPropagation(); onCancel(); }} className="text-white/70 hover:text-white text-lg leading-none">✕</button>
+        <button onClick={(e) => { e.stopPropagation(); setMinimized(true); if (onMinimize) onMinimize(); }} className="text-white/70 hover:text-white text-lg leading-none">─</button>
       </div>
       <div className="flex-1 overflow-y-auto">
         <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-2 text-xs">
@@ -191,13 +203,13 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
           ))}
         </div>
         <div className="p-4 space-y-3">
-          {phase === "waiting" && (
+          {phase === "idle" && (
             <div className="text-center">
-              <p className="text-3xl font-black text-purple-800 tabular-nums">{formatTime(waitTime)}</p>
-              <p className="text-sm text-gray-500 mt-1">Waiting for your ride</p>
-              <p className="text-xs text-gray-400 mt-2 truncate">Next: {currentSeg?.route || "Transit"} — {currentSeg?.time_min} min est.</p>
-              <button onClick={hopOn} className="mt-4 w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors">🚌 Hop On — {currentSeg?.route || "Start Ride"}</button>
+              <button onClick={hopOn} className="mt-4 w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors">
+                🚌 Hop On — {currentSeg?.route || "Start Ride"}
+              </button>
               <button onClick={() => setShowLiveShare(true)} className="mt-2 w-full py-2 bg-red-500 text-white rounded-lg text-[11px] font-bold">📡 Share Live Location</button>
+              <button onClick={onCancel} className="mt-2 w-full py-2 border border-red-300 text-red-500 rounded-lg text-[11px] font-bold hover:bg-red-50">✕ Cancel Tracking</button>
             </div>
           )}
           {phase === "riding" && (
@@ -205,12 +217,15 @@ export default function CommuteTracker({ routeData, onComplete, onCancel, onMini
               <p className="text-3xl font-black text-green-600 tabular-nums">{formatTime(segmentTimes[currentSegment] || 0)}</p>
               <p className="text-sm text-gray-500 mt-1">Riding — {currentSeg?.route || "Transit"}</p>
               <p className="text-xs text-gray-400 mt-2">{currentSeg?.time_min} min estimated · ₱{currentSeg?.fare}</p>
-              <button onClick={hopOff} className="mt-4 w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-sm hover:bg-amber-600 transition-colors">{isLastSegment ? "🏁 Hop Off — Finish Ride" : "🚏 Hop Off — Transfer"}</button>
+              <button onClick={hopOff} className="mt-4 w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-sm hover:bg-amber-600 transition-colors">
+                {isLastSegment ? "🏁 Hop Off — Finish Ride" : "🚏 Hop Off — Transfer"}
+              </button>
+              <button onClick={onCancel} className="mt-2 w-full py-2 border border-red-300 text-red-500 rounded-lg text-[11px] font-bold hover:bg-red-50">✕ Cancel Tracking</button>
             </div>
           )}
           {phase === "done" && (
             <div className="space-y-4">
-              <div className="text-center"><p className="text-3xl mb-1">🎉</p><p className="font-bold text-gray-800">Commute Complete!</p><p className="text-sm text-gray-500 mt-1">{formatTime(totalTimeSec)} total · {segments.filter((s) => !s.is_transfer).length} rides</p></div>
+              <div className="text-center"><p className="text-3xl mb-1">🎉</p><p className="font-bold text-gray-800">Commute Complete!</p><p className="text-sm text-gray-500 mt-1">{formatTime(totalTimeSec)} total · {segments.length} rides</p></div>
               <div><p className="text-sm font-semibold text-gray-700 mb-2">Rate your commute</p><div className="flex justify-center gap-1">{[1,2,3,4,5].map((star) => (<button key={star} onClick={() => setRating(star)} className={`text-2xl transition-colors ${star <= rating ? "text-amber-400" : "text-gray-300 hover:text-amber-300"}`}>★</button>))}</div></div>
               <textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Optional commute feedback..." rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-purple-500 resize-none" />
               {saveMessage && <div className="text-xs bg-blue-50 border border-blue-200 text-blue-700 rounded-lg p-2">{saveMessage}</div>}

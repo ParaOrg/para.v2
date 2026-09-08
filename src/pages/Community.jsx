@@ -1,125 +1,72 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getApiBaseUrl } from "../utils/api";
+const API = import.meta.env.VITE_SUPABASE_URL + "/functions/v1";
 import ReactMarkdown from "react-markdown";
 import Navbar from "../components/Navbar";
 import BottomNav from "../components/BottomNav";
 
-const API = getApiBaseUrl();
-const TAGS = ["All", "Routes", "Tips", "Review", "News", "Questions"];
+
 
 export default function Community() {
-  const [sharedRoutes, setSharedRoutes] = useState([]);
-  
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/saved_routes?is_shared=eq.true&order=created_at.desc&limit=20`, {
-      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
-    })
-      .then((r) => r.json())
-      .then((d) => setSharedRoutes(Array.isArray(d) ? d : []))
-      .catch(() => {});
-  }, []);
   const auth = useAuth();
   const [threads, setThreads] = useState([]);
-  const [votedThreads, setVotedThreads] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("para_voted_threads") || "{}"); } catch { return {}; }
-  });
-  const [activeTag, setActiveTag] = useState("All");
   const [showNewPost, setShowNewPost] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "", tag: "Routes", image: "" });
+  const [newPost, setNewPost] = useState({ content: "" });
   const [selectedThread, setSelectedThread] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [sortBy, setSortBy] = useState("new");
+  const [error, setError] = useState("");
 
-  const fetchThreads = () => {
-    fetch(`${API}/community/threads`)
-      .then(r => r.json())
-      .then(d => setThreads(d.threads || []))
-      .catch(() => {});
+  const fetchThreads = async () => {
+    try {
+      const res = await fetch(`${API}/community/threads`);
+      const data = await res.json();
+      setThreads(data.threads || []);
+    } catch (e) {
+      console.error("Failed to fetch threads:", e);
+      setError("Failed to load posts. Please try again.");
+    }
   };
 
   useEffect(() => { fetchThreads(); }, []);
 
-  const handleUpvote = async (threadId) => {
-    if (votedThreads[threadId]) return; // Already voted
-    
-    try {
-      // Update in Supabase
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/community_threads?id=eq.${threadId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({ upvotes: (threads.find(t => t.id === threadId)?.upvotes || 0) + 1 }),
-      });
-      
-      // Track local vote
-      const newVoted = { ...votedThreads, [threadId]: true };
-      setVotedThreads(newVoted);
-      localStorage.setItem("para_voted_threads", JSON.stringify(newVoted));
-      
-      // Update local state
-      setThreads(prev => prev.map(t => 
-        t.id === threadId ? { ...t, upvotes: (t.upvotes || 0) + 1 } : t
-      ));
-    } catch (e) {
-      console.error("Upvote failed:", e);
-    }
-  };
-
-  const filtered = threads.filter((t) => activeTag === "All" || t.tag === activeTag);
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "new") return (b.created_at || "").localeCompare(a.created_at || "");
-    if (sortBy === "top") return (b.upvotes || 0) - (a.upvotes || 0);
-    return 0;
-  });
-
   const handleNewPost = async () => {
-    if (!newPost.title.trim() || !newPost.content.trim()) return;
+    if (!newPost.content.trim()) return;
+    setError("");
     try {
       const res = await fetch(`${API}/community/threads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_email: auth.user?.email || "anonymous",
-          author_name: auth.user?.handle || auth.user?.name || "Anonymous",
-          title: newPost.title,
-          content: newPost.content,
-          tag: newPost.tag,
-          image: newPost.image,
+          author_name: auth.user?.handle || auth.user?.name || auth.user?.email?.split("@")[0] || "Anonymous",
+          content: newPost.content.trim(),
         }),
       });
       const data = await res.json();
       if (data.status === "success") {
-        fetchThreads();
-        setNewPost({ title: "", content: "", tag: "Routes", image: "" });
+        setNewPost({ content: "" });
         setShowNewPost(false);
+        fetchThreads();
+      } else {
+        setError(data.message || "Failed to post.");
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error("Post failed:", e);
+      setError("Network error. Please try again.");
+    }
   };
 
-  const deleteThread = async (threadUuid) => {
-    try {
-      await fetch(`${API}/community/threads/delete`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ thread_uuid: threadUuid }),
-      });
-      fetchThreads();
-      setSelectedThread(null);
-    } catch (e) { console.error(e); }
-  };
-
-  const openThread = (thread) => {
+  const openThread = async (thread) => {
     setSelectedThread(thread);
-    fetch(`${API}/community/comments?thread_uuid=${thread.thread_uuid}`)
-      .then(r => r.json())
-      .then(d => setComments(d.comments || []))
-      .catch(() => setComments([]));
+    try {
+      const res = await fetch(`${API}/community/comments?thread_uuid=${thread.thread_uuid}`);
+      const data = await res.json();
+      setComments(data.comments || []);
+    } catch (e) {
+      setComments([]);
+    }
   };
 
   const postComment = async () => {
@@ -136,9 +83,11 @@ export default function Community() {
       });
       setNewComment("");
       const res = await fetch(`${API}/community/comments?thread_uuid=${selectedThread.thread_uuid}`);
-      const d = await res.json();
-      setComments(d.comments || []);
-    } catch (e) { console.error(e); }
+      const data = await res.json();
+      setComments(data.comments || []);
+    } catch (e) {
+      console.error("Comment failed:", e);
+    }
   };
 
   return (
@@ -146,133 +95,108 @@ export default function Community() {
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-black text-[#381D65]">Community</h1>
-          <div className="flex gap-2">
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 text-xs border border-gray-200 rounded-lg outline-none bg-white">
-              <option value="new">New</option>
-              <option value="top">Top</option>
-            </select>
-            <button onClick={() => setShowNewPost(!showNewPost)}
-              className="bg-[#7A4BC8] text-white px-4 py-2 rounded-xl text-sm font-bold">
-              {showNewPost ? "Close" : "+ New Post"}
-            </button>
-          </div>
+          <button onClick={() => setShowNewPost(!showNewPost)}
+            className="bg-[#7A4BC8] text-white px-4 py-2 rounded-xl text-sm font-bold">
+            {showNewPost ? "Close" : "+ New Post"}
+          </button>
         </div>
 
-        {/* New Post Form */}
-        {showNewPost && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
-            <input value={newPost.title} onChange={(e) => setNewPost({...newPost, title: e.target.value})}
-              placeholder="Post title..."
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none" />
-            <textarea value={newPost.content} onChange={(e) => setNewPost({...newPost, content: e.target.value})}
-              placeholder="Share your commute experience... Markdown supported!"
-              rows={5}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none resize-none font-mono" />
-            <input value={newPost.image} onChange={(e) => setNewPost({...newPost, image: e.target.value})}
-              placeholder="Image URL (optional)..."
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none" />
-            <div className="flex items-center gap-2">
-              <select value={newPost.tag} onChange={(e) => setNewPost({...newPost, tag: e.target.value})}
-                className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg">
-                {TAGS.filter(t => t !== "All").map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-              <button onClick={handleNewPost}
-                className="ml-auto bg-[#7A4BC8] text-white px-4 py-1.5 rounded-lg text-xs font-bold">
-                Post
-              </button>
-            </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-600">
+            {error}
           </div>
         )}
 
-        {/* Tag filters */}
-        <div className="flex gap-2 flex-wrap">
-          {TAGS.map(tag => (
-            <button key={tag} onClick={() => setActiveTag(tag)}
-              className={`px-3 py-1 rounded-full text-xs font-medium ${activeTag === tag ? "bg-[#7A4BC8] text-white" : "bg-white text-gray-500 border border-gray-200"}`}>
-              {tag}
+        {showNewPost && (
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 space-y-3">
+            <textarea
+              value={newPost.content}
+              onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+              placeholder="Share your commute experience... Markdown supported!"
+              rows={5}
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none resize-none font-mono"
+            />
+            <button
+              onClick={handleNewPost}
+              disabled={!newPost.content.trim()}
+              className="ml-auto bg-[#7A4BC8] text-white px-4 py-1.5 rounded-lg text-xs font-bold disabled:opacity-50"
+            >
+              Post
             </button>
-          ))}
-        </div>
-
-        {/* Threads */}
-        {sorted.map((thread) => (
-          <div key={thread.thread_uuid}
-            className="bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
-            <div className="p-4" onClick={() => openThread(thread)}>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#7A4BC8]">{thread.tag || "General"}</span>
-                <span className="text-xs text-gray-400 ml-auto">{thread.author_name || (thread.user_email || "anonymous").split("@")[0]}</span>
-              </div>
-              <h2 className="font-bold text-gray-900 mt-1">{thread.title}</h2>
-              <div className="text-sm text-gray-500 mt-1 line-clamp-3">
-                <ReactMarkdown>{thread.content}</ReactMarkdown>
-              </div>
-              {thread.image && (
-                <img src={thread.image} alt="" className="mt-2 rounded-xl w-full max-h-48 object-cover"
-                  onError={(e) => e.target.style.display = "none"} />
-              )}
-              <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
-                <button onClick={() => handleUpvote(thread.id)} disabled={votedThreads[thread.id]} className={`px-2 py-1 rounded-full text-xs font-bold ${votedThreads[thread.id] ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>👍 {thread.upvotes || 0}</button>
-                <span>💬 {comments.length || 0}</span>
-                <span>{thread.created_at?.slice(0, 10)}</span>
-                <button className="ml-auto text-[#7A4BC8] font-medium">Read more →</button>
-              </div>
-            </div>
           </div>
-        ))}
+        )}
 
-        {sorted.length === 0 && (
+        {threads.length === 0 && !error && (
           <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
             <span className="text-4xl">💬</span>
             <p className="text-gray-400 text-sm mt-2">No posts yet. Be the first!</p>
           </div>
         )}
+
+        {threads.map((thread) => (
+          <div key={thread.thread_uuid || thread.id}
+            className="bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => openThread(thread)}>
+            <div className="p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-gray-600">
+                  {thread.author_name || (thread.user_email || "anonymous").split("@")[0]}
+                </span>
+                <span className="text-xs text-gray-400 ml-auto">
+                  {thread.created_at?.slice(0, 10)}
+                </span>
+              </div>
+              <div className="text-sm text-gray-700 mt-2 line-clamp-4 prose prose-sm max-w-none">
+                <ReactMarkdown>{thread.content}</ReactMarkdown>
+              </div>
+              <div className="mt-2 text-xs text-gray-400">
+                💬 {comments.length || 0} comments
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Thread Modal */}
       {selectedThread && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={() => setSelectedThread(null)}>
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#7A4BC8]">{selectedThread.tag || "General"}</span>
-              <div className="flex gap-2">
-                <button onClick={() => deleteThread(selectedThread.thread_uuid)}
-                  className="text-red-400 text-xs font-medium">Delete</button>
-                <button onClick={() => setSelectedThread(null)} className="text-gray-400">✕</button>
-              </div>
+              <span className="text-xs font-bold text-gray-600">
+                {selectedThread.author_name || (selectedThread.user_email || "anonymous").split("@")[0]}
+              </span>
+              <button onClick={() => setSelectedThread(null)} className="text-gray-400">✕</button>
             </div>
-            <h2 className="text-xl font-black text-gray-900 mt-1">{selectedThread.title}</h2>
-            <p className="text-xs text-gray-400 mt-1">
-              Posted by {selectedThread.author_name || (selectedThread.user_email || "anonymous").split("@")[0]} • {selectedThread.created_at?.slice(0, 10)}
-            </p>
+            <p className="text-xs text-gray-400 mt-1">{selectedThread.created_at?.slice(0, 10)}</p>
             <div className="mt-4 prose prose-sm max-w-none">
               <ReactMarkdown>{selectedThread.content}</ReactMarkdown>
             </div>
-            {selectedThread.image && (
-              <img src={selectedThread.image} alt="" className="mt-3 rounded-xl w-full"
-                onError={(e) => e.target.style.display = "none"} />
-            )}
 
             <div className="mt-6 border-t border-gray-100 pt-4">
               <p className="text-xs font-bold text-gray-500 mb-3">{comments.length} Comments</p>
               {comments.map((comment) => (
-                <div key={comment.comment_uuid} className="mb-3 bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-700">{(comment.user_email || "anonymous").split("@")[0]}</p>
+                <div key={comment.id || comment.comment_uuid || Math.random()} className="mb-3 bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-semibold text-gray-700">
+                    {(comment.user_email || "anonymous").split("@")[0]}
+                  </p>
                   <div className="text-sm text-gray-600 prose prose-sm max-w-none">
                     <ReactMarkdown>{comment.content}</ReactMarkdown>
                   </div>
                 </div>
               ))}
               <div className="flex gap-2 mt-3">
-                <input value={newComment} onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Add a comment... Markdown supported"
-                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none" />
-                <button onClick={postComment}
-                  className="bg-[#7A4BC8] text-white px-4 py-2 rounded-lg text-xs font-bold">
+                <input
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none"
+                />
+                <button
+                  onClick={postComment}
+                  disabled={!newComment.trim()}
+                  className="bg-[#7A4BC8] text-white px-4 py-2 rounded-lg text-xs font-bold disabled:opacity-50"
+                >
                   Comment
                 </button>
               </div>

@@ -33,15 +33,24 @@ const BOTTOM_NAV = [
 ];
 
 export default function HomeNew() {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('para_chat_messages') || '[]'); }
+    catch { return []; }
+  });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [chatOpen, setChatOpen] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [routeMarkers, setRouteMarkers] = useState([]);
   const [polylines, setPolylines] = useState([]);
-  const [activeRouteData, setActiveRouteData] = useState(null);
-  const [showTracker, setShowTracker] = useState(false);
+  const [activeRouteData, setActiveRouteData] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('para_active_route') || 'null'); }
+    catch { return null; }
+  });
+  const [showTracker, setShowTracker] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('para_show_tracker') || 'false'); }
+    catch { return false; }
+  });
   const [showStravaCard, setShowStravaCard] = useState(false);
   const [showWeather, setShowWeather] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
@@ -141,7 +150,22 @@ export default function HomeNew() {
     };
   }, []);
 
-  const closeChatPanel = () => {  setMessages([]); setRouteMarkers([]); setPolylines([]); };
+  useEffect(() => {
+    try { sessionStorage.setItem('para_chat_messages', JSON.stringify(messages)); }
+    catch {}
+  }, [messages]);
+
+  useEffect(() => {
+    try { sessionStorage.setItem('para_active_route', JSON.stringify(activeRouteData)); }
+    catch {}
+  }, [activeRouteData]);
+
+  useEffect(() => {
+    try { sessionStorage.setItem('para_show_tracker', JSON.stringify(showTracker)); }
+    catch {}
+  }, [showTracker]);
+
+  const closeChatPanel = () => { setShowChat(false); };
 
   const locateMap = () => {
     const m = window.__paraMap;
@@ -340,7 +364,16 @@ export default function HomeNew() {
         {showTracker && activeRouteData && trackerMinimized && <div className="pointer-events-auto absolute left-2 right-2 z-[60] bg-[#7A4BC8] text-white rounded-2xl px-4 py-3 shadow-lg cursor-pointer" style={{ bottom: `calc(100px + ${kbOffset}px + env(safe-area-inset-bottom))`, transition: "bottom 120ms ease-out" }} onClick={() => setTrackerMinimized(false)}><div className="flex items-center gap-2"><span>🚀</span><div className="flex-1 flex gap-1">{(activeRouteData?.segments || []).map((seg, i) => (<div key={i} className="flex-1 h-1 rounded-full" style={{ background: i === currentTrackSegment ? "white" : i < currentTrackSegment ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.3)" }} />))}</div><span className="text-xs font-bold">{activeRouteData?.total_time_min || 0} min</span><button onClick={(e) => { e.stopPropagation(); setShowTracker(false); setActiveRouteData(null); setTrackerMinimized(false); }} className="text-white/70 hover:text-white text-sm">✕</button></div></div>}
         {showStravaCard && activeRouteData && <StravaRouteCard routeData={activeRouteData} onClose={() => setShowStravaCard(false)} onStartCommute={(route) => { setShowStravaCard(false); setShowTracker(true); }} />}
         {showTracker && activeRouteData && !trackerMinimized && <div className="pointer-events-auto fixed bottom-0 left-0 right-0 z-[80] bg-white rounded-t-3xl shadow-2xl max-h-[45vh] overflow-y-auto safe-bottom"><CommuteTracker routeData={activeRouteData} onMinimize={() => setTrackerMinimized(true)} onProgress={(seg) => setCurrentTrackSegment(seg)} onComplete={() => { setShowTracker(false); setActiveRouteData(null); setTrackerMinimized(false); }} onCancel={() => { setShowTracker(false); setTrackerMinimized(false); }} /></div>}
-        <div className="pointer-events-auto absolute bottom-0 left-0 right-0 z-[70] bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3" style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))", transform: kbOffset > 0 ? `translateY(${kbOffset}px)` : "none", transition: "transform 120ms ease-out" }}><div className="flex items-end justify-center gap-7 px-4 py-2">{BOTTOM_NAV.map((item) => (<button key={item.id} onClick={() => { if (item.id === "search") { if (input.trim()) send(); } else if (item.to) navigate(item.to); }} className="flex flex-col items-center gap-0.5">{item.primary ? <div className={`px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-1.5 ${chatOpen ? "bg-[#381D65] text-white" : "bg-[#7A4BC8] text-white"}`}><span>{item.icon}</span><span>{item.label}</span></div> : <><span className="text-lg">{item.icon}</span><span className="text-[9px] font-medium text-gray-400">{item.label}</span></>}</button>))}</div></div>
+        <div className="pointer-events-auto absolute bottom-0 left-0 right-0 z-[70] bg-white rounded-t-2xl shadow-[0_-4px_7px_rgba(0,0,0,0.05)] px-2 py-3" style={{ paddingBottom: "max(10px, env(safe-area-inset-bottom))", transform: kbOffset > 0 ? `translateY(${kbOffset}px)` : "none", transition: "transform 120ms ease-out" }}><div className="flex items-end justify-center gap-7 px-4 py-2">{BOTTOM_NAV.map((item) => (<button key={item.id} onClick={() => {
+              if (item.id === "search") {
+                if (!chatOpen || !showChat) {
+                  setChatOpen(true);
+                  setShowChat(true);
+                } else {
+                  setShowChat(false);
+                }
+              } else if (item.to) navigate(item.to);
+            }} className="flex flex-col items-center gap-0.5">{item.primary ? <div className={`px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-1.5 ${chatOpen ? "bg-[#381D65] text-white" : "bg-[#7A4BC8] text-white"}`}><span>{item.icon}</span><span>{item.label}</span></div> : <><span className="text-lg">{item.icon}</span><span className="text-[9px] font-medium text-gray-400">{item.label}</span></>}</button>))}</div></div>
       </div>
       {showWeather && <WeatherPage onClose={() => setShowWeather(false)} />}
       {showShareCard && activeRouteData && <ShareRouteCard routeData={activeRouteData} onClose={() => setShowShareCard(false)} />}

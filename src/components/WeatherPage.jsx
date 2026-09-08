@@ -97,7 +97,7 @@ export default function WeatherPage({ onClose }) {
   }, [lat, lng]);
 
   useEffect(() => {
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,visibility&hourly=temperature_2m,weather_code&timezone=auto&forecast_days=7`)
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_direction_10m,visibility&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto&forecast_days=7`)
       .then(r => r.json())
       .then(d => {
         if (d.current) { setWeather(d.current); setLastUpdated(new Date()); }

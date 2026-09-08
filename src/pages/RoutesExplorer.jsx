@@ -26,7 +26,7 @@ L.Icon.Default.mergeOptions({
 });
 
 const CENTER = [14.5995, 120.9842];
-const API = getApiBaseUrl();
+const API = import.meta.env.VITE_SUPABASE_URL + "/functions/v1";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -174,8 +174,8 @@ export default function RoutesExplorer() {
     (async () => {
       try {
         const [routesRes, refRes] = await Promise.all([
-          fetch(`${API}/routes/public`),
-          fetch(`${API}/routes/public/reference`),
+          fetch(`${API}/routes-public`),
+          fetch(`${API}/routes-public/reference`),
         ]);
         const routesData = await routesRes.json();
         const refData = await refRes.json();
