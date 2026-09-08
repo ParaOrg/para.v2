@@ -1,4 +1,4 @@
-const CACHE_NAME = 'para-ph-v20260905'; // BUMP THIS VERSION
+const CACHE_NAME = 'para-ph-v20260908'; // BUMP THIS VERSION
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -16,9 +16,21 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // Don't cache API calls
-  if (url.pathname.includes('/api/') || url.pathname.includes('/rest/v1/') || url.pathname.includes('/functions/')) {
-    return;
+  // BYPASS service worker for these:
+  // 1. Firebase Auth (POST requests)
+  // 2. Google Identity Toolkit
+  // 3. Supabase REST/Edge Functions
+  // 4. Any non-GET request (POST, PUT, DELETE)
+  if (
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('firebaseapp.com') ||
+    url.hostname.includes('identitytoolkit') ||
+    url.pathname.includes('/api/') ||
+    url.pathname.includes('/rest/v1/') ||
+    url.pathname.includes('/functions/') ||
+    event.request.method !== 'GET'
+  ) {
+    return; // Let browser handle directly
   }
   
   // Network-first for HTML (always get latest)
