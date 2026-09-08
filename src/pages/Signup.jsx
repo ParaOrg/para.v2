@@ -1,17 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import SignupDetailsStep from "./SignupDetailsStep";
 
 export default function Signup() {
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleDetailsSuccess = async (data) => {
-    // Bypass OTP - directly log in with the email
+  const handleDetailsSuccess = (data) => {
     if (data?.email) {
-      await login(data.email);
+      // User signed up successfully, redirect to login
+      navigate("/login", { state: { message: "Account created! Please log in." } });
     }
-    navigate("/");
   };
 
   return <SignupDetailsStep onSuccess={handleDetailsSuccess} />;
