@@ -17,16 +17,28 @@ def haversine(lat1, lon1, lat2, lon2):
     a = math.sin(dLat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dLon/2)**2
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
 
-def load_graph():
-    global _graph, _nodes
+def load_graph(city='manila'):
+    global _graph, _nodes, _rail_graph, _rail_nodes
+    graph_file = "graph_data.json" if city == 'manila' else f"graph_{city}.json"
+    rail_file = "rail_graph.json" if city == 'manila' else f"rail_{city}.json"
+    
     if _graph is None:
         try:
-            with open("graph_data.json", "r") as f:
+            with open(graph_file, "r") as f:
                 data = json.load(f)
             _graph = data["graph"]
             _nodes = data["nodes"]
         except:
             _graph, _nodes = {}, {}
+        
+        _rail_graph, _rail_nodes = {}, {}
+        try:
+            with open(rail_file, "r") as f:
+                rail_data = json.load(f)
+            _rail_graph = rail_data.get("graph", {})
+            _rail_nodes = rail_data.get("nodes", {})
+        except:
+            pass
     return _graph, _nodes
 
 def geocode_with_cache(place_name):
@@ -131,6 +143,23 @@ def dijkstra(graph, start, end, max_time_min=300):
         u = prev.get(u)
     return path[::-1]
 
+def detect_city(message, user_lat=None, user_lng=None):
+    """Detect which city graph to load based on message and location"""
+    city_keywords = {
+        'manila': ['manila', 'makati', 'quezon', 'pasig', 'taguig', 'mandaluyong', 'san juan', 'caloocan', 'pasay', 'marikina', 'paranaque', 'muntinlupa', 'las pinas', 'valenzuela', 'malabon', 'navotas'],
+        'cebu': ['cebu', 'mandaue', 'lapu-lapu', 'talisay'],
+        'davao': ['davao', 'digos', 'tagum', 'panabo'],
+    }
+    
+    message_lower = message.lower()
+    for city, keywords in city_keywords.items():
+        for kw in keywords:
+            if kw in message_lower:
+                return city
+    
+    # Default to manila for now
+    return 'manila'
+
 def lambda_handler(event, context):
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
@@ -142,6 +171,12 @@ def lambda_handler(event, context):
             event = json.loads(event['body'])
         
         message = event.get('message', '').lower()
+        user_location = event.get('user_location', {})
+        user_lat = user_location.get('lat')
+        user_lng = user_location.get('lng')
+        
+        # Detect city for graph selection
+        city = detect_city(message, user_lat, user_lng)
         user_location = event.get('user_location', {})
         user_lat = user_location.get('lat')
         user_lng = user_location.get('lng')

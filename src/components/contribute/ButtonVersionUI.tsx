@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTrackingConsent } from '../../context/TrackingConsentContext';
 import { analyzeGpsTrack } from '../../utils/gpsDriftDetector';
 import { FormPanel } from './FormPanel';
+import { edgePost } from '../../utils/api';
 
 const VEHICLE_LABELS = {
   jeepney: 'Jeepney',
@@ -12,7 +13,16 @@ const VEHICLE_LABELS = {
   grab: 'Grab',
   angkas: 'Angkas',
 };
-import { edgePost } from '../../utils/api';
+
+const VEHICLE_EMOJI = {
+  jeepney: '🚐',
+  bus: '🚌',
+  train: '🚆',
+  trike: '🛺',
+  uv_express: '🚐',
+  grab: '🚗',
+  angkas: '🏍️',
+};
 
 export function ButtonVersionUI(props: any) {
   const {
@@ -45,6 +55,7 @@ export function ButtonVersionUI(props: any) {
   const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
   const [savedRoutes, setSavedRoutes] = useState<string[]>([]);
   const [filteredRoutes, setFilteredRoutes] = useState<string[]>([]);
+  const [rideCount, setRideCount] = useState(0);
 
   // Track GPS points for status detection
   useEffect(() => {
@@ -55,7 +66,7 @@ export function ButtonVersionUI(props: any) {
   // Detect status from GPS - ONLY when user hasn't manually set state
   useEffect(() => {
     if (gpsPoints.length < 3) return;
-    if (manualStatusRef.current) return; // Don't override manual Hop On/Off
+    if (manualStatusRef.current) return;
     const analysis = analyzeGpsTrack(gpsPoints.slice(-20));
     setStatus(analysis.mode);
   }, [gpsPoints]);
@@ -65,7 +76,6 @@ export function ButtonVersionUI(props: any) {
     const fetchRoutes = async () => {
       try {
         const data = await edgePost('routes-public', {});
-        console.log('Routes data:', data);
         let routes = [];
         if (Array.isArray(data)) {
           routes = data;
@@ -76,7 +86,6 @@ export function ButtonVersionUI(props: any) {
         }
         const names = routes.map(r => r.name || r.route_name).filter(Boolean);
         setSavedRoutes(names);
-        console.log('✅ Saved routes loaded:', names.length);
       } catch (e) {
         console.log('Failed to fetch routes:', e);
       }
@@ -96,6 +105,8 @@ export function ButtonVersionUI(props: any) {
     setTimerActive(true);
     setGpsPoints([]);
     setStatus('walking');
+    setRideCount(0);
+    setSelectedVehicle(null);
     manualStatusRef.current = true;
     if (onSetPhase) onSetPhase('walking');
     if (onSetTimerActive) onSetTimerActive(true);
@@ -108,9 +119,31 @@ export function ButtonVersionUI(props: any) {
     setStatus('idle');
     setShowRouteSelector(false);
     setRouteInput('');
+    setSelectedVehicle(null);
+    setRideCount(0);
     if (onSetTimerActive) onSetTimerActive(false);
     if (onSetPhase) onSetPhase('idle');
     onEndRoute();
+  };
+
+  const handleHopOn = () => {
+    setTimer(0);
+    setStatus('transit');
+    manualStatusRef.current = true;
+    setRideCount(prev => prev + 1);
+    if (onSetPhase) onSetPhase('riding');
+    setShowRouteSelector(true);
+    onHopOn();
+  };
+
+  const handleHopOff = () => {
+    setTimer(0);
+    setStatus('walking');
+    manualStatusRef.current = true;
+    if (onSetPhase) onSetPhase('walking');
+    onHopOff();
+    setShowRouteSelector(false);
+    setSelectedVehicle(null);
   };
 
   const formatTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -119,20 +152,30 @@ export function ButtonVersionUI(props: any) {
     idle: '⏸️',
     walking: '🚶',
     traffic: '🚗',
-    transit: '🚌',
+    transit: VEHICLE_EMOJI[selectedVehicle] || '🚌',
     drift: '📡',
+  };
+
+  const statusLabel = {
+    idle: 'Idle',
+    walking: rideCount > 0 ? 'Walking to next stop' : 'Walking to stop',
+    traffic: 'In traffic',
+    transit: selectedVehicle ? `On ${VEHICLE_LABELS[selectedVehicle]}` : 'In transit',
+    drift: 'GPS drift',
   };
 
   return (
     <>
-    <div className="fixed bottom-16 left-2 right-2 z-[99999] pointer-events-auto">
+    <div className="fixed bottom-24 left-2 right-2 z-[99999] pointer-events-auto">
       {/* GPS Status Pill + Timer - ALWAYS VISIBLE */}
       <div className="bg-white rounded-full shadow-lg px-4 py-2 mb-2 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-lg">{statusEmoji[status] || '📍'}</span>
           <div className="min-w-0">
-            <span className="text-xs font-bold text-[#381D65] capitalize">{status}</span>
-            {currentRouteName && (
+            <span className="text-xs font-bold text-[#381D65]">
+              {statusLabel[status] || status}
+            </span>
+            {currentRouteName && status === 'transit' && (
               <span className="block text-[10px] text-gray-500 truncate max-w-[150px]">
                 🚐 {currentRouteName}
               </span>
@@ -160,16 +203,9 @@ export function ButtonVersionUI(props: any) {
               </button>
             )}
 
-            {/* Hop On/Off */}
+            {/* Hop On - always just "Hop On" when walking */}
             {status === 'walking' && (
-              <button onClick={() => {
-    setTimer(0);
-    setStatus('transit');
-    manualStatusRef.current = true;
-    if (onSetPhase) onSetPhase('riding');
-    setShowRouteSelector(true);
-    onHopOn();
-  }} className="w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm">
+              <button onClick={handleHopOn} className="w-full py-3 bg-purple-800 text-white rounded-xl font-bold text-sm">
                 🚌 Hop On
               </button>
             )}
@@ -181,101 +217,88 @@ export function ButtonVersionUI(props: any) {
                   <>
                     <p className="text-xs font-bold text-[#381D65]">Select vehicle:</p>
                     <div className="grid grid-cols-4 gap-1">
-                  {[
-                    { id: 'jeepney', label: 'Jeep', icon: '🚐' },
-                    { id: 'bus', label: 'Bus', icon: '🚌' },
-                    { id: 'train', label: 'Train', icon: '🚆' },
-                    { id: 'trike', label: 'Trike', icon: '🛺' },
-                    { id: 'uv_express', label: 'UV', icon: '🚐' },
-                    { id: 'grab', label: 'Grab', icon: '🚗' },
-                    { id: 'angkas', label: 'Angkas', icon: '🏍️' },
-                  ].map(v => (
-                    <button type="button" key={v.id} onClick={(e) => { 
-    e.preventDefault();
-    e.stopPropagation(); 
-    onSelectVehicle(v.id); 
-    setSelectedVehicle(v.id);
-    setStatus('transit');
-  }} className="py-2 bg-white rounded-lg text-center hover:bg-gray-100 border border-gray-200 cursor-pointer">
-                      <span className="text-lg">{v.icon}</span>
-                      <span className="block text-[10px] text-gray-600">{v.label}</span>
-                    </button>
-                  ))}
+                      {[
+                        { id: 'jeepney', label: 'Jeep', icon: '🚐' },
+                        { id: 'bus', label: 'Bus', icon: '🚌' },
+                        { id: 'train', label: 'Train', icon: '🚆' },
+                        { id: 'trike', label: 'Trike', icon: '🛺' },
+                        { id: 'uv_express', label: 'UV', icon: '🚐' },
+                        { id: 'grab', label: 'Grab', icon: '🚗' },
+                        { id: 'angkas', label: 'Angkas', icon: '🏍️' },
+                      ].map(v => (
+                        <button type="button" key={v.id} onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onSelectVehicle(v.id);
+                          setSelectedVehicle(v.id);
+                          setStatus('transit');
+                          manualStatusRef.current = true;
+                        }} className="py-2 bg-white rounded-lg text-center hover:bg-gray-100 border border-gray-200 cursor-pointer">
+                          <span className="text-lg">{v.icon}</span>
+                          <span className="block text-[10px] text-gray-600">{v.label}</span>
+                        </button>
+                      ))}
                     </div>
                   </>
                 ) : (
                   <>
                     <p className="text-xs font-bold text-[#381D65]">
-                      {VEHICLE_LABELS[selectedVehicle] || 'Selected'}: enter route name
+                      {VEHICLE_EMOJI[selectedVehicle]} {VEHICLE_LABELS[selectedVehicle] || 'Selected'}: enter route name
                     </p>
-                {/* Route name input */}
-                <input
-                  value={routeInput}
-                  onChange={(e) => {
-                    setRouteInput(e.target.value);
-                    const q = e.target.value.toLowerCase();
-                    setFilteredRoutes(savedRoutes.filter(r => r.toLowerCase().includes(q)).slice(0, 5));
-                  }}
-                  placeholder="Type route name (e.g. Cubao - Proj 4)"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                />
-                
-                {/* Autofill suggestions */}
-                {filteredRoutes.length > 0 && (
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                    {filteredRoutes.map(r => (
+                    <input
+                      value={routeInput}
+                      onChange={(e) => {
+                        setRouteInput(e.target.value);
+                        const q = e.target.value.toLowerCase();
+                        setFilteredRoutes(savedRoutes.filter(r => r.toLowerCase().includes(q)).slice(0, 5));
+                      }}
+                      placeholder="Type route name (e.g. Cubao - Proj 4)"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                    />
+                    {filteredRoutes.length > 0 && (
+                      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        {filteredRoutes.map(r => (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => { setRouteInput(r); setFilteredRoutes([]); onRouteSelect({ id: r, name: r }); setShowRouteSelector(false); }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                          >
+                            🚐 {r}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {routeInput && !savedRoutes.includes(routeInput) && (
                       <button
-                        key={r}
                         type="button"
-                        onClick={() => { setRouteInput(r); setFilteredRoutes([]); onRouteSelect({ id: r, name: r }); setShowRouteSelector(false); }}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100 last:border-0"
+                        onClick={() => { onRouteSelect({ id: 'add-new', name: routeInput }); setShowRouteSelector(false); }}
+                        className="w-full py-2 bg-green-500 text-white rounded-lg text-xs font-bold"
                       >
-                        🚐 {r}
+                        + Add new route: {routeInput}
                       </button>
-                    ))}
-                  </div>
-                )}
-                
-                {/* Add new route button */}
-                {routeInput && !savedRoutes.includes(routeInput) && (
-                  <button
-                    type="button"
-                    onClick={() => { onRouteSelect({ id: 'add-new', name: routeInput }); setShowRouteSelector(false); }}
-                    className="w-full py-2 bg-green-500 text-white rounded-lg text-xs font-bold"
-                  >
-                    + Add new route: {routeInput}
-                  </button>
-                )}
-                
-                {/* Quick route buttons */}
-                <div className="flex flex-wrap gap-1">
-                  {['UP Ikot', 'UP Katipunan', 'UP Philcoa'].map(r => (
-                    <button key={r} onClick={() => { setRouteInput(r); onRouteSelect({ id: r, name: r }); setShowRouteSelector(false); }}
-                      className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                      {r}
-                    </button>
-                  ))}
-                  <button onClick={() => { onRouteSelect({ id: 'add-new', name: routeInput || 'New Route' }); setShowRouteSelector(false); }}
-                    className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                    + Add: {routeInput || 'New Route'}
-                  </button>
-                </div>
+                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {['UP Ikot', 'UP Katipunan', 'UP Philcoa'].map(r => (
+                        <button key={r} onClick={() => { setRouteInput(r); onRouteSelect({ id: r, name: r }); setShowRouteSelector(false); }}
+                          className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                          {r}
+                        </button>
+                      ))}
+                      <button onClick={() => { onRouteSelect({ id: 'add-new', name: routeInput || 'New Route' }); setShowRouteSelector(false); }}
+                        className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                        + Add: {routeInput || 'New Route'}
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
             )}
 
-
+            {/* Hop Off - with Transfer/Finish context */}
             {(status === 'transit' || status === 'traffic') && (
-              <button onClick={() => {
-    setTimer(0);
-    setStatus('walking');
-    manualStatusRef.current = true;
-    if (onSetPhase) onSetPhase('walking');
-    onHopOff();
-    setShowRouteSelector(false);
-  }} className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-sm">
-                🚏 Hop Off
+              <button onClick={handleHopOff} className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-sm">
+                {rideCount > 1 ? '🚏 Hop Off — Transfer' : '🏁 Hop Off — Finish Ride'}
               </button>
             )}
 
