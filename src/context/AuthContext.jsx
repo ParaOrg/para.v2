@@ -1,108 +1,62 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { getApiBaseUrl } from "../utils/api";
-import { claimContributions, getPendingContributions } from "../utils/guestLink";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../utils/firebase";
 
 const AuthContext = createContext(null);
-const USER_KEY = "para_auth_user_v1";
-const TOKEN_KEY = "para_auth_token_v1";
-const API = getApiBaseUrl();
-
-function safeParse(value) { try { return value ? JSON.parse(value) : null; } catch { return null; } }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => safeParse(localStorage.getItem(USER_KEY)));
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check existing session — if user exists in localStorage, restore it
-    const storedUser = safeParse(localStorage.getItem(USER_KEY));
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    
-    if (storedUser) {
-      setUser(storedUser);
-    }
-    setLoading(false);
+    // Listen for auth state changes (login, logout, token refresh)
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "",
+          handle: firebaseUser.displayName || "",
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const login = useCallback(async (email) => {
-    const res = await fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-    const data = await res.json();
-    
-    if (data.user) {
-      setUser(data.user);
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-      
-      // Save token if present in response
-      if (data.token) {
-        localStorage.setItem(TOKEN_KEY, data.token);
-      } else if (data.session?.access_token) {
-        localStorage.setItem(TOKEN_KEY, data.session.access_token);
-      } else if (data.access_token) {
-        localStorage.setItem(TOKEN_KEY, data.access_token);
-      } else {
-        // No token in response — generate a session marker so user persists offline
-        localStorage.setItem(TOKEN_KEY, "session-" + Date.now());
-      }
-      
-      // Claim guest contributions
-      try {
-        const pendingCount = getPendingContributions().length;
-        if (pendingCount > 0 && data.user?.id) {
-          await claimContributions(data.user.id, data.user.email || email);
-        }
-      } catch {}
-    }
-    
-    return data;
+  const login = useCallback(async (email, password) => {
+    const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password);
+    return firebaseUser;
   }, []);
 
-  const signup = useCallback(async (email, name) => {
-    const res = await fetch("https://tcvomrkytxnetzijwqad.supabase.co/functions/v1/auth-signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name }),
-    });
-    const data = await res.json();
+  const signup = useCallback(async (email, password, name) => {
+    const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
     
-    if (data.user) {
-      setUser(data.user);
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-      
-      // Save token if present
-      if (data.token) {
-        localStorage.setItem(TOKEN_KEY, data.token);
-      } else if (data.session?.access_token) {
-        localStorage.setItem(TOKEN_KEY, data.session.access_token);
-      } else if (data.access_token) {
-        localStorage.setItem(TOKEN_KEY, data.access_token);
-      } else {
-        localStorage.setItem(TOKEN_KEY, "session-" + Date.now());
-      }
-      
-      // Claim guest contributions after signup
-      try {
-        const pendingCount = getPendingContributions().length;
-        if (pendingCount > 0 && data.user?.id) {
-          await claimContributions(data.user.id, data.user.email || email);
-        }
-      } catch {}
+    // Set display name
+    if (name) {
+      await updateProfile(firebaseUser, { displayName: name });
+      setUser(prev => prev ? { ...prev, name, handle: name } : prev);
     }
     
-    return data;
+    return firebaseUser;
   }, []);
 
   const loginWithCustomToken = useCallback(async (customToken) => {
-    return login(customToken);
+    return login(customToken, "");
   }, [login]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await signOut(auth);
     setUser(null);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
   }, []);
 
   const checkPermission = useCallback((requiredPermission) => {

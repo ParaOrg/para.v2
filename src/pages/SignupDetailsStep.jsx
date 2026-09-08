@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AuthPageLayout from '../components/AuthPageLayout';
-import { getApiBaseUrl, edgePost } from '../utils/api';
-
-const API = getApiBaseUrl();
+import { useAuth } from '../context/AuthContext';
 
 const ROLE_OPTIONS = [
   { value: 'commuter', label: 'Commuter', desc: 'Naghahanap ng ruta' },
@@ -15,6 +13,7 @@ const inputClass = `w-full px-4 py-2.5 rounded-lg text-gray-900 text-sm placehol
   focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all`;
 
 export default function SignupDetailsStep({ onSuccess }) {
+  const { signup } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
@@ -32,32 +31,23 @@ export default function SignupDetailsStep({ onSuccess }) {
     e.preventDefault();
     setError('');
 
+    // Validate email
+    if (!email.trim()) { setError('Enter your email.'); return; }
+    if (!password) { setError('Enter a password.'); return; }
+    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
+
     setLoading(true);
     try {
-      const normalizedContact = contact.startsWith('0') ? contact : `0${contact}`;
-      const data = await edgePost('auth-signup', {
-        name,
-        email,
-        contact: normalizedContact,
-        role,
-        coop_name: coopName,
-        affiliation,
-      });
-
-      if (data.status === 'error') {
-        setError(data.message || 'Registration failed.');
-        return;
+      const { user } = await signup(email.trim(), password, name || email.split('@')[0]);
+      
+      if (user) {
+        onSuccess({ uid: user.id, email: user.email });
+      } else {
+        setError('Check your email to confirm your account, then log in.');
       }
-
-      if (data.status === 'exists') {
-        // Existing user — redirect to login
-        setError('Account already exists. Please log in.');
-        return;
-      }
-
-      onSuccess({ uid: data.uid, email });
-    } catch {
-      setError('Network error.');
+    } catch (err) {
+      setError(err.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
@@ -83,6 +73,32 @@ export default function SignupDetailsStep({ onSuccess }) {
           type="email" value={email} onChange={(e) => setEmail(e.target.value)}
           autoComplete="email" placeholder="you@example.com" required className={inputClass}
         />
+
+        {/* Password */}
+        <div className="relative">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password} onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password" placeholder="Password (min 6 characters)" required className={inputClass}
+          />
+          <button type="button" onClick={() => setShowPw(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">
+            {showPassword ? '🙈' : '👁️'}
+          </button>
+        </div>
+
+        {/* Confirm Password */}
+        <div className="relative">
+          <input
+            type={showConfirm ? 'text' : 'password'}
+            value={confirmPassword} onChange={(e) => setConfirm(e.target.value)}
+            autoComplete="new-password" placeholder="Confirm password" required className={inputClass}
+          />
+          <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">
+            {showConfirm ? '🙈' : '👁️'}
+          </button>
+        </div>
 
         {/* Mobile */}
         <div className="flex gap-2">
