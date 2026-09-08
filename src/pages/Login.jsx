@@ -58,7 +58,7 @@ export default function Login() {
           Don't have an account? <Link to="/signup" className="text-purple-800 font-semibold hover:underline">Sign Up</Link>
         </p>
         <p className="mt-2 text-sm text-gray-500">
-          Forgot password? <Link to="/signup" className="text-purple-800 font-semibold hover:underline">Reset here</Link>
+          Forgot password? <Link to="/forgot-password" className="text-purple-800 font-semibold hover:underline">Reset here</Link>
         </p>
       </div>
     </AuthPageLayout>
