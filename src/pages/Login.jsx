@@ -21,7 +21,13 @@ export default function Login() {
       await login(email, password);
       navigate("/");
     } catch (err) {
-      setError(err.message || "Login failed. Check your email and password.");
+      const msg = err.message || err.code || "Login failed.";
+      if (msg.includes("auth/user-not-found")) setError("No account found with this email.");
+      else if (msg.includes("auth/wrong-password")) setError("Incorrect password.");
+      else if (msg.includes("auth/invalid-credential")) setError("Invalid email or password.");
+      else if (msg.includes("auth/too-many-requests")) setError("Too many attempts. Try again later.");
+      else if (msg.includes("auth/user-disabled")) setError("This account has been disabled.");
+      else setError(msg);
     } finally {
       setLoading(false);
     }
