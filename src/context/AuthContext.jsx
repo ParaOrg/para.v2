@@ -8,6 +8,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // One-time migration: purge legacy cache keys from the pre-Supabase era.
+    // These are the root cause of "shows wrong user after fresh signup" bugs.
+    try {
+      localStorage.removeItem("para_user");
+      // para_auth_user_v1 is unconditionally removed — Profile no longer reads it.
+      localStorage.removeItem("para_auth_user_v1");
+    } catch {}
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setLoading(false);
@@ -28,13 +36,28 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signup = useCallback(async (email, password, name) => {
+    // Clear any prior session so a stale token doesn't get restored
+    // and make the freshly-signed-up user look like the previous one.
+    try { await supabase.auth.signOut(); } catch {}
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name || email?.split("@")[0] || "" } },
+      options: {
+        data: { full_name: name || email?.split("@")[0] || "" },
+        emailRedirectTo: `${window.location.origin}/login`,
+      },
     });
     if (error) throw error;
-    return data.user;
+
+    // When email confirmation is enabled, `session` is null and user
+    // must confirm before they can log in. Surface this to the caller.
+    const needsConfirmation = !data.session && !!data.user;
+
+    return {
+      user: data.user,
+      needsConfirmation,
+    };
   }, []);
 
   const loginWithCustomToken = useCallback(async (customToken) => {
