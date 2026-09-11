@@ -25,15 +25,29 @@ import ArticlePage from "./pages/ArticlePage";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" /></div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+      </div>
+    );
+  }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return children;
 }
 
 function AdminRoute({ children }) {
   const { user, isAuthenticated, loading } = useAuth();
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" /></div>;
-  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "founder")) return <Navigate to="/login" replace />;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="w-8 h-8 animate-spin rounded-full border-4 border-purple-500 border-t-transparent" />
+      </div>
+    );
+  }
+  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "founder")) {
+    return <Navigate to="/login" replace />;
+  }
   return children;
 }
 
@@ -41,28 +55,56 @@ export default function App() {
   return (
     <TrackingConsentProvider>
       <AuthProvider>
-        <AuthHashHandler />
         <ErrorBoundary>
+          <AuthHashHandler />
           <Routes>
-          <Route path="/" element={<HomeNew />} />
-          <Route path="/explore" element={<RoutesExplorer />} />
-          <Route path="/contribute" element={<ContributePage />} />
-          <Route path="/weather" element={<WeatherPage />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/gas-prices" element={<GasPrices />} />
-          <Route path="/poi" element={<POIBrowser />} />
-          <Route path="/articles/:slug" element={<ArticlePage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                    <Route path="/live/:code" element={<LiveView />} />
-          <Route path="/routes/shared/:shareId" element={<SharedRouteView />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/" element={<HomeNew />} />
+            <Route path="/explore" element={<RoutesExplorer />} />
+            <Route path="/contribute" element={<ContributePage />} />
+            <Route path="/weather" element={<WeatherPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/gas-prices" element={<GasPrices />} />
+            <Route path="/poi" element={<POIBrowser />} />
+            <Route path="/articles/:slug" element={<ArticlePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/change-password"
+              element={
+                <ProtectedRoute>
+                  <ChangePassword />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <ProtectedRoute>
+                  <Community />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route path="/live/:code" element={<LiveView />} />
+            <Route path="/routes/shared/:shareId" element={<SharedRouteView />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ErrorBoundary>
       </AuthProvider>

@@ -7,16 +7,30 @@ import App from "./App.jsx";
 import { Analytics } from "@vercel/analytics/react";
 import "./index.css";
 
-startSyncEngine();
-startBackgroundTracking();
+// Guard background initialization so a failure in either module does not
+// prevent React from mounting (which would produce a blank white page).
+try {
+  startSyncEngine();
+} catch (e) {
+  console.error("[main] startSyncEngine failed:", e);
+}
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <>
-      <App />
-      <Analytics />
-    </>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+try {
+  startBackgroundTracking();
+} catch (e) {
+  console.error("[main] startBackgroundTracking failed:", e);
+}
+
+const rootEl = document.getElementById("root");
+if (!rootEl) {
+  console.error("[main] #root element not found — cannot mount React");
+} else {
+  ReactDOM.createRoot(rootEl).render(
+    <React.StrictMode>
+      <BrowserRouter>
+        <App />
+        <Analytics />
+      </BrowserRouter>
+    </React.StrictMode>
+  );
+}
