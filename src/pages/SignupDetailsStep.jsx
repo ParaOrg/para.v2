@@ -153,6 +153,25 @@ export default function SignupDetailsStep({ onSuccess }) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-3" noValidate autoComplete="off">
+        {/* Hidden dummy fields — absorb aggressive browser autofill so the
+            visible email/password inputs start blank on every visit. */}
+        <input
+          type="email"
+          name="signup-fake-email"
+          autoComplete="email"
+          style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+        <input
+          type="password"
+          name="signup-fake-password"
+          autoComplete="new-password"
+          style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+          tabIndex={-1}
+          aria-hidden="true"
+        />
+
         <input
           type="text"
           value={name}
