@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AuthPageLayout from "../components/AuthPageLayout";
@@ -8,18 +8,27 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const passwordRef = useRef(null);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const infoMessage = location.state?.message || "";
 
-  // --- Fix #1: Clear any pre-filled password on mount ---
-  // Some browsers autofill the password field aggressively after a signup.
-  // Forcing a fresh state on mount prevents "password is still there" UX.
+  // Force-clear any browser-autofilled password on mount and on route change.
+  // Browsers ignore autoComplete="off" on password fields, so we have to
+  // actively reset the DOM value after the field exists.
   useEffect(() => {
     setPassword("");
     setError("");
+    // Delay slightly so it runs after browser autofill has occurred
+    const t = setTimeout(() => {
+      if (passwordRef.current) {
+        passwordRef.current.value = "";
+      }
+      setPassword("");
+    }, 50);
+    return () => clearTimeout(t);
   }, [location.key]);
 
   const handleEmailLogin = async (e) => {
@@ -30,7 +39,6 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
-      // Clear the password from memory before navigation
       setPassword("");
       navigate("/");
     } catch (err) {
@@ -71,21 +79,44 @@ export default function Login() {
         )}
 
         <form onSubmit={handleEmailLogin} className="space-y-3" autoComplete="off">
+          {/* Hidden dummy fields — absorb aggressive browser autofill so the
+              visible fields stay blank. Browsers fill the first email/password
+              pair they find; the dummy pair takes the hit. */}
+          <input
+            type="email"
+            name="fake-email-absorb"
+            autoComplete="email"
+            style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+          <input
+            type="password"
+            name="fake-password-absorb"
+            autoComplete="new-password"
+            style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+            tabIndex={-1}
+            aria-hidden="true"
+          />
+
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             autoFocus
-            autoComplete="email"
+            autoComplete="off"
+            name="login-email"
             className="w-full px-4 py-3 rounded-xl text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center"
           />
           <input
+            ref={passwordRef}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            autoComplete="current-password"
+            autoComplete="new-password"
+            name="login-password"
             className="w-full px-4 py-3 rounded-xl text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center"
           />
           <button
