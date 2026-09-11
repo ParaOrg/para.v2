@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import AuthPageLayout from "../components/AuthPageLayout";
@@ -14,6 +14,14 @@ export default function Login() {
 
   const infoMessage = location.state?.message || "";
 
+  // --- Fix #1: Clear any pre-filled password on mount ---
+  // Some browsers autofill the password field aggressively after a signup.
+  // Forcing a fresh state on mount prevents "password is still there" UX.
+  useEffect(() => {
+    setPassword("");
+    setError("");
+  }, [location.key]);
+
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -22,6 +30,8 @@ export default function Login() {
     setLoading(true);
     try {
       await login(email, password);
+      // Clear the password from memory before navigation
+      setPassword("");
       navigate("/");
     } catch (err) {
       const msg = err?.message || "Login failed.";
@@ -60,7 +70,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleEmailLogin} className="space-y-3">
+        <form onSubmit={handleEmailLogin} className="space-y-3" autoComplete="off">
           <input
             type="email"
             value={email}
