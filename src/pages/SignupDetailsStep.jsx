@@ -38,10 +38,16 @@ export default function SignupDetailsStep({ onSuccess }) {
 
     setLoading(true);
     try {
-      const supabaseUser = await signup(email.trim(), password, name || email.split('@')[0]);
-      
-      if (supabaseUser?.id) {
-        onSuccess({ uid: supabaseUser.id, email: supabaseUser.email });
+      const result = await signup(email.trim(), password, name || email.split('@')[0]);
+
+      if (result?.user?.id) {
+        onSuccess({
+          uid: result.user.id,
+          email: result.user.email,
+          needsConfirmation: result.needsConfirmation,
+        });
+      } else {
+        setError('Registration did not return a user. Please try again.');
       }
     } catch (err) {
       setError(err.message || 'Registration failed.');

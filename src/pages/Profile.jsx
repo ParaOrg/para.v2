@@ -16,7 +16,7 @@ const BADGES = [
 const API = getApiBaseUrl();
 
 export default function Profile() {
-  const { user, setUser, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
@@ -25,16 +25,25 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load from localStorage
+    // Read identity from Supabase user metadata (single source of truth).
+    // The legacy "para_auth_user_v1" localStorage cache has been removed.
+    if (!user) {
+      setName("");
+      setUsername("");
+      setBio("");
+    } else {
+      const meta = user.user_metadata || {};
+      setName(meta.full_name || user.email?.split("@")[0] || "");
+      setUsername(meta.handle || "");
+      setBio(meta.bio || "Metro Manila commuter. Helping build better routes for everyone.");
+    }
     try {
-      const savedUser = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
-      setName(savedUser.name || savedUser.email?.split("@")[0] || "");
-      setUsername(savedUser.handle || "");
-      setBio(savedUser.bio || "Metro Manila commuter. Helping build better routes for everyone.");
       setSavedTracks(JSON.parse(localStorage.getItem("para_saved_tracks") || "[]"));
-    } catch {}
+    } catch {
+      setSavedTracks([]);
+    }
     setLoading(false);
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (
@@ -71,12 +80,10 @@ export default function Profile() {
         alert(data.message);
         return;
       }
-      const existing = JSON.parse(localStorage.getItem("para_auth_user_v1") || "{}");
-      existing.handle = username;
-      existing.name = name;
-      existing.bio = bio;
-      localStorage.setItem("para_auth_user_v1", JSON.stringify(existing));
-      setUser(existing); // Update React state immediately
+      // Identity is stored server-side (via the /auth/username API) and
+      // on Supabase user metadata. Do NOT write to localStorage.
+      // Reload the page to pick up fresh metadata, or wait for the next
+      // auth state change to refresh the user object.
     } catch (e) {
       alert("Failed to save. Try again.");
       return;

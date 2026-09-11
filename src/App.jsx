@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { TrackingConsentProvider } from "./context/TrackingConsentContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import AuthHashHandler from "./components/AuthHashHandler";
 
 import HomeNew from "./pages/HomeNew";
 import RoutesExplorer from "./pages/RoutesExplorer";
@@ -40,6 +41,7 @@ export default function App() {
   return (
     <TrackingConsentProvider>
       <AuthProvider>
+        <AuthHashHandler />
         <ErrorBoundary>
           <Routes>
           <Route path="/" element={<HomeNew />} />
