@@ -53,3 +53,15 @@ graph_data.json
 firebase-service-account.json
 migrate_users.*
 * *
+
+# Local backup files
+*.backup-*
+src/**/*.backup-*
+
+# Vite build output (Vercel builds fresh from source)
+dist/
+
+# Env files
+.env
+.env.*
+!.env.example
