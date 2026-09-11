@@ -35,16 +35,23 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
-  const signup = useCallback(async (email, password, name) => {
+  const signup = useCallback(async (email, password, name, extraMetadata = {}) => {
     // Clear any prior session so a stale token doesn't get restored
     // and make the freshly-signed-up user look like the previous one.
     try { await supabase.auth.signOut(); } catch {}
+
+    // Build user_metadata: full_name is always present; extra fields
+    // (contact, role, coop_name, affiliation) come from the signup form.
+    const userMetadata = {
+      full_name: name || email?.split("@")[0] || "",
+      ...extraMetadata,
+    };
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: name || email?.split("@")[0] || "" },
+        data: userMetadata,
         emailRedirectTo: `${window.location.origin}/login`,
       },
     });

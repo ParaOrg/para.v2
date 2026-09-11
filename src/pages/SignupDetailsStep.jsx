@@ -38,7 +38,27 @@ export default function SignupDetailsStep({ onSuccess }) {
 
     setLoading(true);
     try {
-      const result = await signup(email.trim(), password, name || email.split('@')[0]);
+      // Normalize the PH mobile number to E.164 format (+639XXXXXXXXX).
+      // Users type 10 digits (e.g. "9171234567") and we prefix +63.
+      const digits = (contact || "").replace(/\D/g, "");
+      const contactE164 = digits ? `+63${digits}` : "";
+
+      // Build extra metadata that rides along with the Supabase user.
+      const extraMetadata = {
+        contact: contactE164,
+        role,
+      };
+      if (role === "driver") {
+        if (coopName) extraMetadata.coop_name = coopName;
+        if (affiliation) extraMetadata.affiliation = affiliation;
+      }
+
+      const result = await signup(
+        email.trim(),
+        password,
+        name || email.split('@')[0],
+        extraMetadata,
+      );
 
       if (result?.user?.id) {
         onSuccess({
