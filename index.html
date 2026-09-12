@@ -23,7 +23,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {
-          const reg = await navigator.serviceWorker.register('/sw.js?v=20260905');
+          const reg = await navigator.serviceWorker.register('/sw.js?v=20260912');
           await reg.update();
           console.log('✅ SW registered');
         } catch (e) {

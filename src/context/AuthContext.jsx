@@ -1,9 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "../utils/supabase";
+import { getApiBaseUrl } from "../utils/api";
 
 const AuthContext = createContext(null);
-
-const API_BASE = import.meta.env.VITE_API_BASE || "";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -89,14 +88,30 @@ export function AuthProvider({ children }) {
    */
   const updateHandle = useCallback(async (newHandle, newName) => {
     if (!user) throw new Error("Not signed in");
-    const base = API_BASE || window.location.origin;
-    const res = await fetch(`${base}/api/auth/username`, {
+    // Uses the same backend base URL as the rest of the app
+    // (https://para-ph-api.onrender.com in production).
+    const API = getApiBaseUrl();
+    const res = await fetch(`${API}/auth/username`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: user.email, handle: newHandle, name: newName }),
     });
-    const data = await res.json();
-    if (data.status === "error") throw new Error(data.message || "Failed to update handle");
+
+    // Guard against HTML responses (Vercel 404 page, proxy error, etc.)
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Server returned non-JSON response (HTTP ${res.status})`);
+    }
+
+    if (!res.ok) {
+      throw new Error(data?.message || `HTTP ${res.status}`);
+    }
+    if (data.status === "error") {
+      throw new Error(data.message || "Failed to update handle");
+    }
     return data;
   }, [user]);
 
