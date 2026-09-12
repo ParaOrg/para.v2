@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { getApiBaseUrl } from "../utils/api";
 import AnalyticsDashboard from "../components/AnalyticsDashboard";
 import BottomNav from "../components/BottomNav";
 import { useAuth } from "../context/AuthContext";
@@ -13,30 +12,12 @@ const BADGES = [
   { id: 4, name: "Early Adopter", icon: "⭐", description: "Joined during beta", tier: "bronze", unlocked: true },
 ];
 
-const API = getApiBaseUrl();
-
 export default function Profile() {
   const { user, isAuthenticated } = useAuth();
-  const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");
-  const [editing, setEditing] = useState(false);
   const [savedTracks, setSavedTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Read identity from Supabase user metadata (single source of truth).
-    // The legacy "para_auth_user_v1" localStorage cache has been removed.
-    if (!user) {
-      setName("");
-      setUsername("");
-      setBio("");
-    } else {
-      const meta = user.user_metadata || {};
-      setName(meta.full_name || user.email?.split("@")[0] || "");
-      setUsername(meta.handle || "");
-      setBio(meta.bio || "Metro Manila commuter. Helping build better routes for everyone.");
-    }
     try {
       setSavedTracks(JSON.parse(localStorage.getItem("para_saved_tracks") || "[]"));
     } catch {
@@ -68,28 +49,11 @@ export default function Profile() {
     );
   }
 
-  const saveProfile = async () => {
-    try {
-      const res = await fetch(`${API}/auth/username`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user?.email, handle: username, name }),
-      });
-      const data = await res.json();
-      if (data.status === "error" && data.message === "Username already taken") {
-        alert(data.message);
-        return;
-      }
-      // Identity is stored server-side (via the /auth/username API) and
-      // on Supabase user metadata. Do NOT write to localStorage.
-      // Reload the page to pick up fresh metadata, or wait for the next
-      // auth state change to refresh the user object.
-    } catch (e) {
-      alert("Failed to save. Try again.");
-      return;
-    }
-    setEditing(false);
-  };
+  const meta = user.user_metadata || {};
+  const displayName = meta.full_name || user.email?.split("@")[0] || "Your Name";
+  const handle = meta.handle || "";
+  const bio = meta.bio || "Metro Manila commuter. Helping build better routes for everyone.";
+  const role = meta.role || "commuter";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,53 +63,41 @@ export default function Profile() {
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[#D1B6FC] flex items-center justify-center text-2xl font-bold text-[#381D65] shrink-0">
-              {(username || "U")[0].toUpperCase()}
+              {(handle || displayName || "U")[0].toUpperCase()}
             </div>
-            <div className="flex-1">
-              {editing ? (
-                <>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                    className="w-full px-3 py-2 text-lg font-bold text-[#381D65] border border-gray-200 rounded-lg outline-none"
-                  />
-                  <input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Username"
-                    className="w-full mt-1 px-3 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg outline-none"
-                  />
-                </>
-              ) : (
-                <>
-                  <h2 className="text-xl font-bold text-[#381D65]">{name || "Your Name"}</h2>
-                  <p className="text-sm text-gray-400">@{username || "username"}</p>
-                </>
-              )}
-            {user?.role === "founder" && (
-              <span className="inline-block mt-1 text-[10px] font-bold bg-gradient-to-r from-[#7A4BC8] to-[#381D65] text-white px-2 py-0.5 rounded-full">
-                👑 Founder
-              </span>
-            )}
-            {user?.role === "admin" && user?.role !== "founder" && (
-              <span className="inline-block mt-1 text-[10px] font-bold bg-[#7A4BC8] text-white px-2 py-0.5 rounded-full">
-                🛠️ Admin
-              </span>
-            )}
-            {!user?.role && (
-              <span className="inline-block mt-1 text-[10px] font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-                Commuter
-              </span>
-            )}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold text-[#381D65] truncate">{displayName}</h2>
+              {handle && <p className="text-sm text-gray-400">@{handle}</p>}
+              <div className="mt-1">
+                {role === "founder" && (
+                  <span className="inline-block text-[10px] font-bold bg-gradient-to-r from-[#7A4BC8] to-[#381D65] text-white px-2 py-0.5 rounded-full">
+                    👑 Founder
+                  </span>
+                )}
+                {role === "admin" && (
+                  <span className="inline-block text-[10px] font-bold bg-[#7A4BC8] text-white px-2 py-0.5 rounded-full">
+                    🛠️ Admin
+                  </span>
+                )}
+                {role === "driver" && (
+                  <span className="inline-block text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                    🚐 Driver
+                  </span>
+                )}
+                {role === "commuter" && (
+                  <span className="inline-block text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    🧍 Commuter
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => editing ? saveProfile() : setEditing(true)}
-                className="text-[#7A4BC8] text-sm font-bold"
+            <div className="flex flex-col gap-2 items-end shrink-0">
+              <Link
+                to="/profile/edit"
+                className="text-[#7A4BC8] text-sm font-bold hover:underline"
               >
-                {editing ? "Save" : "Edit"}
-              </button>
+                Edit Profile
+              </Link>
               <Link
                 to="/change-password"
                 className="text-gray-400 hover:text-[#7A4BC8] text-xs font-medium"
@@ -154,17 +106,18 @@ export default function Profile() {
               </Link>
             </div>
           </div>
+          <p className="mt-4 text-sm text-gray-600">{bio}</p>
 
-          {editing ? (
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us about yourself..."
-              rows={3}
-              className="w-full mt-4 px-3 py-2 text-sm border border-gray-200 rounded-xl outline-none resize-none"
-            />
-          ) : (
-            <p className="mt-4 text-sm text-gray-600">{bio}</p>
+          {/* Contact info */}
+          {meta.contact && (
+            <p className="mt-2 text-xs text-gray-400">
+              📱 {meta.contact}
+            </p>
+          )}
+          {meta.coop_name && (
+            <p className="mt-1 text-xs text-gray-400">
+              🚐 {meta.coop_name}{meta.affiliation ? ` · ${meta.affiliation}` : ""}
+            </p>
           )}
         </div>
 
@@ -186,7 +139,9 @@ export default function Profile() {
                   <span className="text-xl">🚐</span>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-800">{track.route_name}</p>
-                    <p className="text-xs text-gray-400">{Math.floor(track.total_time_sec / 60)} min • {new Date(track.saved_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-400">
+                      {Math.floor(track.total_time_sec / 60)} min • {new Date(track.saved_at).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
               ))}

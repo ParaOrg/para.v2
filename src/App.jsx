@@ -13,6 +13,7 @@ import WeatherPage from "./components/WeatherPage";
 import Community from "./pages/Community";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
@@ -91,6 +92,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <EditProfile />
                 </ProtectedRoute>
               }
             />
