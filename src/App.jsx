@@ -9,6 +9,7 @@ import RoutesExplorer from "./pages/RoutesExplorer";
 import LiveView from "./pages/LiveView";
 import SharedRouteView from "./pages/SharedRouteView";
 import ContributePage from "./pages/ContributePage";
+import CommuteTrackerPage from "./pages/CommuteTrackerPage";
 import WeatherPage from "./components/WeatherPage";
 import Community from "./pages/Community";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -38,7 +39,7 @@ function ProtectedRoute({ children }) {
 }
 
 function AdminRoute({ children }) {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { role, isAuthenticated, loading } = useAuth();
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -46,7 +47,7 @@ function AdminRoute({ children }) {
       </div>
     );
   }
-  if (!isAuthenticated || (user?.role !== "admin" && user?.role !== "founder")) {
+  if (!isAuthenticated || (role !== "admin" && role !== "founder")) {
     return <Navigate to="/login" replace />;
   }
   return children;
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/" element={<HomeNew />} />
             <Route path="/explore" element={<RoutesExplorer />} />
             <Route path="/contribute" element={<ContributePage />} />
+          <Route path="/contribute-v2" element={<CommuteTrackerPage />} />
             <Route path="/weather" element={<WeatherPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />

@@ -34,10 +34,10 @@ function HamburgerIcon({ open }) {
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-  const { user, logout, isGuest } = useAuth();
+  const { user, role, logout, isGuest } = useAuth();
   
   // Desktop links (exclude Contribute)
-  const visibleLinks = ALL_NAV_LINKS.filter(l => !l.adminOnly || user?.role === "admin" || user?.role === "founder");
+  const visibleLinks = ALL_NAV_LINKS.filter(l => !l.adminOnly || role === "admin" || role === "founder");
   
   // Mobile links (include Contribute)
   const mobileLinks = [...visibleLinks, ...MOBILE_ONLY_LINKS];

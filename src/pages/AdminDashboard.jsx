@@ -40,9 +40,10 @@ const TABS = [
 
 export default function AdminDashboard() {
   const auth = useAuth();
+  const { role } = auth;
   const [tab, setTab] = useState("doctor");
 
-  if (!auth.isAuthenticated || (auth.user?.role !== "admin" && auth.user?.role !== "founder")) {
+  if (!auth.isAuthenticated || (role !== "admin" && role !== "founder")) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />

@@ -13,7 +13,7 @@ const inputClass =
   "w-full px-4 py-3 rounded-xl text-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900 bg-white";
 
 export default function EditProfile() {
-  const { user, updateProfile, updateHandle, updateEmail, phoneExists } = useAuth();
+  const { user, profile, role, updateProfile, updateHandle, updateEmail, phoneExists } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -21,7 +21,7 @@ export default function EditProfile() {
   const [handle, setHandle] = useState("");
   const [bio, setBio] = useState("");
   const [contact, setContact] = useState("");
-  const [role, setRole] = useState("commuter");
+  const [selectedRole, setSelectedRole] = useState("commuter");
   const [coopName, setCoopName] = useState("");
   const [affiliation, setAffiliation] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -38,19 +38,28 @@ export default function EditProfile() {
     }
   }, [searchParams]);
 
+  // Hydrate form from profile (falls back to user_metadata during transition)
   useEffect(() => {
     if (!user) return;
     const meta = user.user_metadata || {};
-    setName(meta.full_name || "");
-    setHandle(meta.handle || "");
-    setBio(meta.bio || "");
-    setRole(meta.role || "commuter");
-    setCoopName(meta.coop_name || "");
-    setAffiliation(meta.affiliation || "");
-    const rawContact = meta.contact || "";
-    setContact(rawContact.startsWith("+63") ? rawContact.slice(3) : rawContact.replace(/\D/g, ""));
+    const src = profile || meta;
+
+    setName(src.full_name || meta.full_name || "");
+    setHandle(src.handle || meta.handle || "");
+    setBio(src.bio || meta.bio || "");
+    setSelectedRole(role || "commuter");
+    setCoopName(src.coop_name || meta.coop_name || "");
+    setAffiliation(src.affiliation || meta.affiliation || "");
+
+    const rawContact = src.contact || meta.contact || "";
+    setContact(
+      rawContact.startsWith("+63")
+        ? rawContact.slice(3)
+        : rawContact.replace(/\D/g, "")
+    );
+
     setLoading(false);
-  }, [user]);
+  }, [user, profile, role]);
 
   if (loading) {
     return (
@@ -75,8 +84,7 @@ export default function EditProfile() {
     );
   }
 
-  const meta = user.user_metadata || {};
-  const originalRole = meta.role || "commuter";
+  const originalRole = role || "commuter";
   const isPrivileged = originalRole === "admin" || originalRole === "founder";
 
   const handleSave = async (e) => {
@@ -91,7 +99,7 @@ export default function EditProfile() {
     }
     const contactE164 = digits ? `+63${digits}` : "";
 
-    const originalContact = meta.contact || "";
+    const originalContact = profile?.contact || user.user_metadata?.contact || "";
     if (contactE164 && contactE164 !== originalContact) {
       const taken = await phoneExists(contactE164);
       if (taken) {
@@ -100,29 +108,40 @@ export default function EditProfile() {
       }
     }
 
-    const updates = {};
-    if (name && name !== (meta.full_name || "")) updates.full_name = name;
-    if (bio !== (meta.bio || "")) updates.bio = bio;
-    if (contactE164 !== originalContact) updates.contact = contactE164;
-    if (!isPrivileged && role !== originalRole) updates.role = role;
-    if (role === "driver") {
-      if (coopName !== (meta.coop_name || "")) updates.coop_name = coopName;
-      if (affiliation !== (meta.affiliation || "")) updates.affiliation = affiliation;
+    // Build updates — role is intentionally excluded (RLS blocks it anyway)
+    const updates = {
+      full_name: name || null,
+      bio: bio || null,
+      contact: contactE164 || null,
+    };
+
+    if (!isPrivileged && selectedRole !== originalRole) {
+      // Role changes for regular users are technically blocked by RLS.
+      // We surface a clear error rather than silently failing.
+      setError("Role changes are managed by the Para PH team. Contact support.");
+      return;
+    }
+
+    if (selectedRole === "driver") {
+      updates.coop_name = coopName || null;
+      updates.affiliation = affiliation || null;
     }
 
     setSaving(true);
     try {
-      if (Object.keys(updates).length > 0) {
-        await updateProfile(updates);
+      await updateProfile(updates);
+
+      if (handle && handle !== (profile?.handle || user.user_metadata?.handle || "")) {
+        await updateHandle(handle, name);
       }
-      if (handle && handle !== (meta.handle || "")) {
-        await updateHandle(handle, name || meta.full_name);
-      }
+
       setSuccess("Profile updated successfully.");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err) {
       const msg = (err?.message || "").toLowerCase();
-      if (msg.includes("already registered") || msg.includes("already taken")) {
+      if (msg.includes("row-level security") || msg.includes("policy")) {
+        setError("That change isn't allowed. If this is an error, contact support.");
+      } else if (msg.includes("already registered") || msg.includes("already taken")) {
         setError("That handle or phone is already taken by another account.");
       } else if (msg.includes("phone")) {
         setError(err.message);
@@ -294,29 +313,34 @@ export default function EditProfile() {
               Your role is <strong>{originalRole}</strong> and can't be changed here.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2">
-              {ROLE_OPTIONS.map(({ value, label, desc }) => {
-                const active = role === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setRole(value)}
-                    className={`p-3 rounded-xl border-2 text-center transition-all ${
-                      active ? "border-purple-700 bg-purple-50" : "border-gray-200 bg-white"
-                    }`}
-                  >
-                    <span className={`block text-sm font-bold ${active ? "text-gray-900" : "text-gray-500"}`}>
-                      {label}
-                    </span>
-                    <span className={`text-xs ${active ? "text-purple-700" : "text-gray-400"}`}>{desc}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                {ROLE_OPTIONS.map(({ value, label, desc }) => {
+                  const active = selectedRole === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setSelectedRole(value)}
+                      className={`p-3 rounded-xl border-2 text-center transition-all ${
+                        active ? "border-purple-700 bg-purple-50" : "border-gray-200 bg-white"
+                      }`}
+                    >
+                      <span className={`block text-sm font-bold ${active ? "text-gray-900" : "text-gray-500"}`}>
+                        {label}
+                      </span>
+                      <span className={`text-xs ${active ? "text-purple-700" : "text-gray-400"}`}>{desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Role changes require team approval. Contact support to switch permanently.
+              </p>
+            </>
           )}
 
-          {role === "driver" && !isPrivileged && (
+          {selectedRole === "driver" && !isPrivileged && (
             <div className="space-y-3 pt-2">
               <input
                 type="text"

@@ -138,13 +138,17 @@ const ContributePage: React.FC = () => {
     const totalDurationSec = Math.floor((Date.now() - (startTimeRef.current || Date.now())) / 1000) || commuteTimer;
     const totalDistance = calculateTotalDistance(gpsPoints);
 
-    if (gpsPoints.length < 5) {
-      setSuccessMessage('Not enough GPS points (min 5). Track longer.');
+    // Hybrid guard (C):
+    //   Reject < 30s duration   → not a real commute
+    //   Reject < 3 GPS points   → can't plot a line
+    //   Accept everything else  → DB trigger flags quality
+    if (totalDurationSec < 30) {
+      setSuccessMessage('Track at least 30 seconds.');
       setShowSuccess(true);
       return;
     }
-    if (totalDurationSec < 60) {
-      setSuccessMessage('Duration too short (min 60s).');
+    if (gpsPoints.length < 3) {
+      setSuccessMessage('Waiting for GPS signal. Move to an open area and retry.');
       setShowSuccess(true);
       return;
     }

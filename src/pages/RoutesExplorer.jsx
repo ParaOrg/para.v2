@@ -137,8 +137,8 @@ function AdminModePanel({ routes }) {
 }
 
 export default function RoutesExplorer() {
-  const { user } = useAuth();
-  const isAdmin = user?.role === "admin" || user?.role === "founder";
+  const { user, role } = useAuth();
+  const isAdmin = role === "admin" || role === "founder";
   const isMobile = useIsMobile();
   const mapRef = useRef(null);
   const mapInst = useRef(null);

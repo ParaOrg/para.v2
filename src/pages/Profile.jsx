@@ -13,7 +13,7 @@ const BADGES = [
 ];
 
 export default function Profile() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, role, isAuthenticated } = useAuth();
   const [savedTracks, setSavedTracks] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,10 +50,11 @@ export default function Profile() {
   }
 
   const meta = user.user_metadata || {};
-  const displayName = meta.full_name || user.email?.split("@")[0] || "Your Name";
-  const handle = meta.handle || "";
-  const bio = meta.bio || "Metro Manila commuter. Helping build better routes for everyone.";
-  const role = meta.role || "commuter";
+  const src = profile || meta;
+  const displayName = src.full_name || meta.full_name || user.email?.split("@")[0] || "Your Name";
+  const handle = src.handle || meta.handle || "";
+  const bio = src.bio || meta.bio || "Metro Manila commuter. Helping build better routes for everyone.";
+  // `role` comes from the useAuth() destructure (prefers profiles.role).
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,14 +110,14 @@ export default function Profile() {
           <p className="mt-4 text-sm text-gray-600">{bio}</p>
 
           {/* Contact info */}
-          {meta.contact && (
+          {(src.contact || meta.contact) && (
             <p className="mt-2 text-xs text-gray-400">
-              📱 {meta.contact}
+              📱 {src.contact || meta.contact}
             </p>
           )}
-          {meta.coop_name && (
+          {(src.coop_name || meta.coop_name) && (
             <p className="mt-1 text-xs text-gray-400">
-              🚐 {meta.coop_name}{meta.affiliation ? ` · ${meta.affiliation}` : ""}
+              🚐 {src.coop_name || meta.coop_name}{(src.affiliation || meta.affiliation) ? ` · ${src.affiliation || meta.affiliation}` : ""}
             </p>
           )}
         </div>
