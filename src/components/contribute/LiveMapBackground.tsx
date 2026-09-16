@@ -234,8 +234,6 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   // Never auto-centers on mount.
   const pendingCenterRef = useRef(false);
   useEffect(() => {
-    /* __TRACE_LOCATE__ */
-    console.log('[locate] effect fired. location=', location, 'pending=', pendingCenterRef.current);
     if (location && mapRef.current && pendingCenterRef.current) {
       mapRef.current.setView([location.lat, location.lng], 17, { animate: true });
       setCurrentPos([location.lat, location.lng]);
@@ -246,10 +244,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
 
   // Mark that a center is pending when the user taps GPS without a location yet
   const locateMapWithPending = () => {
-    /* __TRACE_LOCATE__ */
-    console.log('[locate] tapped. location=', location, 'mapRef=', !!mapRef.current);
     if (!location) pendingCenterRef.current = true;
-    console.log('[locate] pendingCenterRef=', pendingCenterRef.current);
     locateMap();
   };
   // __LOCATE_FIXED__

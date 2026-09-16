@@ -23,8 +23,6 @@ export function TrackingConsentProvider({ children }) {
   }, []);
 
   const fetchOnce = useCallback(() => {
-    /* __TRACE_FETCH__ */
-    console.log('[fetchOnce] called');
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setError("Geolocation is not supported on this device.");
       setStatus("unsupported");
@@ -33,8 +31,6 @@ export function TrackingConsentProvider({ children }) {
     setStatus("requesting");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        /* __TRACE_FETCH__ */
-        console.log('[fetchOnce] success', pos.coords.latitude, pos.coords.longitude);
         const next = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
@@ -47,8 +43,6 @@ export function TrackingConsentProvider({ children }) {
         try { window.__userLocation = [next.lat, next.lng]; } catch {}
       },
       (err) => {
-        /* __TRACE_FETCH__ */
-        console.log('[fetchOnce] error', err.code, err.message);
         setError(err.message || "Location permission denied.");
         setStatus("error");
       },
@@ -80,11 +74,6 @@ export function TrackingConsentProvider({ children }) {
     if (!consent) { setStatus("consent_required"); return false; }
     return fetchOnce();
   }, [consent, fetchOnce]);
-
-  // IMPORTANT: on mount, if consent is already granted, do NOT auto-fetch.
-  // The map should not silently ask the browser for location.
-  // The user can tap the GPS button, or the tracking component can call
-  // startTracking() when they explicitly begin a flow.
 
   useEffect(() => () => stopTracking(), [stopTracking]);
 
