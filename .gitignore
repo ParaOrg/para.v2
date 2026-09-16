@@ -65,3 +65,14 @@ dist/
 .env
 .env.*
 !.env.example
+supabase/.temp/
+*.zip
+
+# Stray data files (should never be committed)
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files that lack the dash separator
+*.bak
+*.backup
