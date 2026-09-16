@@ -4,6 +4,13 @@ import 'leaflet/dist/leaflet.css';
 import GpsIcon from '../GpsIcon';
 import { useTrackingConsent } from '../../context/TrackingConsentContext';
 
+export interface CommutePath {
+  id: string;
+  mode: string;         // 'walking' | 'jeepney' | 'bus' | 'train' | 'trike' | 'uv_express' | 'grab' | 'angkas'
+  points: [number, number][];
+  isActive: boolean;
+}
+
 interface LiveMapBackgroundProps {
   isTracking: boolean;
   commuteState: string;
@@ -11,10 +18,23 @@ interface LiveMapBackgroundProps {
   panelHeight?: string;
   externalPinMode?: boolean;
   onExternalPinModeChange?: (active: boolean) => void;
+  /** When provided, the map draws each commute segment as a colored polyline. */
+  commutePaths?: CommutePath[];
 }
 
 const DEFAULT_CENTER: [number, number] = [14.5995, 120.9842];
 const DEFAULT_ZOOM = 14;
+
+const SEGMENT_COLORS: Record<string, string> = {
+  walking:     '#9CA3AF',
+  jeepney:     '#7A4BC8',
+  bus:         '#2563EB',
+  train:       '#16A34A',
+  trike:       '#F59E0B',
+  uv_express:  '#7A4BC8',
+  grab:        '#0891B2',
+  angkas:      '#DC2626',
+};
 
 export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   isTracking,
@@ -23,6 +43,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   panelHeight = '40vh',
   externalPinMode = false,
   onExternalPinModeChange,
+  commutePaths,
 }) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.CircleMarker | null>(null);
@@ -40,6 +61,11 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   const gpsTrailPoints = useRef<[number, number][]>([]);
   const [routeShapePoints, setRouteShapePoints] = useState<[number, number][]>([]);
   const routeShapeRef = useRef<L.Polyline | null>(null);
+
+  // Commute-segment paths — one polyline per segment + hop markers
+  const commuteLayerRef = useRef<L.LayerGroup | null>(null);
+  const commutePolylinesRef = useRef<Map<string, L.Polyline>>(new Map());
+  const commuteMarkersRef = useRef<Map<string, L.CircleMarker[]>>(new Map());
 
   // Expose route shape points for parent
   useEffect(() => {
@@ -264,6 +290,108 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       gpsTrailRef.current.setStyle(trailStyle);
     }
   }, [location, isTracking, commuteState]);
+
+  // Commute paths — draws each segment in its mode color.
+  // Only active when `commutePaths` is provided (i.e., on /contribute-v2).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    // Initialize the layer group once
+    if (!commuteLayerRef.current) {
+      commuteLayerRef.current = L.layerGroup().addTo(map);
+    }
+    const layer = commuteLayerRef.current;
+
+    // If no commutePaths provided, do nothing (leave existing trail logic alone)
+    if (!commutePaths) return;
+
+    // Clear existing commute polylines and markers that are no longer relevant
+    const incomingIds = new Set(commutePaths.map((p) => p.id));
+    commutePolylinesRef.current.forEach((poly, id) => {
+      if (!incomingIds.has(id)) {
+        poly.remove();
+        commutePolylinesRef.current.delete(id);
+      }
+    });
+    commuteMarkersRef.current.forEach((markers, id) => {
+      if (!incomingIds.has(id)) {
+        markers.forEach((m) => m.remove());
+        commuteMarkersRef.current.delete(id);
+      }
+    });
+
+    // Draw or update each path
+    commutePaths.forEach((path) => {
+      // Skip empty segments
+      if (!path.points || path.points.length < 2) return;
+
+      const color = SEGMENT_COLORS[path.mode] || '#7A4BC8';
+      const isWalking = path.mode === 'walking';
+      const weight = path.isActive ? 6 : 4;
+      const opacity = path.isActive ? 1 : 0.75;
+      const dashArray = isWalking ? '6 6' : undefined;
+
+      let poly = commutePolylinesRef.current.get(path.id);
+      if (!poly) {
+        poly = L.polyline(path.points, {
+          color,
+          weight,
+          opacity,
+          dashArray,
+          lineCap: 'round',
+          lineJoin: 'round',
+        }).addTo(layer);
+        commutePolylinesRef.current.set(path.id, poly);
+      } else {
+        poly.setLatLngs(path.points);
+        poly.setStyle({ color, weight, opacity, dashArray });
+      }
+
+      // Hop-on / hop-off markers at start & end of each segment
+      let markers = commuteMarkersRef.current.get(path.id);
+      if (!markers) {
+        const startMarker = L.circleMarker(path.points[0], {
+          radius: 6,
+          fillColor: color,
+          color: '#fff',
+          weight: 2,
+          fillOpacity: 1,
+        })
+          .addTo(layer)
+          .bindTooltip(`Start ${path.mode}`, { direction: 'top' });
+        const endMarker = L.circleMarker(path.points[path.points.length - 1], {
+          radius: 6,
+          fillColor: '#fff',
+          color,
+          weight: 3,
+          fillOpacity: 1,
+        })
+          .addTo(layer)
+          .bindTooltip(`End ${path.mode}`, { direction: 'top' });
+        markers = [startMarker, endMarker];
+        commuteMarkersRef.current.set(path.id, markers);
+      } else {
+        markers[0].setLatLng(path.points[0]);
+        markers[0].setStyle({ fillColor: color, color: '#fff' });
+        markers[1].setLatLng(path.points[path.points.length - 1]);
+        markers[1].setStyle({ fillColor: '#fff', color });
+      }
+    });
+
+    // Fit bounds ONCE per flow, on the first two points. After that the user
+    // owns the map — panning/zooming is never overridden by GPS ticks.
+    const allPoints = commutePaths.flatMap((p) => p.points);
+    if (allPoints.length >= 2 && !(window as any).__hasFitThisFlow) {
+      const bounds = L.latLngBounds(allPoints);
+      map.fitBounds(bounds, { padding: [80, 80], maxZoom: 16 });
+      (window as any).__hasFitThisFlow = true;
+    }
+    // Reset the flag when all paths clear (flow ends / new flow starts)
+    if (allPoints.length === 0) {
+      (window as any).__hasFitThisFlow = false;
+    }
+  }, [commutePaths, mapReady]);
 
   // GPS marker — only when location is available
   useEffect(() => {
