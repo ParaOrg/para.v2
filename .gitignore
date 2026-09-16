@@ -76,3 +76,4 @@ supabase/.temp/
 # Backup files that lack the dash separator
 *.bak
 *.backup
+src/assets/images/loop.gif
