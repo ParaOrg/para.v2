@@ -14,12 +14,6 @@ export function TrackingConsentProvider({ children }) {
   const [location, setLocation] = useState(null);
   const watchId = useRef(null);
 
-  /**
-   * Non-persistent location fetch — used only for one-shot reads
-   * (e.g., auto-centering the map, initial fix). Does NOT maintain a
-   * live watcher. Component-level trackers (ContributePage,
-   * CommuteTrackerV2) run their own watcher when actively recording.
-   */
   const stopTracking = useCallback(() => {
     if (watchId.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.clearWatch(watchId.current);
@@ -28,11 +22,9 @@ export function TrackingConsentProvider({ children }) {
     setStatus((prev) => (prev === "watching" || prev === "requesting" ? "idle" : prev));
   }, []);
 
-  /**
-   * One-shot current position. Used after consent is granted
-   * so the map can center once. Does not subscribe.
-   */
   const fetchOnce = useCallback(() => {
+    /* __TRACE_FETCH__ */
+    console.log('[fetchOnce] called');
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setError("Geolocation is not supported on this device.");
       setStatus("unsupported");
@@ -41,6 +33,8 @@ export function TrackingConsentProvider({ children }) {
     setStatus("requesting");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        /* __TRACE_FETCH__ */
+        console.log('[fetchOnce] success', pos.coords.latitude, pos.coords.longitude);
         const next = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
@@ -53,6 +47,8 @@ export function TrackingConsentProvider({ children }) {
         try { window.__userLocation = [next.lat, next.lng]; } catch {}
       },
       (err) => {
+        /* __TRACE_FETCH__ */
+        console.log('[fetchOnce] error', err.code, err.message);
         setError(err.message || "Location permission denied.");
         setStatus("error");
       },
@@ -80,26 +76,15 @@ export function TrackingConsentProvider({ children }) {
     fetchOnce();
   }, [grant, fetchOnce]);
 
-  /**
-   * startTracking is now a no-op for maintaining a watcher.
-   * Component-level trackers handle their own GPS lifecycle.
-   * Kept for backwards compatibility with existing callers.
-   */
   const startTracking = useCallback(() => {
     if (!consent) { setStatus("consent_required"); return false; }
     return fetchOnce();
   }, [consent, fetchOnce]);
 
-  useEffect(() => {
-    if (!consent) {
-      stopTracking();
-      setLocation(null);
-      try { delete window.__userLocation; } catch {}
-    } else if (!location) {
-      // If consent exists but no location yet, fetch one snapshot
-      fetchOnce();
-    }
-  }, [consent, location, fetchOnce, stopTracking]);
+  // IMPORTANT: on mount, if consent is already granted, do NOT auto-fetch.
+  // The map should not silently ask the browser for location.
+  // The user can tap the GPS button, or the tracking component can call
+  // startTracking() when they explicitly begin a flow.
 
   useEffect(() => () => stopTracking(), [stopTracking]);
 

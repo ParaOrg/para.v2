@@ -62,8 +62,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomeNew />} />
             <Route path="/explore" element={<RoutesExplorer />} />
-            <Route path="/contribute" element={<ContributePage />} />
-          <Route path="/contribute-v2" element={<CommuteTrackerPage />} />
+            <Route path="/contribute" element={<CommuteTrackerPage />} />
+            <Route path="/contribute-legacy" element={<ContributePage />} />
             <Route path="/weather" element={<WeatherPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />

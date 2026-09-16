@@ -2,7 +2,6 @@ import { useState, useEffect, useReducer, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
-import GpsIcon from '../components/GpsIcon';
 import WeatherPage from '../components/WeatherPage';
 import SuccessModal from '../components/SuccessModal';
 import { LiveMapBackground } from '../components/contribute/LiveMapBackground';
@@ -34,10 +33,13 @@ import type { SegmentMode, GpsPoint } from '../types/tracker';
  * LiveMapBackground receives the accumulated path so it can draw:
  *   - completed segments in their mode colors
  *   - the active segment as a growing polyline
+ *
+ * Map controls (GPS / pin / weather) are now rendered by LiveMapBackground
+ * itself. The page no longer draws its own duplicate toolbar.
  */
 export default function CommuteTrackerPage() {
-  const { user, role, isAuthenticated } = useAuth();
-  const { consent, requestConsentAndLocation } = useTrackingConsent();
+  const { user } = useAuth();
+  const { requestConsentAndLocation } = useTrackingConsent();
   const navigate = useNavigate();
 
   // ─── Reducer is the single source of truth ───────────────
@@ -58,12 +60,7 @@ export default function CommuteTrackerPage() {
   const [savedRoutesLoading, setSavedRoutesLoading] = useState(true);
 
   // Access gate
-  const hasAccess =
-    isAuthenticated &&
-    (role === 'admin' ||
-      role === 'founder' ||
-      role === 'beta_tester' ||
-      user?.user_metadata?.beta_tester === true);
+  const hasAccess = true; // open to all; auth handled upstream
 
   // ─── GPS watcher — one at a time, driven by state ────────
   const gpsWatchRef = useRef<number | null>(null);
@@ -170,14 +167,12 @@ export default function CommuteTrackerPage() {
   // ─── Save handlers ───────────────────────────────────────
 
   const handleEndCommute = useCallback(async () => {
-    // Snapshot state BEFORE dispatch — dispatch END_COMMUTE will clear it
     const snapshot = {
       segments: state.segments,
       activeSegment: state.activeSegment,
       commuteStartedAt: state.commuteStartedAt,
     };
 
-    // Close the active segment into the snapshot
     const allSegments = [...snapshot.segments];
     if (snapshot.activeSegment) {
       allSegments.push({
@@ -187,12 +182,10 @@ export default function CommuteTrackerPage() {
       });
     }
 
-    // Filter: keep segments with GPS points OR distance > 10m OR fare set
     const meaningful = allSegments.filter(
       (s) => s.gpsPoints.length > 0 || s.distanceM > 10 || s.fare != null
     );
 
-    // Reset reducer state now
     dispatch({ type: 'END_COMMUTE' });
 
     if (meaningful.length === 0) {
@@ -279,7 +272,6 @@ export default function CommuteTrackerPage() {
     if (state.documentPhase !== 'idle') return;
     const dr = state.documentedRoute;
     if (!dr || !dr.endedAt) return;
-    // Prevent double-save
     if (lastDocSaveRef.current === `${dr.startedAt}-${dr.endedAt}`) return;
     lastDocSaveRef.current = `${dr.startedAt}-${dr.endedAt}`;
 
@@ -355,19 +347,6 @@ export default function CommuteTrackerPage() {
 
   // ─── Other handlers ──────────────────────────────────────
 
-  const locateMap = () => {
-    const loc = state.activeSegment?.gpsPoints.slice(-1)[0];
-    if (loc?.lat && loc?.lng) {
-      window.dispatchEvent(
-        new CustomEvent('para-center-map', {
-          detail: { lat: loc.lat, lng: loc.lng, zoom: 16 },
-        })
-      );
-    } else {
-      requestConsentAndLocation();
-    }
-  };
-
   const handleSavePlace = async () => {
     if (!placeName || !placeLocation) {
       setShowPlaceForm(false);
@@ -403,10 +382,6 @@ export default function CommuteTrackerPage() {
     mode: SegmentMode;
     routeUuid: string;
   }) => {
-    // The child already dispatched START_DOCUMENT; this callback is
-    // for extensibility (logging, telemetry). The save happens when the
-    // documentPhase transitions back to 'idle' after END_ROUTE — see the
-    // effect above.
     console.log('[trackerPage] Add Route started:', payload.routeUuid, payload.routeName);
   };
 
@@ -473,7 +448,7 @@ export default function CommuteTrackerPage() {
         </div>
       )}
 
-      {/* Map — receives live path data */}
+      {/* Map — receives live path data. Renders its own controls. */}
       <div className="absolute inset-0" style={{ zIndex: 1 }}>
         <LiveMapBackground
           isManualDrawingMode={false}
@@ -485,36 +460,6 @@ export default function CommuteTrackerPage() {
           onExternalPinModeChange={setPinMode}
           commutePaths={commutePaths}
         />
-      </div>
-
-      {/* Floating tools */}
-      <div
-        className="fixed right-4 z-[5000] flex flex-col gap-2 pointer-events-auto"
-        style={{ top: 'calc(env(safe-area-inset-top) + 5.5rem)' }}
-      >
-        <button
-          onClick={locateMap}
-          className="w-11 h-11 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"
-          title="Center on my location"
-        >
-          <GpsIcon />
-        </button>
-        <button
-          onClick={() => setPinMode((v) => !v)}
-          className={`w-11 h-11 rounded-full shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50 text-lg ${
-            pinMode ? 'bg-[#7A4BC8] text-white' : 'bg-white'
-          }`}
-          title="Pin a place"
-        >
-          📍
-        </button>
-        <button
-          onClick={() => setShowWeather(true)}
-          className="w-11 h-11 rounded-full bg-white shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50 text-lg"
-          title="Weather"
-        >
-          🌤️
-        </button>
       </div>
 
       {/* V2 Tracker — presentational */}

@@ -20,6 +20,8 @@ interface LiveMapBackgroundProps {
   onExternalPinModeChange?: (active: boolean) => void;
   /** When provided, the map draws each commute segment as a colored polyline. */
   commutePaths?: CommutePath[];
+  /** When true, the in-map buttons (GPS/pin/weather) are not rendered. */
+  hideControls?: boolean;
 }
 
 const DEFAULT_CENTER: [number, number] = [14.5995, 120.9842];
@@ -44,7 +46,9 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   externalPinMode = false,
   onExternalPinModeChange,
   commutePaths,
+  hideControls = false,
 }) => {
+  // __HIDE_CONTROLS__
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.CircleMarker | null>(null);
   const trailLayerRef = useRef<L.Polyline | null>(null);
@@ -212,10 +216,12 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     };
   }, []);
 
-  // GPS Locate - ONLY manual button press triggers this
+  // GPS Locate — manual button press. Centers the map ONLY when user taps.
+  // If location isn't available yet, request it; the effect below will
+  // center the map once location arrives.
   const locateMap = () => {
     if (location && mapRef.current) {
-      // Auto-center removed - user controls map view
+      mapRef.current.setView([location.lat, location.lng], 17, { animate: true });
       setCurrentPos([location.lat, location.lng]);
       setHasLocation(true);
     } else {
@@ -223,25 +229,32 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     }
   };
 
-  // Auto-center when location becomes available
+  // If the user tapped locate and location arrived asynchronously, center.
+  // We only do this ONCE per request to avoid fighting the user.
+  // Never auto-centers on mount.
+  const pendingCenterRef = useRef(false);
   useEffect(() => {
-    if (location && mapRef.current) {
-      // Auto-center removed - user controls map view
+    /* __TRACE_LOCATE__ */
+    console.log('[locate] effect fired. location=', location, 'pending=', pendingCenterRef.current);
+    if (location && mapRef.current && pendingCenterRef.current) {
+      mapRef.current.setView([location.lat, location.lng], 17, { animate: true });
       setCurrentPos([location.lat, location.lng]);
       setHasLocation(true);
+      pendingCenterRef.current = false;
     }
   }, [location]);
 
-  // Prompt for location consent on mount if not granted
-  useEffect(() => {
-    if (!location && mapRef.current) {
-      const timer = setTimeout(() => {
-        // Dispatch event for parent to show location prompt
-        window.dispatchEvent(new CustomEvent('location-prompt', { detail: { reason: 'auto-center' } }));
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [location]);
+  // Mark that a center is pending when the user taps GPS without a location yet
+  const locateMapWithPending = () => {
+    /* __TRACE_LOCATE__ */
+    console.log('[locate] tapped. location=', location, 'mapRef=', !!mapRef.current);
+    if (!location) pendingCenterRef.current = true;
+    console.log('[locate] pendingCenterRef=', pendingCenterRef.current);
+    locateMap();
+  };
+  // __LOCATE_FIXED__
+
+  // __LOCATION_PROMPT_REMOVED__
 
   // Timer for tracking
   useEffect(() => {
@@ -464,12 +477,14 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       {/* Leaflet Map */}
       <div id="contribute-map" className="absolute inset-0 z-0" style={{ zIndex: 0, pointerEvents: "auto" }} />
 
-      {/* Map Controls — top right */}
+      {/* Map Controls — top right. Hidden when `hideControls` is true. */}
+      {!hideControls && (
       <div className="absolute right-4 z-[9999] flex flex-col gap-2" style={{ top: "calc(env(safe-area-inset-top) + 5.5rem)" }}>
+        {/* __CONTROLS_HIDDEN__ */}
         {/* GPS Locate Button */}
         {!navbarOpen && (
         <button
-          onClick={locateMap}
+          onClick={locateMapWithPending}
           className="w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border border-gray-200"
         >
           <GpsIcon size={30} color="#7A4BC8" />
@@ -502,6 +517,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
         )}
 
       </div>
+      )}
 
 
 
