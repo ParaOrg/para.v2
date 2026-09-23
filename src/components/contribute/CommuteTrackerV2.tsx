@@ -238,7 +238,7 @@ export default function CommuteTrackerV2({
   // ─── Render ─────────────────────────────────────────────
   return (
     <>
-      <div className="fixed bottom-24 left-2 right-2 z-[130] pointer-events-auto">
+      <div className="fixed bottom-24 left-2 right-2 z-30 pointer-events-auto">
         {/* Status pill — only visible during a flow */}
         {state.flow !== 'none' && (
           <div className="bg-white rounded-full shadow-lg px-4 py-2 mb-2 flex items-center justify-between shrink-0">
