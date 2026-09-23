@@ -27,7 +27,7 @@ export const TopBanner: React.FC<TopBannerProps> = ({
   if (navbarOpen) return null;
 
   return (
-    <div className="fixed top-[60px] left-0 right-0 z-[4000] px-3">
+    <div className="fixed top-[60px] left-0 right-0 z-[120] px-3">
       <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-100 px-4 py-3">
         {/* Row 1: Title + Toggle + Actions */}
         <div className="flex items-center justify-between gap-3">

@@ -314,10 +314,10 @@ const ContributePage: React.FC = () => {
   return (
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
       <Navbar />
-      {showWeather && <div className="fixed inset-0 z-[9999999]"><WeatherPage onClose={() => setShowWeather(false)} /></div>}
+      {showWeather && <div className="fixed inset-0 z-[600]"><WeatherPage onClose={() => setShowWeather(false)} /></div>}
 
       {/* Timer Pill */}
-      <div className="fixed left-4 z-[5000] bg-white rounded-full shadow-lg px-4 py-2 flex items-center gap-2" style={{ top: "calc(env(safe-area-inset-top) + 5.5rem)" }}>
+      <div className="fixed left-4 z-[110] bg-white rounded-full shadow-lg px-4 py-2 flex items-center gap-2" style={{ top: "calc(env(safe-area-inset-top) + 5.5rem)" }}>
         <span className="text-sm font-bold text-[#381D65] capitalize">{currentPhase}</span>
         <span className="text-sm font-black text-[#381D65] tabular-nums">
           {Math.floor(commuteTimer / 60)}:{String(commuteTimer % 60).padStart(2, '0')}
@@ -381,7 +381,7 @@ const ContributePage: React.FC = () => {
 
       {/* Place Form Modal */}
       {showPlaceForm && (
-        <div className="fixed inset-0 z-[999999] bg-black/50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[500] bg-black/50 flex items-end justify-center">
           <div className="bg-white rounded-t-3xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-black text-[#381D65]">📍 Add Place</h3>
@@ -409,7 +409,7 @@ const ContributePage: React.FC = () => {
       )}
 
       {/* Success Modal */}
-      <div className="relative z-[999999]">
+      <div className="relative z-[500]">
         <SuccessModal
           show={showSuccess}
           message={successMessage}

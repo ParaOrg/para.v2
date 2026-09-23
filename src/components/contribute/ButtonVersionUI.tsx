@@ -166,7 +166,7 @@ export function ButtonVersionUI(props: any) {
 
   return (
     <>
-    <div className="fixed bottom-24 left-2 right-2 z-30 pointer-events-auto">
+    <div className="fixed bottom-24 left-2 right-2 z-[130] pointer-events-auto">
       {/* GPS Status Pill + Timer - ALWAYS VISIBLE */}
       <div className="bg-white rounded-full shadow-lg px-4 py-2 mb-2 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 min-w-0">
