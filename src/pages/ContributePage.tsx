@@ -9,6 +9,7 @@ import GpsIcon from '../components/GpsIcon';
 import { useAuth } from '../context/AuthContext';
 import { edgePost } from '../utils/api';
 import { offlineBuffer, getOrCreateInstallId, generateClientLogId } from '../utils/offlineBuffer';
+import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_CONTRIBUTE_PAGE__
 import SuccessModal from '../components/SuccessModal';
 import WeatherPage from '../components/WeatherPage';
 
@@ -41,6 +42,7 @@ const ContributePage: React.FC = () => {
   const [placeType, setPlaceType] = useState('landmark');
   const [gpsPoints, setGpsPoints] = useState([]);
   const gpsWatchRef = useRef(null);
+  const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_CONTRIBUTE_PAGE__
   const startTimeRef = useRef(null);
 
   // Timer
@@ -66,12 +68,21 @@ const ContributePage: React.FC = () => {
     if (!navigator.geolocation) return;
     setGpsPoints([]);
     startTimeRef.current = Date.now();
+    gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_CONTRIBUTE_PAGE__ reset
     gpsWatchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const point = {
+        const raw = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           timestamp: pos.timestamp || Date.now(),
+          accuracy: pos.coords.accuracy,
+        };
+        const filtered = gpsFilterRef.current(raw);
+        if (!filtered) return;
+        const point = {
+          lat: filtered.lat,
+          lng: filtered.lng,
+          timestamp: filtered.timestamp,
         };
         setGpsPoints((prev) => [...prev, point]);
       },

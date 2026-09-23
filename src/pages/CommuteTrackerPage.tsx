@@ -1,4 +1,5 @@
 import { useState, useEffect, useReducer, useRef, useCallback } from 'react';
+import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_COMMUTE_TRACKER__
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import BottomNav from '../components/BottomNav';
@@ -64,6 +65,7 @@ export default function CommuteTrackerPage() {
 
   // ─── GPS watcher — one at a time, driven by state ────────
   const gpsWatchRef = useRef<number | null>(null);
+  const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_COMMUTE_TRACKER__
   const flowActive =
     state.flow === 'commute' ||
     (state.flow === 'documenting' && state.documentPhase === 'recording');
@@ -82,13 +84,22 @@ export default function CommuteTrackerPage() {
     }
 
     const attempt = (highAccuracy: boolean) => {
+      gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_COMMUTE_TRACKER__ reset
       gpsWatchRef.current = navigator.geolocation.watchPosition(
         (pos) => {
-          const point: GpsPoint = {
+          const raw = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             timestamp: pos.timestamp || Date.now(),
             accuracy: pos.coords.accuracy,
+          };
+          const filtered = gpsFilterRef.current(raw);
+          if (!filtered) return;
+          const point: GpsPoint = {
+            lat: filtered.lat,
+            lng: filtered.lng,
+            timestamp: filtered.timestamp,
+            accuracy: filtered.accuracy,
           };
           dispatch({ type: 'GPS_POINT', payload: point });
         },
