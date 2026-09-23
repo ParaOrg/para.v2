@@ -86,3 +86,6 @@ android/
 *.bak2
 *.bak3
 *.bak4
+
+# Local editor/tool backups
+*.bak*
