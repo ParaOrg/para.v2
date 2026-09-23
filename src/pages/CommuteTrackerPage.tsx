@@ -15,7 +15,8 @@ import {
   getOrCreateInstallId,
   generateClientLogId,
 } from '../utils/offlineBuffer';
-import { startNativeTracking, stopNativeTracking } from '../utils/nativeTracker';
+import { startNativeTracking, stopNativeTracking, ensureNotificationPermission } from '../utils/nativeTracker'; // __NOTIF_PERMISSION_WIRED__
+import OemBatteryOnboarding from '../components/OemBatteryOnboarding'; // __OEM_ONBOARDING_WIRED__
 import {
   trackerReducer,
   initialTrackerState,
@@ -80,6 +81,12 @@ export default function CommuteTrackerPage() {
     gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_COMMUTE_TRACKER__ reset
 
     let cancelled = false;
+    ensureNotificationPermission().then(() => {
+      if (cancelled) return;
+      // __NOTIF_PERMISSION_WIRED__ proceed regardless of grant — user may
+      // have denied; we still start tracking, but Android may kill the
+      // service after ~5 min if notifications are denied.
+    });
     startNativeTracking(
       (point) => {
         if (cancelled) return;
@@ -427,6 +434,7 @@ export default function CommuteTrackerPage() {
   // ─── Render ──────────────────────────────────────────────
   return (
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
+      <OemBatteryOnboarding />
       <Navbar />
 
       {showWeather && (

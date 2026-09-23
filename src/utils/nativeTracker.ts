@@ -15,6 +15,7 @@
  */
 
 import { registerPlugin, Capacitor } from '@capacitor/core';
+import { LocalNotifications } from '@capacitor/local-notifications'; // __NOTIF_PERMISSION_REAL__
 
 export interface GpsPoint {
   lat: number;
@@ -140,12 +141,24 @@ export async function openAppSettings(): Promise<void> {
 
 export async function ensureNotificationPermission(): Promise<boolean> {
   if (Capacitor.getPlatform() !== 'android') return true;
-  console.warn(
-    '[nativeTracker] POST_NOTIFICATIONS is not requested automatically - ' +
-      'enable notifications for Para PH in Android settings, or the ' +
-      'foreground service will be killed after ~5 minutes.'
-  );
-  return true;
+
+  try {
+    const status = await LocalNotifications.checkPermissions();
+    if (status.display === 'granted') return true;
+
+    const req = await LocalNotifications.requestPermissions();
+    if (req.display === 'granted') return true;
+
+    console.warn(
+      '[nativeTracker] POST_NOTIFICATIONS denied - foreground service will ' +
+        'be killed after ~5 min by Android 13+. Ask the user to enable ' +
+        'notifications in Settings -> Apps -> Para PH Tracker -> Notifications.'
+    );
+    return false;
+  } catch (e) {
+    console.warn('[nativeTracker] notification permission check failed:', e);
+    return false;
+  }
 }
 
 let browserWatchId: number | null = null;
