@@ -5,6 +5,7 @@ import type {
   GpsPoint,
   DocumentedRoute,
 } from '../types/tracker';
+import { haversineMeters as haversine } from '../utils/commuteStats';  // __STATS_CONSOLIDATED__
 
 // ─────────────────────────────────────────────────────────────
 // Actions
@@ -45,17 +46,7 @@ export type TrackerAction =
 
 const newId = () => `seg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-const haversine = (a: GpsPoint, b: GpsPoint): number => {
-  const R = 6371000;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const la1 = (a.lat * Math.PI) / 180;
-  const la2 = (b.lat * Math.PI) / 180;
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(la1) * Math.cos(la2) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
-};
+// local haversine removed — imported from ../utils/commuteStats  __STATS_CONSOLIDATED__
 
 const segmentDistance = (points: GpsPoint[]): number => {
   let total = 0;

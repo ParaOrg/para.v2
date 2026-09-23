@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { edgePost } from '../utils/api';
 import { offlineBuffer, getOrCreateInstallId, generateClientLogId } from '../utils/offlineBuffer';
 import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_CONTRIBUTE_PAGE__
+import { segmentDistance as calculateTotalDistance } from '../utils/commuteStats';  // __STATS_CONSOLIDATED__
 import SuccessModal from '../components/SuccessModal';
 import WeatherPage from '../components/WeatherPage';
 
@@ -104,23 +105,7 @@ const ContributePage: React.FC = () => {
     }
   };
 
-  const calculateTotalDistance = (points) => {
-    const haversine = (lat1, lng1, lat2, lng2) => {
-      const R = 6371000;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLng = (lng2 - lng1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    };
-    let total = 0;
-    for (let i = 1; i < points.length; i++) {
-      total += haversine(points[i-1].lat, points[i-1].lng, points[i].lat, points[i].lng);
-    }
-    return total;
-  };
+  // local calculateTotalDistance removed — imported from ../utils/commuteStats  __STATS_CONSOLIDATED__
 
   // Start commute
   const handleStartCommute = () => {
