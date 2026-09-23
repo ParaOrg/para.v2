@@ -5,3 +5,13 @@ lambda-clean/
 para-route-search-clean.zip
 para-route-search-deploy.zip
 *.zip
+
+# Full git backups — never upload these
+.git.backup-*/
+
+# Python wheels for Vercel functions
+.vercel_python_packages/
+
+# Large local assets
+src/assets/images/loop.gif
+geojson_data/*.bak

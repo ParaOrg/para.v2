@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom';
+import DonationModal from './DonationModal';
+import { SOCIALS } from '../utils/socials';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import paralogo from '../assets/images/Para1P.png';
@@ -32,6 +34,8 @@ function HamburgerIcon({ open }) {
 }
 
 export default function Navbar() {
+  const [donateOpen, setDonateOpen] = useState(false);  // __DONATE_MODAL__
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, role, logout, isGuest } = useAuth();
@@ -106,8 +110,12 @@ export default function Navbar() {
         </div>
 
         <div className="hidden shrink-0 items-center gap-2.5 md:flex lg:justify-self-end">
-          <button onClick={() => window.dispatchEvent(new Event("para-show-weather"))} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 bg-white text-xs font-medium text-gray-500 hover:text-[#7A4BC8] hover:border-[#7A4BC8] transition-colors shadow-sm">
-            <span>🌤️</span><span>Weather</span>
+          {/* __SUPPORT_PILL__ desktop support button */}
+          <button
+            onClick={() => setDonateOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-purple-200 bg-purple-50 text-xs font-bold text-[#7A4BC8] hover:bg-purple-100 hover:border-[#7A4BC8] transition-colors shadow-sm"
+          >
+            <span>💜</span><span>Support</span>
           </button>
           
 
@@ -168,15 +176,41 @@ export default function Navbar() {
                 </>
               )}
             </nav>
-            <div className="px-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] border-t border-gray-100 pt-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-2">Gas prices</p>
-              <div className="[&_a]:w-full [&_a]:justify-center [&_a]:max-w-full [&_a]:overflow-hidden">
-                <GasPriceWidget compact />
+            {/* __DONATE_MODAL__ socials + support */}
+            <div className="px-6 py-4 border-t border-gray-100">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 mb-3">
+                Follow us
+              </p>
+              <div className="flex items-center gap-3 mb-4">
+                {SOCIALS.map((s) => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={s.label}
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-[#7A4BC8] hover:text-[#7A4BC8]"
+                  >
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                      <path d={s.path} />
+                    </svg>
+                  </a>
+                ))}
               </div>
+              <button
+                type="button"
+                onClick={() => { setDonateOpen(true); closeMobile(); }}
+                className="w-full inline-flex min-h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#7A4BC8] to-[#381D65] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_24px_rgba(79,0,205,0.2)]"
+              >
+                💜 Support Para PH
+              </button>
             </div>
+
+            {/* __GAS_REMOVED__ gas prices moved out of the drawer */}
           </div>
         </>
       )}
+      <DonationModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </nav>
   );
 }

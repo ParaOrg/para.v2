@@ -82,6 +82,17 @@
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
+      "title": "Commuters wait for public utility vehicles near the LRT-2 Cubao Station in Quezo",
+      "description": "Commuters wait for public utility vehicles near the LRT-2 Cubao Station in Quezon City on Tuesday afternoon, September 22, 2026, following an announcement by the LRT Authority on the implementation of",
+      "updated": "Tue, 22 Sep 2026 10:42:17 GMT",
+      "source_url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQZTN1T29jVU9iNzBabjgyNjdFQ0doY3Y3RXE4LUJycUxlQlBWYUR6ZzVobGVzc1VLaDBEOUZNQVl4bUFnUjFJUnlFUks0ckY4SVZZVk90ZUZ5SmZKb1N2dDQ2NFNLYl82eTVEWVJqRFh4NXlWcEhJbm5qNnJtdzdxOWhoMUVPMXkyYXRhbjdUSHpBR1FCOVI0MUVhOHQzOGlBQl9wZFU4RGdrTFpNcG54MU9kOW00MDlhU3hFT3FlV3RVT2ItZGZWRkU4MTRsMjRZVDlqQkxRWQ?oc=5",
+      "source_name": "Google News"
+    },
+    {
+      "id": "traffic-9",
+      "type": "Traffic",
+      "accent": "#F1BA0F",
+      "bg": "rgba(255, 204, 0, 0.1)",
       "title": "LRT-2 remains on provisional service after lightning damages catenary wire - DZR",
       "description": "LRT-2 remains on provisional service after lightning damages catenary wireDZRH",
       "updated": "Tue, 22 Sep 2026 12:09:44 GMT",
@@ -89,7 +100,7 @@
       "source_name": "Google News"
     },
     {
-      "id": "traffic-9",
+      "id": "traffic-10",
       "type": "Traffic",
       "accent": "#F1BA0F",
       "bg": "rgba(255, 204, 0, 0.1)",
@@ -98,19 +109,8 @@
       "updated": "Wed, 23 Sep 2026 02:08:30 GMT",
       "source_url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQUXdia180UnRzWEw2WVNOZzNlaEw4QTNkdXNoVG8yZUdMbXh2S3BLX0I2Y25fdXZWdDdPcTJVMXEteGp0bmhqRERrUHlwUllZVlRCOGRyOExGNnJEbXJNcjJ3SGR5c2tLYmhsUkVFY0o1TEtqOGhSZGFrdHNOSTYtMFQ4Y0s1Vmw0TlNJWkhGcE41b1AxYURaWU9jMUFyektlSWpCMEhFZnBxdlNPQlFCTXZB?oc=5",
       "source_name": "Google News"
-    },
-    {
-      "id": "traffic-10",
-      "type": "Traffic",
-      "accent": "#F1BA0F",
-      "bg": "rgba(255, 204, 0, 0.1)",
-      "title": "Metro Manila MRT Schedule, Map, and Stations (Complete Guide) - Out of Town Blog",
-      "description": "Metro Manila MRT Schedule, Map, and Stations (Complete Guide)Out of Town Blog",
-      "updated": "Tue, 22 Sep 2026 16:43:35 GMT",
-      "source_url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxPd2FXN2ZPNnd4bVpoT3MxLXEtWTlnTzU0N2lVUFJlNEUwckdYcUlJRy1VMktDY1lZRHE1Q1Fnc2NTN01aLUx3T3N2SGMxLXVKT2RCWXduZ0tEajJpSUsxSU9xazFhTTRqc3JvMnJqYmpKUTRFaFQyMGpHNHFpeWo2a05HV1lFQWhUOGU2TdIBjAFBVV95cUxPd2FXN2ZPNnd4bVpoT3MxLXEtWTlnTzU0N2lVUFJlNEUwckdYcUlJRy1VMktDY1lZRHE1Q1Fnc2NTN01aLUx3T3N2SGMxLXVKT2RCWXduZ0tEajJpSUsxSU9xazFhTTRqc3JvMnJqYmpKUTRFaFQyMGpHNHFpeWo2a05HV1lFQWhUOGU2TQ?oc=5",
-      "source_name": "Google News"
     }
   ],
-  "scraped_at": "2026-09-23T13:30:03.442617",
+  "scraped_at": "2026-09-23T15:00:02.941795",
   "source": "Google News RSS"
 }
