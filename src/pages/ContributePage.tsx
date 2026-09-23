@@ -277,11 +277,11 @@ const ContributePage: React.FC = () => {
         await edgePost('route-save', payload);
         setSuccessMessage(`Route "${routeName}" submitted!`);
       } catch {
-        await offlineBuffer.enqueue({ type: 'route-save', payload, timestamp: Date.now() });
+        await offlineBuffer.add('route_saves', { ...payload, timestamp: Date.now() });  // __SYNC_DRAIN_FIX__
         setSuccessMessage('Route saved offline!');
       }
     } else {
-      await offlineBuffer.enqueue({ type: 'route-save', payload, timestamp: Date.now() });
+      await offlineBuffer.add('route_saves', { ...payload, timestamp: Date.now() });  // __SYNC_DRAIN_FIX__
       setSuccessMessage('Route saved offline!');
     }
     setShowSuccess(true);

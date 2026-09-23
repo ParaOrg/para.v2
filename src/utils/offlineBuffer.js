@@ -7,8 +7,8 @@
  */
 
 const DB_NAME = "para_offline_buffer";
-const DB_VERSION = 1;
-const STORES = ["pending_commutes", "gps_streams", "poi_events", "fare_reports"];
+const DB_VERSION = 2;  // __SYNC_DRAIN_FIX__ bumped for route_saves store
+const STORES = ["pending_commutes", "gps_streams", "poi_events", "fare_reports", "route_saves"];  // __SYNC_DRAIN_FIX__
 
 let dbPromise = null;
 
