@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { edgePost } from '../utils/api';
 import { offlineBuffer, getOrCreateInstallId, generateClientLogId } from '../utils/offlineBuffer';
 import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_CONTRIBUTE_PAGE__
-import { segmentDistance as calculateTotalDistance } from '../utils/commuteStats';  // __STATS_CONSOLIDATED__
+import { segmentDistance as calculateTotalDistance, segmentAvgSpeedKmh, segmentDurationSec } from '../utils/commuteStats';  // __STATS_CONSOLIDATED__ __SPEED_UI__
 import SuccessModal from '../components/SuccessModal';
 import WeatherPage from '../components/WeatherPage';
 
@@ -322,6 +322,19 @@ const ContributePage: React.FC = () => {
         <span className="text-sm font-black text-[#381D65] tabular-nums">
           {Math.floor(commuteTimer / 60)}:{String(commuteTimer % 60).padStart(2, '0')}
         </span>
+        {/* __SPEED_UI__ live speed + distance */}
+        {isTracking && gpsPoints.length >= 2 && (
+          <>
+            <span className="text-xs font-medium text-purple-700 tabular-nums">
+              · {segmentAvgSpeedKmh(gpsPoints).toFixed(1)} km/h
+            </span>
+            <span className="text-xs font-medium text-purple-700 tabular-nums">
+              · {calculateTotalDistance(gpsPoints) >= 1000
+                  ? `${(calculateTotalDistance(gpsPoints) / 1000).toFixed(2)} km`
+                  : `${Math.round(calculateTotalDistance(gpsPoints))} m`}
+            </span>
+          </>
+        )}
         {currentRouteName && (
           <span className="text-xs text-gray-500 truncate max-w-[120px]">
             🚐 {currentRouteName}

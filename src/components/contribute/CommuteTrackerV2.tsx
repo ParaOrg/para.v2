@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { SegmentMode, TrackerState } from '../../types/tracker';
 import type { TrackerAction } from '../../reducers/trackerReducer';
+import { segmentAvgSpeedKmh, segmentDurationSec } from '../../utils/commuteStats';  // __SPEED_UI__
 
 // ─────────────────────────────────────────────────────────────
 // Constants
@@ -337,6 +338,17 @@ export default function CommuteTrackerV2({
                       </span>
                       <span className="flex items-center gap-2">
                         {seg.distanceM > 0 && <span>{formatKm(seg.distanceM)}</span>}
+                        {/* __SPEED_UI__ duration + avg speed per segment */}
+                        {seg.gpsPoints && seg.gpsPoints.length >= 2 && (
+                          <>
+                            {segmentDurationSec(seg.gpsPoints) > 0 && (
+                              <span>· {formatTime(segmentDurationSec(seg.gpsPoints))}</span>
+                            )}
+                            {segmentAvgSpeedKmh(seg.gpsPoints) > 0 && (
+                              <span>· {segmentAvgSpeedKmh(seg.gpsPoints).toFixed(1)} km/h</span>
+                            )}
+                          </>
+                        )}
                         {seg.fare != null && (
                           <span className="font-bold text-[#7A4BC8]">₱{seg.fare}</span>
                         )}
