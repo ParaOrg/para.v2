@@ -12,7 +12,6 @@ import "leaflet/dist/leaflet.css";
 
 import { getApiBaseUrl } from "../utils/api";
 import Navbar from "../components/Navbar";
-import PipelineStatus from "../components/PipelineStatus";
 import DataAnalytics from "../components/DataAnalytics";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
@@ -63,7 +62,6 @@ export default function AdminDashboard() {
       <div className="w-full px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <PipelineStatus />
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <DataAnalytics />
@@ -130,6 +128,16 @@ function RouteDoctorTab() {
     ? routes.filter((r) => (r.name || "").toLowerCase().includes(search.toLowerCase()))
     : routes;
 
+  // __TASK6_ADMIN__ all admin actions go direct to Supabase REST
+  const SB_URL = import.meta.env.VITE_SUPABASE_URL;
+  const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const sbHeaders = {
+    apikey: SB_KEY,
+    Authorization: `Bearer ${SB_KEY}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=minimal',
+  };
+
   const handleAction = async (routeId, action, extra = {}) => {
     setActionMsg(null);
     try {
@@ -137,22 +145,32 @@ function RouteDoctorTab() {
       if (action === "rename") {
         const newName = window.prompt("New route name:", extra.currentName);
         if (!newName) return;
-        res = await fetch(`${API}/admin/routes/rename?route_id=${routeId}&new_name=${encodeURIComponent(newName)}`, { method: "POST" });
+        res = await fetch(`${SB_URL}/rest/v1/ph_routes?route_uuid=eq.${routeId}`, {
+          method: 'PATCH',
+          headers: sbHeaders,
+          body: JSON.stringify({ name: newName }),
+        });
       } else if (action === "verify") {
-        res = await fetch(`${API}/admin/routes/verify?route_id=${routeId}`, { method: "POST" });
+        res = await fetch(`${SB_URL}/rest/v1/ph_routes?route_uuid=eq.${routeId}`, {
+          method: 'PATCH',
+          headers: sbHeaders,
+          body: JSON.stringify({ is_verified: true, status: 'verified' }),
+        });
       } else if (action === "delete") {
         if (!window.confirm("Delete this route permanently?")) return;
-        res = await fetch(`${API}/admin/routes/${routeId}`, { method: "DELETE" });
+        res = await fetch(`${SB_URL}/rest/v1/ph_routes?route_uuid=eq.${routeId}`, {
+          method: 'DELETE',
+          headers: sbHeaders,
+        });
       }
 
       if (res && res.ok) {
-        const data = await res.json();
-        setActionMsg({ ok: true, text: data.message || `${action} successful` });
+        setActionMsg({ ok: true, text: `${action} successful` });
         fetchRoutes();
         if (selected?.route_uuid === routeId) setSelected(null);
       } else if (res) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || `HTTP ${res.status}`);
+        throw new Error(err.message || err.hint || `HTTP ${res.status}`);
       }
     } catch (e) {
       setActionMsg({ ok: false, text: e.message });
@@ -277,7 +295,9 @@ function InspectorTab() {
   const layerRef = useRef(null);
 
   const fetchRoutes = () => {
-    fetch(`${API}/admin/routes/list`)
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?select=*&order=created_at.desc&limit=2000`, {
+      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+    })
       .then((r) => r.json())
       .then((d) => setRoutes(Array.isArray(d) ? d : (d.routes || [])));
   };
@@ -384,9 +404,13 @@ function InspectorTab() {
     setSelectedRoute(route);
     if (!id || !mapInst.current) return;
     setLoading(true);
-    fetch(`${API}/admin/routes/geojson?route_id=${id}`)
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_route_shapes?select=geom_geojson&route_uuid=eq.${id}&limit=1`, {
+      headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+    })
       .then(r => r.ok ? r.json() : Promise.reject("HTTP " + r.status))
-      .then(data => {
+      .then(rows => {
+        const data = Array.isArray(rows) && rows[0]?.geom_geojson ? rows[0].geom_geojson : null;
+        if (!data) { console.warn('[loadRoute] no shape for', id); return; }
         setGeoJson(data);
         redraw(data);
       })
@@ -399,8 +423,16 @@ function InspectorTab() {
     if (!selectedId || !geoJson) return;
     setSaving(true);
     try {
-      const payload = { ...geoJson, route_id: selectedId, route_uuid: selectedId };
-      const res = await fetch(`${API}/admin/routes/save`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_route_shapes?route_uuid=eq.${selectedId}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ geom_geojson: geoJson }),
+      });
       if (!res.ok) throw new Error("Save failed");
       setMsg({ ok: true, text: "✅ Geometry saved!" });
       fetchRoutes();
@@ -413,7 +445,16 @@ function InspectorTab() {
     if (!selectedId) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API}/admin/routes/${selectedId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ [field]: value }) });
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?route_uuid=eq.${selectedId}`, {
+        method: 'PATCH',
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({ [field]: value }),
+      });
       if (!res.ok) throw new Error("Failed");
       setSelectedRoute(prev => ({ ...prev, [field]: value }));
       setMsg({ ok: true, text: "✅ Updated" });
@@ -474,7 +515,7 @@ function ApprovalsTab() {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?is_approved=false&select=*&order=created_at.desc`, {
+    fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_routes?is_approved=eq.false&select=*&limit=500`, {
       headers: {
         'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjdm9tcmt5dHhuZXR6aWp3cWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0MzY3NDgsImV4cCI6MjA3MzAxMjc0OH0.ljYfw72N5dm4GsM1yKvV4bNNb8sWEoErTD3TrGz1s0o'
@@ -498,8 +539,12 @@ function ApprovalsTab() {
   const previewRoute = async (route) => {
     setSelected(route);
     try {
-      const res = await fetch(`${API}/admin/pending/geojson/${route.route_uuid}`);
-      const data = await res.json();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/ph_route_shapes?select=geom_geojson&route_uuid=eq.${route.route_uuid}&limit=1`, {
+        headers: { apikey: import.meta.env.VITE_SUPABASE_ANON_KEY },
+      });
+      const rows = await res.json();
+      const data = Array.isArray(rows) && rows[0]?.geom_geojson ? rows[0].geom_geojson : null;
+      if (!data) { console.warn('[previewRoute] no shape for', route.route_uuid); return; }
       const map = mapInst.current;
       if (!map) return;
       layerRef.current?.clearLayers();

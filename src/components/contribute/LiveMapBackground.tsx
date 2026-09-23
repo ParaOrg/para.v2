@@ -3,6 +3,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import GpsIcon from '../GpsIcon';
 import { useTrackingConsent } from '../../context/TrackingConsentContext';
+import { useHeading } from '../../hooks/useHeading';  // __PURPLE_PIN__
+import { buildConeSvg } from './buildConeSvg';  // __SVG_CONE__
 
 export interface CommutePath {
   id: string;
@@ -51,6 +53,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
   // __HIDE_CONTROLS__
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.CircleMarker | null>(null);
+  const coneRef = useRef<L.Marker | null>(null);  // __PURPLE_PIN__ __SVG_CONE__
   const trailLayerRef = useRef<L.Polyline | null>(null);
   const pinMarkerRef = useRef<L.Marker | null>(null);
   const pendingPinMarkerRef = useRef<L.Marker | null>(null);
@@ -98,6 +101,10 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
 
   const [pendingPinLocation, setPendingPinLocation] = useState<[number, number] | null>(null);
   const { location, requestConsentAndLocation } = useTrackingConsent();
+  const { facing, hasCompass } = useHeading(location?.heading ?? null);  // __PURPLE_PIN__
+  useEffect(() => {
+    console.log('[pin] facing=', facing, 'hasCompass=', hasCompass, 'gpsHeading=', location?.heading);
+  }, [facing, hasCompass, location?.heading]);  // __PURPLE_PIN__ debug
 
   // Listen for navbar toggle
   useEffect(() => {
@@ -213,6 +220,7 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       map.remove();
       mapRef.current = null;
       window.__paraMap = null;
+      coneRef.current = null;  // __PURPLE_PIN__
     };
   }, []);
 
@@ -275,7 +283,12 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     }
     
     const newPoint: [number, number] = [location.lat, location.lng];
-    gpsTrailPoints.current = [...gpsTrailPoints.current, newPoint];
+    // __ACCUMULATION_FIX__: mutate in place, cap at 5000 points (~1.5 hrs @ 1 Hz)
+    const MAX_TRAIL = 5000;
+    gpsTrailPoints.current.push(newPoint);
+    if (gpsTrailPoints.current.length > MAX_TRAIL) {
+      gpsTrailPoints.current.splice(0, gpsTrailPoints.current.length - MAX_TRAIL);
+    }
     
     // Store GPS points for current segment based on commute state
     if (commuteState === 'riding') {
@@ -409,13 +422,12 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       if (!markerRef.current) {
         markerRef.current = L.circleMarker([location.lat, location.lng], {
           radius: 10,
-          fillColor: '#4285F4',
+          fillColor: '#7A4BC8',   // __PURPLE_PIN__ purple
           color: '#fff',
-          weight: 3,
+          weight: 1.5,   // __THIN_BORDER__ thinner white outline
           fillOpacity: 1,
           zIndexOffset: 9999,
-        }).addTo(mapRef.current)
-          .bindTooltip('You are here', { permanent: true, direction: 'top' });
+        }).addTo(mapRef.current);  // __NO_TOOLTIP__ removed 'You are here'
       } else {
         markerRef.current.setLatLng([location.lat, location.lng]);
       }
@@ -426,6 +438,37 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
       }
     }
   }, [location, mapReady]);
+
+  // __PURPLE_PIN__ __SVG_CONE__ soft-edged wedge marker driven by facing
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !location?.lat || !location?.lng) {
+      if (coneRef.current) { coneRef.current.remove(); coneRef.current = null; }
+      return;
+    }
+
+    const headingDeg = facing ?? location.heading ?? 0;
+    const center: [number, number] = [location.lat, location.lng];
+    const iconHtml = buildConeSvg(headingDeg);
+
+    const icon = L.divIcon({
+      className: 'para-cone-marker',
+      html: iconHtml,
+      iconSize: [60, 60],
+      iconAnchor: [30, 30],
+    });
+
+    if (!coneRef.current) {
+      coneRef.current = L.marker(center, {
+        icon,
+        interactive: false,
+        zIndexOffset: -1,
+      }).addTo(map);
+    } else {
+      coneRef.current.setLatLng(center);
+      coneRef.current.setIcon(icon);
+    }
+  }, [location?.lat, location?.lng, facing, location?.heading, mapReady]);
 
   // Trail — only when tracking
   useEffect(() => {

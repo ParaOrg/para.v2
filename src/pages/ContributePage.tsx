@@ -9,6 +9,8 @@ import GpsIcon from '../components/GpsIcon';
 import { useAuth } from '../context/AuthContext';
 import { edgePost } from '../utils/api';
 import { offlineBuffer, getOrCreateInstallId, generateClientLogId } from '../utils/offlineBuffer';
+import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_CONTRIBUTE_PAGE__
+import { segmentDistance as calculateTotalDistance, segmentAvgSpeedKmh, segmentDurationSec } from '../utils/commuteStats';  // __STATS_CONSOLIDATED__ __SPEED_UI__
 import SuccessModal from '../components/SuccessModal';
 import WeatherPage from '../components/WeatherPage';
 
@@ -41,6 +43,8 @@ const ContributePage: React.FC = () => {
   const [placeType, setPlaceType] = useState('landmark');
   const [gpsPoints, setGpsPoints] = useState([]);
   const gpsWatchRef = useRef(null);
+  const gpsPointsLiveRef = useRef([]);  // __ACCUMULATION_FIX__ live array (mutate freely)
+  const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_CONTRIBUTE_PAGE__
   const startTimeRef = useRef(null);
 
   // Timer
@@ -65,15 +69,29 @@ const ContributePage: React.FC = () => {
   const startGpsTracking = () => {
     if (!navigator.geolocation) return;
     setGpsPoints([]);
+    gpsPointsLiveRef.current = [];  // __ACCUMULATION_FIX__ reset live array
     startTimeRef.current = Date.now();
+    gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_CONTRIBUTE_PAGE__ reset
     gpsWatchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        const point = {
+        const raw = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           timestamp: pos.timestamp || Date.now(),
+          accuracy: pos.coords.accuracy,
         };
-        setGpsPoints((prev) => [...prev, point]);
+        const filtered = gpsFilterRef.current(raw);
+        if (!filtered) return;
+        const point = {
+          lat: filtered.lat,
+          lng: filtered.lng,
+          timestamp: filtered.timestamp,
+        };
+        // __ACCUMULATION_FIX__: mutate ref array; commit to state every 5th point
+        gpsPointsLiveRef.current.push(point);
+        if (gpsPointsLiveRef.current.length % 5 === 0) {
+          setGpsPoints(gpsPointsLiveRef.current.slice());
+        }
       },
       (err) => console.error('GPS error:', err.message),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
@@ -87,23 +105,7 @@ const ContributePage: React.FC = () => {
     }
   };
 
-  const calculateTotalDistance = (points) => {
-    const haversine = (lat1, lng1, lat2, lng2) => {
-      const R = 6371000;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLng = (lng2 - lng1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    };
-    let total = 0;
-    for (let i = 1; i < points.length; i++) {
-      total += haversine(points[i-1].lat, points[i-1].lng, points[i].lat, points[i].lng);
-    }
-    return total;
-  };
+  // local calculateTotalDistance removed — imported from ../utils/commuteStats  __STATS_CONSOLIDATED__
 
   // Start commute
   const handleStartCommute = () => {
@@ -266,11 +268,11 @@ const ContributePage: React.FC = () => {
         await edgePost('route-save', payload);
         setSuccessMessage(`Route "${routeName}" submitted!`);
       } catch {
-        await offlineBuffer.enqueue({ type: 'route-save', payload, timestamp: Date.now() });
+        await offlineBuffer.add('route_saves', { ...payload, timestamp: Date.now() });  // __SYNC_DRAIN_FIX__
         setSuccessMessage('Route saved offline!');
       }
     } else {
-      await offlineBuffer.enqueue({ type: 'route-save', payload, timestamp: Date.now() });
+      await offlineBuffer.add('route_saves', { ...payload, timestamp: Date.now() });  // __SYNC_DRAIN_FIX__
       setSuccessMessage('Route saved offline!');
     }
     setShowSuccess(true);
@@ -320,6 +322,19 @@ const ContributePage: React.FC = () => {
         <span className="text-sm font-black text-[#381D65] tabular-nums">
           {Math.floor(commuteTimer / 60)}:{String(commuteTimer % 60).padStart(2, '0')}
         </span>
+        {/* __SPEED_UI__ live speed + distance */}
+        {isTracking && gpsPoints.length >= 2 && (
+          <>
+            <span className="text-xs font-medium text-purple-700 tabular-nums">
+              · {segmentAvgSpeedKmh(gpsPoints).toFixed(1)} km/h
+            </span>
+            <span className="text-xs font-medium text-purple-700 tabular-nums">
+              · {calculateTotalDistance(gpsPoints) >= 1000
+                  ? `${(calculateTotalDistance(gpsPoints) / 1000).toFixed(2)} km`
+                  : `${Math.round(calculateTotalDistance(gpsPoints))} m`}
+            </span>
+          </>
+        )}
         {currentRouteName && (
           <span className="text-xs text-gray-500 truncate max-w-[120px]">
             🚐 {currentRouteName}

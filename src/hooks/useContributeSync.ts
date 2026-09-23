@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { offlineBuffer } from '../utils/offlineBuffer';
 import { getStopsForVehicle, filterStops } from '../utils/stopDatabase';
 import { getOrCreateInstallId, generateClientLogId } from '../utils/offlineBuffer';
+import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_USE_CONTRIBUTE_SYNC__
 
 export interface GPSPoint {
   lat: number;
@@ -47,6 +48,7 @@ export function useContributeSync() {
   });
 
   const gpsWatchRef = useRef<number | null>(null);
+  const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_USE_CONTRIBUTE_SYNC__
 
   // Start GPS tracking for commute
   const startCommuteTracking = useCallback(() => {
@@ -57,13 +59,24 @@ export function useContributeSync() {
     }));
 
     if (navigator.geolocation) {
+      gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_USE_CONTRIBUTE_SYNC__ reset
       gpsWatchRef.current = navigator.geolocation.watchPosition(
         (pos) => {
-          const point: GPSPoint = {
+          const raw = {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
             timestamp: pos.timestamp || Date.now(),
             accuracy: pos.coords.accuracy,
+            speed: pos.coords.speed,
+            heading: pos.coords.heading,
+          };
+          const filtered = gpsFilterRef.current(raw);
+          if (!filtered) return;
+          const point: GPSPoint = {
+            lat: filtered.lat,
+            lng: filtered.lng,
+            timestamp: filtered.timestamp,
+            accuracy: filtered.accuracy,
           };
           setSession(prev => ({
             ...prev,
@@ -97,9 +110,18 @@ export function useContributeSync() {
     }));
 
     if (navigator.geolocation) {
+      gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_USE_CONTRIBUTE_SYNC__ reset
       gpsWatchRef.current = navigator.geolocation.watchPosition(
         (pos) => {
-          const point = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          const raw = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            timestamp: pos.timestamp || Date.now(),
+            accuracy: pos.coords.accuracy,
+          };
+          const filtered = gpsFilterRef.current(raw);
+          if (!filtered) return;
+          const point = { lat: filtered.lat, lng: filtered.lng };
           setSession(prev => {
             if (!prev.routeRecording?.active) return prev;
             return {

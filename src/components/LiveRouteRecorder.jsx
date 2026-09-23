@@ -67,7 +67,7 @@ export default function LiveRouteRecorder({ routeName, routeUuid, onComplete, on
     if (location?.lat && location?.lng) {
       if (!gpsCircle.current) {
         gpsCircle.current = L.circleMarker([location.lat, location.lng], {
-          radius: 10, fillColor: "#4285F4", color: "#fff", weight: 3, fillOpacity: 1, zIndexOffset: 9999,
+          radius: 10, fillColor: "#7A4BC8", color: "#fff", weight: 3, fillOpacity: 1, zIndexOffset: 9999,
         }).addTo(layer).bindTooltip("You are here", { permanent: true, direction: "top" });
       } else {
         gpsCircle.current.setLatLng([location.lat, location.lng]);

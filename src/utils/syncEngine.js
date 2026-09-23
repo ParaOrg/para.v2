@@ -35,6 +35,8 @@ async function syncAll() {
   try {
     await syncCommutes();
     await syncFareReports();
+    await syncPois();          // __SYNC_DRAIN_FIX__
+    await syncGpsStreams();    // __SYNC_DRAIN_FIX__
     retryDelay = 1000;
   } catch (e) {
     console.warn("[syncEngine] syncAll failed:", e);
@@ -142,6 +144,54 @@ async function syncFareReports() {
       }
     } catch (e) {
       console.warn("[syncEngine] fare sync failed:", e);
+      break;
+    }
+  }
+}
+
+// __SYNC_DRAIN_FIX__ — drain POI events to /poi-add
+async function syncPois() {
+  const pois = await offlineBuffer.getPois();
+  for (const item of pois) {
+    try {
+      const response = await edgePost("poi-add", item);
+      if (
+        response?.status === "success" ||
+        response?.code === "DUPLICATE" ||
+        response?.code === "VALIDATION_FAILED"
+      ) {
+        await offlineBuffer.delete("poi_events", item.id);
+      } else if (response?.status === "error") {
+        break;
+      } else {
+        break;
+      }
+    } catch (e) {
+      console.warn("[syncEngine] poi sync failed:", e);
+      break;
+    }
+  }
+}
+
+// __SYNC_DRAIN_FIX__ — drain GPS streams via /commute-save
+async function syncGpsStreams() {
+  const streams = await offlineBuffer.getGpsStreams();
+  for (const item of streams) {
+    try {
+      const response = await edgePost("commute-save", item);
+      if (
+        response?.status === "success" ||
+        response?.code === "DUPLICATE" ||
+        response?.code === "VALIDATION_FAILED"
+      ) {
+        await offlineBuffer.delete("gps_streams", item.id);
+      } else if (response?.status === "error") {
+        break;
+      } else {
+        break;
+      }
+    } catch (e) {
+      console.warn("[syncEngine] gps stream sync failed:", e);
       break;
     }
   }

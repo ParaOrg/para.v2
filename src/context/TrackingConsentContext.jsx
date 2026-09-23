@@ -14,6 +14,13 @@ export function TrackingConsentProvider({ children }) {
   const [location, setLocation] = useState(null);
   const watchId = useRef(null);
 
+  // __GEO_STREAM_PATCHED__
+  // Opt-in high-frequency location stream. Consumers that need heading/speed
+  // (e.g. LiveMapBackground for pin rotation + direction cone) call
+  // startLocationStream(). Everyone else keeps using `location` unchanged.
+  const [streamLocation, setStreamLocation] = useState(null);
+  const streamWatchId = useRef(null);
+
   const stopTracking = useCallback(() => {
     if (watchId.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.clearWatch(watchId.current);
@@ -75,6 +82,50 @@ export function TrackingConsentProvider({ children }) {
     return fetchOnce();
   }, [consent, fetchOnce]);
 
+  // ── Opt-in stream ────────────────────────────────────────
+  const startLocationStream = useCallback(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) return false;
+    if (streamWatchId.current !== null) return true; // already streaming
+
+    streamWatchId.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const next = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          heading: Number.isFinite(pos.coords.heading) ? pos.coords.heading : null,
+          speed: Number.isFinite(pos.coords.speed) ? pos.coords.speed : null,
+          headingAccuracy: Number.isFinite(pos.coords.headingAccuracy) ? pos.coords.headingAccuracy : null,
+          altitude: Number.isFinite(pos.coords.altitude) ? pos.coords.altitude : null,
+          timestamp: pos.timestamp,
+        };
+        setStreamLocation(next);
+        try { window.__userLocation = [next.lat, next.lng]; } catch {}
+      },
+      (err) => {
+        console.warn("[streamLocation] error:", err.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    );
+    return true;
+  }, []);
+
+  const stopLocationStream = useCallback(() => {
+    if (streamWatchId.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.clearWatch(streamWatchId.current);
+      streamWatchId.current = null;
+    }
+    setStreamLocation(null);
+  }, []);
+
+  // Cleanup stream on provider unmount
+  useEffect(() => () => {
+    if (streamWatchId.current !== null && typeof navigator !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.clearWatch(streamWatchId.current);
+      streamWatchId.current = null;
+    }
+  }, []);
+
   useEffect(() => () => stopTracking(), [stopTracking]);
 
   return (
@@ -89,6 +140,9 @@ export function TrackingConsentProvider({ children }) {
         requestConsentAndLocation,
         startTracking,
         stopTracking,
+        streamLocation,
+        startLocationStream,
+        stopLocationStream,
       }}
     >
       {children}
