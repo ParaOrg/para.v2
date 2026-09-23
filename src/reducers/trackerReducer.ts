@@ -38,6 +38,7 @@ export type TrackerAction =
   // Global
   | { type: 'GPS_POINT'; payload: GpsPoint }
   | { type: 'TICK' }
+  | { type: 'HYDRATE'; payload: TrackerState } // __HYDRATE_ACTION__
   | { type: 'RESET' };
 
 // ─────────────────────────────────────────────────────────────
@@ -332,6 +333,9 @@ export function trackerReducer(
       }
       return state;
     }
+
+    case 'HYDRATE':
+      return { ...action.payload }; // __HYDRATE_ACTION__
 
     case 'RESET':
       return { ...initialTrackerState };

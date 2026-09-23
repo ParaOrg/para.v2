@@ -37,9 +37,17 @@ async function syncAll() {
     await syncFareReports();
     await syncPois();          // __SYNC_DRAIN_FIX__
     await syncGpsStreams();    // __SYNC_DRAIN_FIX__
-    retryDelay = 1000;
+    retryDelay = 1000;         // reset on success
   } catch (e) {
     console.warn("[syncEngine] syncAll failed:", e);
+    // Exponential backoff with full jitter: any value in [0, retryDelay).
+    // This desynchronizes concurrent clients so we don't stampede the
+    // edge function when many drivers are on the same tower.
+    // __SYNC_JITTER__
+    const base = retryDelay;
+    retryDelay = Math.min(MAX_RETRY_DELAY_MS, retryDelay * 2);
+    const jittered = Math.floor(Math.random() * base);
+    await new Promise((r) => setTimeout(r, jittered));
   } finally {
     isSyncing = false;
   }

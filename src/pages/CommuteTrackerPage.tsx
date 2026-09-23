@@ -16,6 +16,7 @@ import {
   generateClientLogId,
 } from '../utils/offlineBuffer';
 import { startNativeTracking, stopNativeTracking, ensureNotificationPermission } from '../utils/nativeTracker'; // __NOTIF_PERMISSION_WIRED__
+import { saveSession, loadSession, clearSession } from '../utils/sessionPersist'; // __SESSION_PERSIST_WIRED__
 import OemBatteryOnboarding from '../components/OemBatteryOnboarding'; // __OEM_ONBOARDING_WIRED__
 import {
   trackerReducer,
@@ -47,6 +48,29 @@ export default function CommuteTrackerPage() {
 
   // ─── Reducer is the single source of truth ───────────────
   const [state, dispatch] = useReducer(trackerReducer, initialTrackerState);
+
+  // Hydrate from persisted session on first mount. __SESSION_PERSIST_WIRED__
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    (async () => {
+      const persisted = await loadSession();
+      if (persisted) {
+        dispatch({ type: 'HYDRATE', payload: persisted });
+      }
+      setHydrated(true);
+    })();
+  }, []);
+
+  // Persist on every state change (only once hydration has run, so we
+  // don't clobber the persisted blob with the empty initial state).
+  useEffect(() => {
+    if (!hydrated) return;
+    if (state.flow === 'none') {
+      clearSession();
+    } else {
+      saveSession(state);
+    }
+  }, [state, hydrated]);
 
   // ─── Local UI state ──────────────────────────────────────
   const [showWeather, setShowWeather] = useState(false);
@@ -81,31 +105,33 @@ export default function CommuteTrackerPage() {
     gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_COMMUTE_TRACKER__ reset
 
     let cancelled = false;
-    ensureNotificationPermission().then(() => {
+    (async () => {
+      // Wait for notification permission BEFORE starting the service,
+      // otherwise Android 13+ kills the service after ~5 min without a
+      // notification. __NOTIF_AWAIT_FIX__
+      await ensureNotificationPermission();
       if (cancelled) return;
-      // __NOTIF_PERMISSION_WIRED__ proceed regardless of grant — user may
-      // have denied; we still start tracking, but Android may kill the
-      // service after ~5 min if notifications are denied.
-    });
-    startNativeTracking(
-      (point) => {
-        if (cancelled) return;
-        const filtered = gpsFilterRef.current(point);
-        if (!filtered) return;
-        const cleaned: GpsPoint = {
-          lat: filtered.lat,
-          lng: filtered.lng,
-          timestamp: filtered.timestamp,
-          accuracy: filtered.accuracy,
-        };
-        dispatch({ type: 'GPS_POINT', payload: cleaned });
-      },
-      (err) => {
-        console.error('[trackerPage] native GPS error:', err.code, err.message);
-      }
-    ).catch((e) => {
-      console.error('[trackerPage] startNativeTracking failed:', e);
-    });
+
+      startNativeTracking(
+        (point) => {
+          if (cancelled) return;
+          const filtered = gpsFilterRef.current(point);
+          if (!filtered) return;
+          const cleaned: GpsPoint = {
+            lat: filtered.lat,
+            lng: filtered.lng,
+            timestamp: filtered.timestamp,
+            accuracy: filtered.accuracy,
+          };
+          dispatch({ type: 'GPS_POINT', payload: cleaned });
+        },
+        (err) => {
+          console.error('[trackerPage] native GPS error:', err.code, err.message);
+        }
+      ).catch((e) => {
+        console.error('[trackerPage] startNativeTracking failed:', e);
+      });
+    })();
     return () => {
       cancelled = true;
       stopNativeTracking();
