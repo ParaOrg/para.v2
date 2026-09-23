@@ -15,6 +15,7 @@ import {
   getOrCreateInstallId,
   generateClientLogId,
 } from '../utils/offlineBuffer';
+import { startNativeTracking, stopNativeTracking } from '../utils/nativeTracker';
 import {
   trackerReducer,
   initialTrackerState,
@@ -64,68 +65,43 @@ export default function CommuteTrackerPage() {
   const hasAccess = true; // open to all; auth handled upstream
 
   // ─── GPS watcher — one at a time, driven by state ────────
-  const gpsWatchRef = useRef<number | null>(null);
-  const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_COMMUTE_TRACKER__
+  const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_COMMUTE_TRACKER__  // __REBASE_RESOLVED_TRACKER__
   const flowActive =
     state.flow === 'commute' ||
     (state.flow === 'documenting' && state.documentPhase === 'recording');
 
   useEffect(() => {
     if (!flowActive) {
-      if (gpsWatchRef.current !== null) {
-        navigator.geolocation.clearWatch(gpsWatchRef.current);
-        gpsWatchRef.current = null;
+      stopNativeTracking();
+      return;
+    }
+
+    // Reset the filter each time a new session starts
+    gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_COMMUTE_TRACKER__ reset
+
+    let cancelled = false;
+    startNativeTracking(
+      (point) => {
+        if (cancelled) return;
+        const filtered = gpsFilterRef.current(point);
+        if (!filtered) return;
+        const cleaned: GpsPoint = {
+          lat: filtered.lat,
+          lng: filtered.lng,
+          timestamp: filtered.timestamp,
+          accuracy: filtered.accuracy,
+        };
+        dispatch({ type: 'GPS_POINT', payload: cleaned });
+      },
+      (err) => {
+        console.error('[trackerPage] native GPS error:', err.code, err.message);
       }
-      return;
-    }
-    if (typeof navigator.geolocation === 'undefined') {
-      console.error('[trackerPage] geolocation unsupported');
-      return;
-    }
-
-    const attempt = (highAccuracy: boolean) => {
-      gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_COMMUTE_TRACKER__ reset
-      gpsWatchRef.current = navigator.geolocation.watchPosition(
-        (pos) => {
-          const raw = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            timestamp: pos.timestamp || Date.now(),
-            accuracy: pos.coords.accuracy,
-          };
-          const filtered = gpsFilterRef.current(raw);
-          if (!filtered) return;
-          const point: GpsPoint = {
-            lat: filtered.lat,
-            lng: filtered.lng,
-            timestamp: filtered.timestamp,
-            accuracy: filtered.accuracy,
-          };
-          dispatch({ type: 'GPS_POINT', payload: point });
-        },
-        (err) => {
-          console.error('[trackerPage] GPS error:', err.code, err.message, { highAccuracy });
-          if (highAccuracy && (err.code === 3 || err.code === 2)) {
-            if (gpsWatchRef.current !== null) {
-              navigator.geolocation.clearWatch(gpsWatchRef.current);
-            }
-            attempt(false);
-          }
-        },
-        {
-          enableHighAccuracy: highAccuracy,
-          timeout: highAccuracy ? 30000 : 60000,
-          maximumAge: highAccuracy ? 5000 : 15000,
-        }
-      );
-    };
-    attempt(true);
-
+    ).catch((e) => {
+      console.error('[trackerPage] startNativeTracking failed:', e);
+    });
     return () => {
-      if (gpsWatchRef.current !== null) {
-        navigator.geolocation.clearWatch(gpsWatchRef.current);
-        gpsWatchRef.current = null;
-      }
+      cancelled = true;
+      stopNativeTracking();
     };
   }, [flowActive]);
 
