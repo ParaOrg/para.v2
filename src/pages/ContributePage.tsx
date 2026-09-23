@@ -42,6 +42,7 @@ const ContributePage: React.FC = () => {
   const [placeType, setPlaceType] = useState('landmark');
   const [gpsPoints, setGpsPoints] = useState([]);
   const gpsWatchRef = useRef(null);
+  const gpsPointsLiveRef = useRef([]);  // __ACCUMULATION_FIX__ live array (mutate freely)
   const gpsFilterRef = useRef(createGpsFilter());  // __GPS_FILTER_CONTRIBUTE_PAGE__
   const startTimeRef = useRef(null);
 
@@ -67,6 +68,7 @@ const ContributePage: React.FC = () => {
   const startGpsTracking = () => {
     if (!navigator.geolocation) return;
     setGpsPoints([]);
+    gpsPointsLiveRef.current = [];  // __ACCUMULATION_FIX__ reset live array
     startTimeRef.current = Date.now();
     gpsFilterRef.current = createGpsFilter();  // __GPS_FILTER_CONTRIBUTE_PAGE__ reset
     gpsWatchRef.current = navigator.geolocation.watchPosition(
@@ -84,7 +86,11 @@ const ContributePage: React.FC = () => {
           lng: filtered.lng,
           timestamp: filtered.timestamp,
         };
-        setGpsPoints((prev) => [...prev, point]);
+        // __ACCUMULATION_FIX__: mutate ref array; commit to state every 5th point
+        gpsPointsLiveRef.current.push(point);
+        if (gpsPointsLiveRef.current.length % 5 === 0) {
+          setGpsPoints(gpsPointsLiveRef.current.slice());
+        }
       },
       (err) => console.error('GPS error:', err.message),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }

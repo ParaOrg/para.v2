@@ -279,11 +279,13 @@ export function trackerReducer(
         const prev = state.activeSegment.gpsPoints;
         const last = prev[prev.length - 1];
         const delta = last ? haversine(last, action.payload) : 0;
+        // __ACCUMULATION_FIX__: mutate in place; new top-level object still triggers React
+        prev.push(action.payload);
         return {
           ...state,
           activeSegment: {
             ...state.activeSegment,
-            gpsPoints: [...prev, action.payload],
+            gpsPoints: prev,
             distanceM: state.activeSegment.distanceM + delta,
           },
           totalDistanceM: state.totalDistanceM + delta,
@@ -297,11 +299,13 @@ export function trackerReducer(
         const prev = state.documentedRoute.gpsPoints;
         const last = prev[prev.length - 1];
         const delta = last ? haversine(last, action.payload) : 0;
+        // __ACCUMULATION_FIX__: mutate in place
+        prev.push(action.payload);
         return {
           ...state,
           documentedRoute: {
             ...state.documentedRoute,
-            gpsPoints: [...prev, action.payload],
+            gpsPoints: prev,
             distanceM: state.documentedRoute.distanceM + delta,
           },
           totalDistanceM: state.totalDistanceM + delta,

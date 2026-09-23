@@ -275,7 +275,12 @@ export const LiveMapBackground: React.FC<LiveMapBackgroundProps> = ({
     }
     
     const newPoint: [number, number] = [location.lat, location.lng];
-    gpsTrailPoints.current = [...gpsTrailPoints.current, newPoint];
+    // __ACCUMULATION_FIX__: mutate in place, cap at 5000 points (~1.5 hrs @ 1 Hz)
+    const MAX_TRAIL = 5000;
+    gpsTrailPoints.current.push(newPoint);
+    if (gpsTrailPoints.current.length > MAX_TRAIL) {
+      gpsTrailPoints.current.splice(0, gpsTrailPoints.current.length - MAX_TRAIL);
+    }
     
     // Store GPS points for current segment based on commute state
     if (commuteState === 'riding') {

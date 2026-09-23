@@ -276,10 +276,12 @@ export function contributeReducer(
       const prevPoints = active.gpsPoints;
       const last = prevPoints[prevPoints.length - 1];
       const delta = last ? haversine(last, action.payload) : 0;
+      // __ACCUMULATION_FIX__: mutate in place; new outer object triggers React
+      prevPoints.push(action.payload);
 
       const updated: Segment = {
         ...active,
-        gpsPoints: [...prevPoints, action.payload],
+        gpsPoints: prevPoints,
         distanceM: active.distanceM + delta,
         durationSec: Math.round((Date.now() - active.startedAt) / 1000),
       };
