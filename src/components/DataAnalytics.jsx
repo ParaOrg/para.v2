@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { getApiBaseUrl } from "../utils/api";
 
-const API = getApiBaseUrl();
+// __TASK6_ANALYTICS__ all fetches go direct to Supabase REST
+const SB_URL = import.meta.env.VITE_SUPABASE_URL;
+const SB_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SB_HDRS = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` };
+const sb = (path) => fetch(`${SB_URL}/rest/v1/${path}`, { headers: SB_HDRS });
 
 export default function DataAnalytics() {
   const [stats, setStats] = useState(null);
@@ -16,13 +20,13 @@ export default function DataAnalytics() {
   const fetchData = useCallback(async () => {
     try {
       const [routesRes, refRes, faresRes, tracksRes, threadsRes, poisRes, waitlistRes] = await Promise.all([
-        fetch(`${API}/routes/public`),
-        fetch(`${API}/routes/public/reference`),
-        fetch(`${API}/fare/reports?limit=1000`),
-        fetch(`${API}/commute/logs`),
-        fetch(`${API}/community/threads`),
-        fetch(`${API}/poi/list`),
-        fetch(`${API}/auth/waitlist/count`),
+        sb('ph_routes?select=*&order=created_at.desc&limit=2000'),
+        sb('ph_route_reference?select=*'),
+        sb('fare_reports?select=*&order=created_at.desc&limit=1000'),
+        sb('ph_user_tracks?select=*&order=created_at.desc&limit=2000'),
+        sb('community_threads?select=*&order=created_at.desc&limit=500'),
+        sb('ph_places?select=*&limit=2000'),
+        sb('waitlist?select=*&limit=1'),
       ]);
       
       // PWA stats from localStorage
@@ -42,14 +46,14 @@ export default function DataAnalytics() {
       const pois = await poisRes.json();
       const waitlist = await waitlistRes.json();
 
-      const allRoutes = routes.routes || [];
+      const allRoutes = Array.isArray(routes) ? routes : (routes.routes || []);
       const verifiedRoutes = allRoutes.filter(r => r.is_approved);
       const unverifiedRoutes = allRoutes.filter(r => !r.is_approved);
-      const referenceRoutes = refs.routes || [];
-      const fareReports = fares.reports || [];
-      const commuteLogs = tracks.logs || [];
-      const communityThreads = threads.threads || [];
-      const poiList = pois.pois || [];
+      const referenceRoutes = Array.isArray(refs) ? refs : (refs.routes || []);
+      const fareReports = Array.isArray(fares) ? fares : (fares.reports || []);
+      const commuteLogs = Array.isArray(tracks) ? tracks : (tracks.logs || []);
+      const communityThreads = Array.isArray(threads) ? threads : (threads.threads || []);
+      const poiList = Array.isArray(pois) ? pois : (pois.pois || []);
 
       // Build timeline from all data — group by day
       const allEvents = [];
