@@ -77,3 +77,6 @@ supabase/.temp/
 *.bak
 *.backup
 src/assets/images/loop.gif
+
+# Capacitor / Android build artifacts
+android/
