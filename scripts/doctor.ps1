@@ -165,12 +165,20 @@ if (Test-Path 'android\keystore.properties') {
   $ks = Get-Content 'android\keystore.properties' -Raw
   $ksFile = ($ks -split "`n" | Where-Object { $_ -match '^storeFile=' }) -replace '^storeFile=',''
   $ksFile = $ksFile.Trim()
-  if ($ksFile -and (Test-Path $ksFile)) {
-    Ok "keystore file found: $ksFile"
-  } elseif ($ksFile -and (Test-Path "android\$ksFile")) {
-    Ok "keystore file found: android\$ksFile"
+  # Gradle resolves storeFile relative to android/app/, so try that base
+  $candidates = @(
+    $ksFile,
+    "android\$ksFile",
+    "android\app\$ksFile"
+  )
+  $found = $null
+  foreach ($c in $candidates) {
+    if (Test-Path $c) { $found = $c; break }
+  }
+  if ($found) {
+    Ok "keystore file found: $found"
   } else {
-    Warn "keystore file not found on disk (storeFile=$ksFile)"
+    Warn "keystore file not found on disk (tried: $($candidates -join ', '))"
   }
 } else {
   Warn "android/keystore.properties missing — release builds will fail"

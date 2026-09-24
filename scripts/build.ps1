@@ -88,8 +88,14 @@ Write-Host "   -> $destApk ($sizeMB MB)" -ForegroundColor Green
 if ($Install) {
   Write-Host "[6/6] Installing to device..." -ForegroundColor Cyan
   $adb = Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'
-  & $adb install -r $destApk
-  if ($LASTEXITCODE -ne 0) { throw "adb install failed" }
+  $devices = (& $adb devices) -split "`n" | Where-Object { $_ -match "\sdevice$" }
+  if ($devices.Count -eq 0) {
+    Write-Host "   No device connected — skipping install" -ForegroundColor Yellow
+    Write-Host "   APK is ready at: $destApk" -ForegroundColor Yellow
+  } else {
+    & $adb install -r $destApk
+    if ($LASTEXITCODE -ne 0) { throw "adb install failed" }
+  }
 } else {
   Write-Host "[6/6] Install skipped (-Install not passed)" -ForegroundColor DarkGray
 }
