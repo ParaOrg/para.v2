@@ -89,3 +89,11 @@ android/
 
 # Local editor/tool backups
 *.bak*
+
+# Build artifacts
+dist-artifacts/
+
+# Signing — NEVER commit
+android/keystore.properties
+*.keystore
+*.jks
