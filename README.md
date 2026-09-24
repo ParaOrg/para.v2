@@ -1,3 +1,5 @@
+[![Android Debug APK](https://github.com/ParaOrg/para.v2/actions/workflows/android-debug.yml/badge.svg?branch=feat/tracker-apk)](https://github.com/ParaOrg/para.v2/actions/workflows/android-debug.yml)
+
 # 🚙 Para PH (v3.0)
 
 **Para PH** is a hyper-scale geo-sentiment analyzer and multi-modal transit routing engine built specifically for Metro Manila and the Philippines. It combines natural language processing (for local slang normalization) with a highly optimized, crowdsourced spatial routing graph to provide accurate, multi-modal commute directions.
@@ -145,3 +147,4 @@ Copyright © 2026 PARA PH. All Rights Reserved.
 
 - **Email:** [para.ph.info@gmail.com](mailto:para.ph.info@gmail.com)
 - **Website:** [https://para-commute.org](https://para-commute.org/)
+
