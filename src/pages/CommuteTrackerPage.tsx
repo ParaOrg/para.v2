@@ -1,4 +1,4 @@
-import { useState, useEffect, useReducer, useRef, useCallback } from 'react';
+import { useState, useEffect, useReducer, useRef, useCallback, useMemo } from 'react';
 import { createGpsFilter } from '../utils/gpsFilter';  // __GPS_FILTER_COMMUTE_TRACKER__
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -457,6 +457,20 @@ export default function CommuteTrackerPage() {
     ...(documentedPath ? [documentedPath] : []),
   ];
 
+  // Live position for the map pin. Uses the latest GPS point from whichever
+  // segment is currently recording. __PATCHED_PIN_FREEZE__
+  // deps [state]: reducer mutates gpsPoints in place, so the array reference
+  // is stable across dispatches; narrow deps would be a footgun.
+  const livePosition = useMemo(() => {
+    const lastOf = <T,>(arr?: T[]): T | undefined =>
+      arr && arr.length ? arr[arr.length - 1] : undefined;
+    const latest =
+      lastOf(state.activeSegment?.gpsPoints) ??
+      lastOf(state.documentedRoute?.gpsPoints) ??
+      lastOf(state.segments[state.segments.length - 1]?.gpsPoints);
+    return latest ? { lat: latest.lat, lng: latest.lng } : null;
+  }, [state]);
+
   // ─── Render ──────────────────────────────────────────────
   return (
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden">
@@ -480,6 +494,7 @@ export default function CommuteTrackerPage() {
           externalPinMode={pinMode}
           onExternalPinModeChange={setPinMode}
           commutePaths={commutePaths}
+          livePosition={livePosition}
         />
       </div>
 
